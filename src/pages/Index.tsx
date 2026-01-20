@@ -8,6 +8,7 @@ import { AgendaView } from '@/views/AgendaView';
 import { PropertiesView } from '@/views/PropertiesView';
 import { SettingsView } from '@/views/SettingsView';
 import { LoginView } from '@/views/LoginView';
+import { PropertyDetailsView } from '@/views/PropertyDetailsView';
 
 const Index = () => {
   // Auth State
@@ -71,6 +72,12 @@ const Index = () => {
     setView('PROPERTY_DETAILS');
   };
 
+  const updateProperty = (updatedProperty: Property) => {
+    setProperties(prev => prev.map(p => 
+      p.id === updatedProperty.id ? updatedProperty : p
+    ));
+  };
+
   const addProperty = () => {
     // Would open add property modal
     console.log('Add property clicked');
@@ -80,6 +87,8 @@ const Index = () => {
   const handleNavigate = (newView: ViewState) => {
     setView(newView);
   };
+
+  const activeProperty = properties.find(p => p.id === activePropertyId);
 
   // Render Login if not authenticated
   if (!isAuthenticated) {
@@ -144,6 +153,22 @@ const Index = () => {
                 properties={properties}
                 onViewProperty={viewProperty}
                 onAddProperty={addProperty}
+              />
+            </motion.div>
+          )}
+          
+          {view === 'PROPERTY_DETAILS' && activeProperty && (
+            <motion.div
+              key="property-details"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="h-full"
+            >
+              <PropertyDetailsView 
+                property={activeProperty}
+                onBack={() => setView('PROPERTIES')}
+                onUpdate={updateProperty}
               />
             </motion.div>
           )}
