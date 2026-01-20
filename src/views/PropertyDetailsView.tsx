@@ -1,0 +1,427 @@
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  ArrowLeft, 
+  Key, 
+  Wifi, 
+  FileText, 
+  MapPin, 
+  Home, 
+  Edit2, 
+  Save, 
+  X,
+  Bed,
+  Bath,
+  Square,
+  Package,
+  ExternalLink,
+  Copy,
+  Check,
+  Eye,
+  EyeOff
+} from 'lucide-react';
+import { Property } from '@/types';
+import { BackgroundEffects } from '@/components/BackgroundEffects';
+
+interface PropertyDetailsViewProps {
+  property: Property;
+  onBack: () => void;
+  onUpdate: (property: Property) => void;
+}
+
+export const PropertyDetailsView = ({ property, onBack, onUpdate }: PropertyDetailsViewProps) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedProperty, setEditedProperty] = useState<Property>(property);
+  const [showAccessCode, setShowAccessCode] = useState(false);
+  const [showWifiPassword, setShowWifiPassword] = useState(false);
+  const [copiedField, setCopiedField] = useState<string | null>(null);
+
+  const handleSave = () => {
+    onUpdate(editedProperty);
+    setIsEditing(false);
+  };
+
+  const handleCancel = () => {
+    setEditedProperty(property);
+    setIsEditing(false);
+  };
+
+  const copyToClipboard = (text: string, field: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedField(field);
+    setTimeout(() => setCopiedField(null), 2000);
+  };
+
+  const statusColors: Record<Property['status'], string> = {
+    'READY': 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
+    'NEEDS_CLEANING': 'bg-amber-500/20 text-amber-400 border-amber-500/30',
+    'OCCUPIED': 'bg-rose-500/20 text-rose-400 border-rose-500/30'
+  };
+
+  const statusLabels: Record<Property['status'], string> = {
+    'READY': 'Ready',
+    'NEEDS_CLEANING': 'Needs Cleaning',
+    'OCCUPIED': 'Occupied'
+  };
+
+  return (
+    <div className="flex flex-col h-full relative z-10 overflow-y-auto hide-scrollbar pb-32">
+      <BackgroundEffects />
+      
+      {/* Header */}
+      <div className="sticky top-0 z-20 glass-panel border-b border-white/10">
+        <div className="flex items-center justify-between px-4 py-4">
+          <button 
+            onClick={onBack}
+            className="p-2 -ml-2 rounded-xl hover:bg-white/10 transition-colors"
+          >
+            <ArrowLeft size={24} className="text-foreground" />
+          </button>
+          
+          <h1 className="text-lg font-semibold text-foreground">Property Details</h1>
+          
+          {isEditing ? (
+            <div className="flex gap-2">
+              <button 
+                onClick={handleCancel}
+                className="p-2 rounded-xl hover:bg-white/10 transition-colors"
+              >
+                <X size={20} className="text-muted-foreground" />
+              </button>
+              <button 
+                onClick={handleSave}
+                className="p-2 rounded-xl bg-secondary text-secondary-foreground hover:opacity-90 transition-opacity"
+              >
+                <Save size={20} />
+              </button>
+            </div>
+          ) : (
+            <button 
+              onClick={() => setIsEditing(true)}
+              className="p-2 rounded-xl hover:bg-white/10 transition-colors"
+            >
+              <Edit2 size={20} className="text-secondary" />
+            </button>
+          )}
+        </div>
+      </div>
+      
+      <div className="px-6 py-4 space-y-4 relative z-10">
+        {/* Property Hero */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="glass-panel overflow-hidden"
+        >
+          {property.photo ? (
+            <div className="h-48 bg-gradient-to-br from-secondary/20 to-accent/20 relative">
+              <img src={property.photo} alt={property.name} className="w-full h-full object-cover" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+              <div className="absolute bottom-4 left-4 right-4">
+                {isEditing ? (
+                  <input
+                    type="text"
+                    value={editedProperty.name}
+                    onChange={(e) => setEditedProperty({...editedProperty, name: e.target.value})}
+                    className="text-2xl font-bold text-white bg-white/20 backdrop-blur-sm rounded-lg px-3 py-1 w-full border border-white/30 focus:outline-none focus:border-secondary"
+                  />
+                ) : (
+                  <h2 className="text-2xl font-bold text-white">{property.name}</h2>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className="h-48 bg-gradient-to-br from-secondary/20 to-accent/20 flex items-center justify-center relative">
+              <Home size={64} className="text-secondary/50" />
+              <div className="absolute bottom-4 left-4 right-4">
+                {isEditing ? (
+                  <input
+                    type="text"
+                    value={editedProperty.name}
+                    onChange={(e) => setEditedProperty({...editedProperty, name: e.target.value})}
+                    className="text-2xl font-bold text-white bg-white/20 backdrop-blur-sm rounded-lg px-3 py-1 w-full border border-white/30 focus:outline-none focus:border-secondary"
+                  />
+                ) : (
+                  <h2 className="text-2xl font-bold text-white">{property.name}</h2>
+                )}
+              </div>
+            </div>
+          )}
+          
+          <div className="p-4">
+            <div className="flex items-start gap-2 mb-3">
+              <MapPin size={16} className="text-muted-foreground mt-0.5 shrink-0" />
+              {isEditing ? (
+                <input
+                  type="text"
+                  value={editedProperty.address}
+                  onChange={(e) => setEditedProperty({...editedProperty, address: e.target.value})}
+                  className="flex-1 text-sm text-muted-foreground bg-white/10 rounded-lg px-2 py-1 border border-white/20 focus:outline-none focus:border-secondary"
+                />
+              ) : (
+                <p className="text-sm text-muted-foreground">{property.address}</p>
+              )}
+            </div>
+            
+            <div className="flex items-center gap-3 flex-wrap">
+              <span className={`px-3 py-1 rounded-full text-xs font-medium border ${statusColors[property.status]}`}>
+                {statusLabels[property.status]}
+              </span>
+              <span className="px-3 py-1 rounded-full text-xs font-medium bg-secondary/20 text-secondary border border-secondary/30">
+                {property.type}
+              </span>
+              <span className="px-3 py-1 rounded-full text-xs font-medium bg-accent/20 text-accent border border-accent/30">
+                {property.serviceType}
+              </span>
+            </div>
+            
+            {/* Property Stats */}
+            <div className="flex items-center gap-4 mt-4 pt-4 border-t border-white/10">
+              {property.bedrooms !== undefined && (
+                <div className="flex items-center gap-1.5">
+                  <Bed size={16} className="text-secondary" />
+                  <span className="text-sm text-foreground">{property.bedrooms} bed</span>
+                </div>
+              )}
+              {property.bathrooms !== undefined && (
+                <div className="flex items-center gap-1.5">
+                  <Bath size={16} className="text-secondary" />
+                  <span className="text-sm text-foreground">{property.bathrooms} bath</span>
+                </div>
+              )}
+              {property.sqft !== undefined && (
+                <div className="flex items-center gap-1.5">
+                  <Square size={16} className="text-secondary" />
+                  <span className="text-sm text-foreground">{property.sqft} sqft</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </motion.div>
+        
+        {/* Access Code */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="glass-panel p-4"
+        >
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 rounded-xl bg-secondary/20 flex items-center justify-center">
+              <Key size={20} className="text-secondary" />
+            </div>
+            <div className="flex-1">
+              <h3 className="font-semibold text-foreground">Access Code</h3>
+              <p className="text-xs text-muted-foreground">Door lock or keypad code</p>
+            </div>
+          </div>
+          
+          {isEditing ? (
+            <input
+              type="text"
+              value={editedProperty.accessCode || ''}
+              onChange={(e) => setEditedProperty({...editedProperty, accessCode: e.target.value})}
+              placeholder="Enter access code..."
+              className="w-full bg-white/10 rounded-lg px-3 py-2 text-foreground border border-white/20 focus:outline-none focus:border-secondary"
+            />
+          ) : property.accessCode ? (
+            <div className="flex items-center gap-2">
+              <div className="flex-1 bg-white/5 rounded-lg px-3 py-2 font-mono text-foreground">
+                {showAccessCode ? property.accessCode : '••••••'}
+              </div>
+              <button 
+                onClick={() => setShowAccessCode(!showAccessCode)}
+                className="p-2 rounded-lg hover:bg-white/10 transition-colors"
+              >
+                {showAccessCode ? <EyeOff size={18} className="text-muted-foreground" /> : <Eye size={18} className="text-muted-foreground" />}
+              </button>
+              <button 
+                onClick={() => copyToClipboard(property.accessCode!, 'access')}
+                className="p-2 rounded-lg hover:bg-white/10 transition-colors"
+              >
+                {copiedField === 'access' ? <Check size={18} className="text-emerald-400" /> : <Copy size={18} className="text-muted-foreground" />}
+              </button>
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground italic">No access code set</p>
+          )}
+        </motion.div>
+        
+        {/* WiFi Password */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
+          className="glass-panel p-4"
+        >
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 rounded-xl bg-accent/20 flex items-center justify-center">
+              <Wifi size={20} className="text-accent" />
+            </div>
+            <div className="flex-1">
+              <h3 className="font-semibold text-foreground">WiFi Password</h3>
+              <p className="text-xs text-muted-foreground">Network credentials</p>
+            </div>
+          </div>
+          
+          {isEditing ? (
+            <input
+              type="text"
+              value={editedProperty.wifiPassword || ''}
+              onChange={(e) => setEditedProperty({...editedProperty, wifiPassword: e.target.value})}
+              placeholder="Enter WiFi password..."
+              className="w-full bg-white/10 rounded-lg px-3 py-2 text-foreground border border-white/20 focus:outline-none focus:border-secondary"
+            />
+          ) : property.wifiPassword ? (
+            <div className="flex items-center gap-2">
+              <div className="flex-1 bg-white/5 rounded-lg px-3 py-2 font-mono text-foreground">
+                {showWifiPassword ? property.wifiPassword : '••••••••'}
+              </div>
+              <button 
+                onClick={() => setShowWifiPassword(!showWifiPassword)}
+                className="p-2 rounded-lg hover:bg-white/10 transition-colors"
+              >
+                {showWifiPassword ? <EyeOff size={18} className="text-muted-foreground" /> : <Eye size={18} className="text-muted-foreground" />}
+              </button>
+              <button 
+                onClick={() => copyToClipboard(property.wifiPassword!, 'wifi')}
+                className="p-2 rounded-lg hover:bg-white/10 transition-colors"
+              >
+                {copiedField === 'wifi' ? <Check size={18} className="text-emerald-400" /> : <Copy size={18} className="text-muted-foreground" />}
+              </button>
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground italic">No WiFi password set</p>
+          )}
+        </motion.div>
+        
+        {/* Supplies Location */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="glass-panel p-4"
+        >
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center">
+              <Package size={20} className="text-emerald-400" />
+            </div>
+            <div className="flex-1">
+              <h3 className="font-semibold text-foreground">Supplies Location</h3>
+              <p className="text-xs text-muted-foreground">Where to find cleaning supplies</p>
+            </div>
+          </div>
+          
+          {isEditing ? (
+            <textarea
+              value={editedProperty.suppliesLocation || ''}
+              onChange={(e) => setEditedProperty({...editedProperty, suppliesLocation: e.target.value})}
+              placeholder="Describe where supplies are located..."
+              rows={2}
+              className="w-full bg-white/10 rounded-lg px-3 py-2 text-foreground border border-white/20 focus:outline-none focus:border-secondary resize-none"
+            />
+          ) : property.suppliesLocation ? (
+            <p className="text-sm text-foreground">{property.suppliesLocation}</p>
+          ) : (
+            <p className="text-sm text-muted-foreground italic">No location specified</p>
+          )}
+        </motion.div>
+        
+        {/* Cleaning Notes */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.25 }}
+          className="glass-panel p-4"
+        >
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center">
+              <FileText size={20} className="text-amber-400" />
+            </div>
+            <div className="flex-1">
+              <h3 className="font-semibold text-foreground">Cleaning Notes</h3>
+              <p className="text-xs text-muted-foreground">Special instructions & reminders</p>
+            </div>
+          </div>
+          
+          {isEditing ? (
+            <textarea
+              value={editedProperty.notes || ''}
+              onChange={(e) => setEditedProperty({...editedProperty, notes: e.target.value})}
+              placeholder="Add cleaning notes and special instructions..."
+              rows={4}
+              className="w-full bg-white/10 rounded-lg px-3 py-2 text-foreground border border-white/20 focus:outline-none focus:border-secondary resize-none"
+            />
+          ) : property.notes ? (
+            <p className="text-sm text-foreground whitespace-pre-wrap">{property.notes}</p>
+          ) : (
+            <p className="text-sm text-muted-foreground italic">No notes added</p>
+          )}
+        </motion.div>
+        
+        {/* House Manual Link */}
+        {(property.manualUrl || isEditing) && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="glass-panel p-4"
+          >
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center">
+                <ExternalLink size={20} className="text-blue-400" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-foreground">House Manual</h3>
+                <p className="text-xs text-muted-foreground">External documentation link</p>
+              </div>
+            </div>
+            
+            {isEditing ? (
+              <input
+                type="url"
+                value={editedProperty.manualUrl || ''}
+                onChange={(e) => setEditedProperty({...editedProperty, manualUrl: e.target.value})}
+                placeholder="https://..."
+                className="w-full bg-white/10 rounded-lg px-3 py-2 text-foreground border border-white/20 focus:outline-none focus:border-secondary"
+              />
+            ) : property.manualUrl ? (
+              <a 
+                href={property.manualUrl} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 text-secondary hover:underline"
+              >
+                <span className="text-sm truncate">{property.manualUrl}</span>
+                <ExternalLink size={14} />
+              </a>
+            ) : null}
+          </motion.div>
+        )}
+        
+        {/* Pricing Info */}
+        {property.basePrice && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.35 }}
+            className="glass-panel p-4"
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">Base Price</p>
+                <p className="text-2xl font-bold text-secondary">${property.basePrice}</p>
+              </div>
+              {property.lastCleaned && (
+                <div className="text-right">
+                  <p className="text-sm text-muted-foreground">Last Cleaned</p>
+                  <p className="text-sm font-medium text-foreground">{property.lastCleaned}</p>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </div>
+    </div>
+  );
+};
