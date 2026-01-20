@@ -1,0 +1,118 @@
+import { useState } from 'react';
+import { motion } from 'framer-motion';
+import { Eye, EyeOff, Droplets } from 'lucide-react';
+import { BackgroundEffects } from '@/components/BackgroundEffects';
+import purLogo from '@/assets/pur-logo.png';
+
+interface LoginViewProps {
+  onLogin: (email: string, password: string) => void;
+  isLoading?: boolean;
+  error?: string;
+}
+
+export const LoginView = ({ onLogin, isLoading, error }: LoginViewProps) => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [authMode, setAuthMode] = useState<'SIGN_IN' | 'SIGN_UP'>('SIGN_IN');
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onLogin(email, password);
+  };
+
+  return (
+    <div className="mobile-frame relative flex flex-col">
+      <BackgroundEffects />
+      
+      <div className="flex-1 w-full overflow-y-auto overflow-x-hidden relative z-20 flex flex-col items-center justify-center p-6 min-h-[600px]">
+        {/* Logo */}
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.8, y: -20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ duration: 0.6, type: 'spring' }}
+          className="mb-8 mt-4"
+        >
+          <div className="relative w-40 h-40 flex items-center justify-center">
+            <img 
+              src={purLogo}
+              alt="Pur Logo" 
+              className="w-full h-full object-contain drop-shadow-2xl" 
+            />
+          </div>
+        </motion.div>
+        
+        {/* Login Card */}
+        <motion.div 
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="glass-panel w-full max-w-[320px] p-8"
+        >
+          <h2 className="text-3xl font-light text-foreground mb-2 text-center tracking-tight">
+            {authMode === 'SIGN_IN' ? 'Welcome' : 'Join'}
+          </h2>
+          <p className="text-center text-muted-foreground text-xs mb-8 uppercase tracking-widest font-bold">
+            {authMode === 'SIGN_IN' ? 'Sign in to continue' : 'Create your workspace'}
+          </p>
+          
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="field-label">Email</label>
+              <input 
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@example.com"
+                className="w-full p-4 bg-white/50 border border-border rounded-xl text-foreground font-medium focus:border-primary outline-none transition-colors placeholder:text-muted-foreground"
+                required
+              />
+            </div>
+            
+            <div>
+              <label className="field-label">Password</label>
+              <div className="relative">
+                <input 
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="w-full p-4 bg-white/50 border border-border rounded-xl text-foreground font-medium focus:border-primary outline-none transition-colors placeholder:text-muted-foreground pr-12"
+                  required
+                />
+                <button 
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                </button>
+              </div>
+            </div>
+            
+            {error && (
+              <p className="text-destructive text-sm text-center">{error}</p>
+            )}
+            
+            <button 
+              type="submit"
+              disabled={isLoading}
+              className="w-full py-4 bg-primary text-primary-foreground rounded-xl font-bold uppercase tracking-widest text-sm transition-all hover:opacity-90 active:scale-95 disabled:opacity-50"
+            >
+              {isLoading ? 'Loading...' : authMode === 'SIGN_IN' ? 'Sign In' : 'Create Account'}
+            </button>
+          </form>
+          
+          <div className="mt-6 text-center">
+            <button 
+              onClick={() => setAuthMode(authMode === 'SIGN_IN' ? 'SIGN_UP' : 'SIGN_IN')}
+              className="text-sm text-muted-foreground hover:text-primary transition-colors"
+            >
+              {authMode === 'SIGN_IN' ? "Don't have an account? Sign Up" : "Already have an account? Sign In"}
+            </button>
+          </div>
+        </motion.div>
+      </div>
+    </div>
+  );
+};
