@@ -9,6 +9,7 @@ import { PropertiesView } from '@/views/PropertiesView';
 import { SettingsView } from '@/views/SettingsView';
 import { LoginView } from '@/views/LoginView';
 import { PropertyDetailsView } from '@/views/PropertyDetailsView';
+import { ExecutionView } from '@/views/ExecutionView';
 
 const Index = () => {
   // Auth State
@@ -58,12 +59,35 @@ const Index = () => {
       currentStep: 'BEFORE_PHOTOS' 
     } : j));
     setActiveJobId(jobId);
-    // In full version, would navigate to EXECUTION view
+    setView('EXECUTION');
   };
 
   const viewJob = (jobId: string) => {
     setActiveJobId(jobId);
-    setView('JOB_DETAILS');
+    const job = jobs.find(j => j.id === jobId);
+    if (job?.status === JobStatus.IN_PROGRESS) {
+      setView('EXECUTION');
+    } else {
+      setView('JOB_DETAILS');
+    }
+  };
+
+  const updateJob = (updatedJob: Job) => {
+    setJobs(prev => prev.map(j => j.id === updatedJob.id ? updatedJob : j));
+  };
+
+  const completeJob = (completedJob: Job) => {
+    setJobs(prev => prev.map(j => j.id === completedJob.id ? {
+      ...completedJob,
+      status: JobStatus.COMPLETED
+    } : j));
+    setActiveJobId(null);
+    setView('DASHBOARD');
+  };
+
+  const cancelExecution = () => {
+    setActiveJobId(null);
+    setView('DASHBOARD');
   };
 
   // Property Handlers
@@ -89,6 +113,7 @@ const Index = () => {
   };
 
   const activeProperty = properties.find(p => p.id === activePropertyId);
+  const activeJob = jobs.find(j => j.id === activeJobId);
 
   // Render Login if not authenticated
   if (!isAuthenticated) {
@@ -172,6 +197,23 @@ const Index = () => {
               />
             </motion.div>
           )}
+
+          {view === 'EXECUTION' && activeJob && (
+            <motion.div
+              key="execution"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="h-full"
+            >
+              <ExecutionView
+                job={activeJob}
+                onUpdateJob={updateJob}
+                onComplete={completeJob}
+                onCancel={cancelExecution}
+              />
+            </motion.div>
+          )}
           
           {view === 'SETTINGS' && (
             <motion.div
@@ -190,10 +232,12 @@ const Index = () => {
           )}
         </AnimatePresence>
         
-        <BottomNav 
-          currentView={view}
-          onNavigate={handleNavigate}
-        />
+        {view !== 'EXECUTION' && (
+          <BottomNav 
+            currentView={view}
+            onNavigate={handleNavigate}
+          />
+        )}
       </div>
     </div>
   );
