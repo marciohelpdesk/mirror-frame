@@ -102,9 +102,8 @@ const Index = () => {
     ));
   };
 
-  const addProperty = () => {
-    // Would open add property modal
-    console.log('Add property clicked');
+  const addProperty = (newProperty: Property) => {
+    setProperties(prev => [...prev, newProperty]);
   };
 
   // Navigation Handler
