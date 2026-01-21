@@ -5,15 +5,17 @@ import { Property } from '@/types';
 import { PageHeader } from '@/components/PageHeader';
 import { PropertyCard } from '@/components/PropertyCard';
 import { BackgroundEffects } from '@/components/BackgroundEffects';
+import { AddPropertyModal } from '@/components/AddPropertyModal';
 
 interface PropertiesViewProps {
   properties: Property[];
   onViewProperty: (id: string) => void;
-  onAddProperty: () => void;
+  onAddProperty: (property: Property) => void;
 }
 
 export const PropertiesView = ({ properties, onViewProperty, onAddProperty }: PropertiesViewProps) => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [showAddModal, setShowAddModal] = useState(false);
 
   const filteredProperties = properties.filter(p => 
     p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -45,7 +47,7 @@ export const PropertiesView = ({ properties, onViewProperty, onAddProperty }: Pr
         {/* Properties Grid */}
         <div className="grid grid-cols-1 gap-4">
           <AnimatePresence>
-            {filteredProperties.map((property, i) => (
+            {filteredProperties.map((property) => (
               <PropertyCard 
                 key={property.id}
                 property={property}
@@ -68,11 +70,18 @@ export const PropertiesView = ({ properties, onViewProperty, onAddProperty }: Pr
       
       {/* FAB */}
       <button 
-        onClick={onAddProperty}
+        onClick={() => setShowAddModal(true)}
         className="fixed bottom-28 right-6 w-14 h-14 bg-secondary text-secondary-foreground rounded-2xl shadow-lg flex items-center justify-center transition-all hover:scale-105 active:scale-95 z-50 md:right-[calc(50%-187.5px+24px)]"
       >
         <Plus size={28} strokeWidth={2.5} />
       </button>
+
+      {/* Add Property Modal */}
+      <AddPropertyModal
+        open={showAddModal}
+        onOpenChange={setShowAddModal}
+        onAdd={onAddProperty}
+      />
     </div>
   );
 };
