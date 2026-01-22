@@ -18,23 +18,41 @@ import {
   Copy,
   Check,
   Eye,
-  EyeOff
+  EyeOff,
+  Trash2,
+  AlertTriangle
 } from 'lucide-react';
 import { Property } from '@/types';
 import { BackgroundEffects } from '@/components/BackgroundEffects';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 interface PropertyDetailsViewProps {
   property: Property;
   onBack: () => void;
   onUpdate: (property: Property) => void;
+  onDelete: (propertyId: string) => void;
 }
 
-export const PropertyDetailsView = ({ property, onBack, onUpdate }: PropertyDetailsViewProps) => {
+export const PropertyDetailsView = ({ property, onBack, onUpdate, onDelete }: PropertyDetailsViewProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedProperty, setEditedProperty] = useState<Property>(property);
   const [showAccessCode, setShowAccessCode] = useState(false);
   const [showWifiPassword, setShowWifiPassword] = useState(false);
   const [copiedField, setCopiedField] = useState<string | null>(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+
+  const handleDelete = () => {
+    onDelete(property.id);
+  };
 
   const handleSave = () => {
     onUpdate(editedProperty);
@@ -421,7 +439,50 @@ export const PropertyDetailsView = ({ property, onBack, onUpdate }: PropertyDeta
             </div>
           </motion.div>
         )}
+
+        {/* Delete Property Button */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="pt-4"
+        >
+          <button
+            onClick={() => setShowDeleteDialog(true)}
+            className="w-full py-4 text-destructive font-bold text-xs uppercase tracking-widest hover:text-destructive/80 transition-colors flex items-center justify-center gap-2 glass-panel"
+          >
+            <Trash2 size={16} />
+            Delete Property
+          </button>
+        </motion.div>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent className="glass-panel border-destructive/20 max-w-[340px] mx-auto">
+          <AlertDialogHeader>
+            <div className="flex items-center justify-center w-12 h-12 mx-auto mb-2 rounded-full bg-destructive/10">
+              <AlertTriangle size={24} className="text-destructive" />
+            </div>
+            <AlertDialogTitle className="text-center text-foreground">Delete Property?</AlertDialogTitle>
+            <AlertDialogDescription className="text-center">
+              Are you sure you want to delete <span className="font-semibold text-foreground">{property.name}</span>? 
+              This action cannot be undone and all associated data will be permanently removed.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex-col gap-2 sm:flex-col">
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="w-full bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Yes, Delete Property
+            </AlertDialogAction>
+            <AlertDialogCancel className="w-full mt-0 bg-muted text-foreground hover:bg-muted/80">
+              Cancel
+            </AlertDialogCancel>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
