@@ -10,6 +10,7 @@ import { SettingsView } from '@/views/SettingsView';
 import { LoginView } from '@/views/LoginView';
 import { PropertyDetailsView } from '@/views/PropertyDetailsView';
 import { ExecutionView } from '@/views/ExecutionView';
+import { FinanceView } from '@/views/FinanceView';
 
 const Index = () => {
   // Auth State
@@ -226,6 +227,21 @@ const Index = () => {
                 userProfile={userProfile}
                 onLogout={handleLogout}
                 onViewFinance={() => setView('FINANCE')}
+              />
+            </motion.div>
+          )}
+
+          {view === 'FINANCE' && (
+            <motion.div
+              key="finance"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="h-full"
+            >
+              <FinanceView 
+                jobs={jobs}
+                onBack={() => setView('SETTINGS')}
               />
             </motion.div>
           )}
