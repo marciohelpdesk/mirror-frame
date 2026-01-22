@@ -107,6 +107,12 @@ const Index = () => {
     setProperties(prev => [...prev, newProperty]);
   };
 
+  const deleteProperty = (propertyId: string) => {
+    setProperties(prev => prev.filter(p => p.id !== propertyId));
+    setActivePropertyId(null);
+    setView('PROPERTIES');
+  };
+
   // Navigation Handler
   const handleNavigate = (newView: ViewState) => {
     setView(newView);
@@ -194,6 +200,7 @@ const Index = () => {
                 property={activeProperty}
                 onBack={() => setView('PROPERTIES')}
                 onUpdate={updateProperty}
+                onDelete={deleteProperty}
               />
             </motion.div>
           )}
