@@ -77,6 +77,19 @@ const Index = () => {
     setJobs(prev => prev.map(j => j.id === updatedJob.id ? updatedJob : j));
   };
 
+  const rescheduleJob = (jobId: string, newDate: string, newTime?: string) => {
+    setJobs(prev => prev.map(j => {
+      if (j.id === jobId) {
+        return {
+          ...j,
+          date: newDate,
+          time: newTime || j.time
+        };
+      }
+      return j;
+    }));
+  };
+
   const completeJob = (completedJob: Job) => {
     setJobs(prev => prev.map(j => j.id === completedJob.id ? {
       ...completedJob,
@@ -168,6 +181,7 @@ const Index = () => {
                 jobs={jobs}
                 onStartJob={startJob}
                 onViewJob={viewJob}
+                onRescheduleJob={rescheduleJob}
               />
             </motion.div>
           )}
