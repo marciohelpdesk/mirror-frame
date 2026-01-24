@@ -1,13 +1,15 @@
 import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight, Calendar, CalendarDays, CalendarRange } from 'lucide-react';
-import { Job, JobStatus } from '@/types';
+import { ChevronLeft, ChevronRight, Calendar, CalendarDays, CalendarRange, Plus } from 'lucide-react';
+import { Job, JobStatus, Property } from '@/types';
 import { PageHeader } from '@/components/PageHeader';
 import { BackgroundEffects } from '@/components/BackgroundEffects';
 import { DayView } from '@/components/calendar/DayView';
 import { WeekView } from '@/components/calendar/WeekView';
 import { MonthView } from '@/components/calendar/MonthView';
 import { CalendarJobItem } from '@/components/calendar/CalendarJobItem';
+import { AddJobModal } from '@/components/AddJobModal';
+import { Button } from '@/components/ui/button';
 import { 
   format, 
   addDays, 
@@ -20,19 +22,29 @@ import { toast } from 'sonner';
 
 interface AgendaViewProps {
   jobs: Job[];
+  properties: Property[];
   onStartJob?: (jobId: string) => void;
   onViewJob: (jobId: string) => void;
   onRescheduleJob?: (jobId: string, newDate: string, newTime?: string) => void;
+  onAddJob?: (job: Job) => void;
 }
 
 type CalendarView = 'day' | 'week' | 'month';
 
-export const AgendaView = ({ jobs, onStartJob, onViewJob, onRescheduleJob }: AgendaViewProps) => {
+export const AgendaView = ({ jobs, properties, onStartJob, onViewJob, onRescheduleJob, onAddJob }: AgendaViewProps) => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [currentWeekStart, setCurrentWeekStart] = useState(startOfWeek(new Date()));
   const [currentMonth, setCurrentMonth] = useState(startOfMonth(new Date()));
   const [calendarView, setCalendarView] = useState<CalendarView>('week');
   const [draggedJob, setDraggedJob] = useState<Job | null>(null);
+  const [showAddJobModal, setShowAddJobModal] = useState(false);
+
+  const handleAddJob = (job: Job) => {
+    if (onAddJob) {
+      onAddJob(job);
+      toast.success('Job scheduled successfully');
+    }
+  };
 
   const handleDragStart = useCallback((e: React.DragEvent, job: Job) => {
     setDraggedJob(job);
@@ -118,6 +130,23 @@ export const AgendaView = ({ jobs, onStartJob, onViewJob, onRescheduleJob }: Age
       <PageHeader 
         title="Agenda"
         subtitle="Your Schedule"
+        rightElement={
+          <Button
+            size="sm"
+            className="gap-1.5"
+            onClick={() => setShowAddJobModal(true)}
+          >
+            <Plus size={16} />
+            Add Job
+          </Button>
+        }
+      />
+
+      <AddJobModal
+        open={showAddJobModal}
+        onOpenChange={setShowAddJobModal}
+        properties={properties}
+        onAddJob={handleAddJob}
       />
       
       <div className="px-4 relative z-10">
