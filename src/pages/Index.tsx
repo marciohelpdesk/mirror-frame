@@ -9,6 +9,7 @@ import { PropertiesView } from '@/views/PropertiesView';
 import { SettingsView } from '@/views/SettingsView';
 import { LoginView } from '@/views/LoginView';
 import { PropertyDetailsView } from '@/views/PropertyDetailsView';
+import { JobDetailsView } from '@/views/JobDetailsView';
 import { ExecutionView } from '@/views/ExecutionView';
 import { FinanceView } from '@/views/FinanceView';
 
@@ -124,6 +125,12 @@ const Index = () => {
     setJobs(prev => [...prev, newJob]);
   };
 
+  const deleteJob = (jobId: string) => {
+    setJobs(prev => prev.filter(j => j.id !== jobId));
+    setActiveJobId(null);
+    setView('AGENDA');
+  };
+
   const deleteProperty = (propertyId: string) => {
     setProperties(prev => prev.filter(p => p.id !== propertyId));
     setActivePropertyId(null);
@@ -221,6 +228,25 @@ const Index = () => {
                 onBack={() => setView('PROPERTIES')}
                 onUpdate={updateProperty}
                 onDelete={deleteProperty}
+              />
+            </motion.div>
+          )}
+
+          {view === 'JOB_DETAILS' && activeJob && (
+            <motion.div
+              key="job-details"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="h-full"
+            >
+              <JobDetailsView 
+                job={activeJob}
+                properties={properties}
+                onBack={() => setView('AGENDA')}
+                onStartJob={startJob}
+                onUpdateJob={updateJob}
+                onDeleteJob={deleteJob}
               />
             </motion.div>
           )}
