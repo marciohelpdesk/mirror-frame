@@ -120,6 +120,10 @@ const Index = () => {
     setProperties(prev => [...prev, newProperty]);
   };
 
+  const addJob = (newJob: Job) => {
+    setJobs(prev => [...prev, newJob]);
+  };
+
   const deleteProperty = (propertyId: string) => {
     setProperties(prev => prev.filter(p => p.id !== propertyId));
     setActivePropertyId(null);
@@ -179,9 +183,11 @@ const Index = () => {
             >
               <AgendaView 
                 jobs={jobs}
+                properties={properties}
                 onStartJob={startJob}
                 onViewJob={viewJob}
                 onRescheduleJob={rescheduleJob}
+                onAddJob={addJob}
               />
             </motion.div>
           )}
