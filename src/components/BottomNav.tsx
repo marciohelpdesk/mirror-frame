@@ -26,7 +26,7 @@ export const BottomNav = ({ currentView, onNavigate }: BottomNavProps) => {
             <button
               key={item.id}
               onClick={() => onNavigate(item.id)}
-              className="relative flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all"
+              className="relative flex flex-col items-center justify-center gap-1 min-w-[60px] py-2 rounded-xl transition-all"
             >
               {isActive && (
                 <motion.div
@@ -41,7 +41,7 @@ export const BottomNav = ({ currentView, onNavigate }: BottomNavProps) => {
                   isActive ? 'text-primary' : 'text-muted-foreground'
                 }`}
               />
-              <span className={`relative z-10 text-[10px] font-semibold uppercase tracking-wider ${
+              <span className={`relative z-10 text-[10px] font-semibold uppercase tracking-wider text-center ${
                 isActive ? 'text-primary' : 'text-muted-foreground'
               }`}>
                 {item.label}
