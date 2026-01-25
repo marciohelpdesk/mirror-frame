@@ -16,8 +16,8 @@ const navItems = [
 
 export const BottomNav = ({ currentView, onNavigate }: BottomNavProps) => {
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 px-4 pb-4 md:left-1/2 md:-translate-x-1/2 md:w-[375px]">
-      <div className="glass-panel flex justify-around items-center py-3 px-2">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 px-3 pb-3 md:left-1/2 md:-translate-x-1/2 md:w-[375px]">
+      <div className="glass-panel flex justify-between items-center py-2 px-3">
         {navItems.map((item) => {
           const isActive = currentView === item.id;
           const Icon = item.icon;
@@ -26,7 +26,7 @@ export const BottomNav = ({ currentView, onNavigate }: BottomNavProps) => {
             <button
               key={item.id}
               onClick={() => onNavigate(item.id)}
-              className="relative flex flex-col items-center justify-center gap-1 min-w-[60px] py-2 rounded-xl transition-all"
+              className="relative flex flex-col items-center justify-center gap-1.5 min-w-[72px] min-h-[56px] py-2 px-3 rounded-xl transition-all active:scale-95"
             >
               {isActive && (
                 <motion.div
