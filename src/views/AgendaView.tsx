@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Calendar, CalendarDays, CalendarRange, Plus } from 'lucide-react';
-import { Job, JobStatus, Property } from '@/types';
+import { Job, JobStatus, Property, Employee } from '@/types';
 import { PageHeader } from '@/components/PageHeader';
 import { BackgroundEffects } from '@/components/BackgroundEffects';
 import { DayView } from '@/components/calendar/DayView';
@@ -23,6 +23,7 @@ import { toast } from 'sonner';
 interface AgendaViewProps {
   jobs: Job[];
   properties: Property[];
+  employees?: Employee[];
   onStartJob?: (jobId: string) => void;
   onViewJob: (jobId: string) => void;
   onRescheduleJob?: (jobId: string, newDate: string, newTime?: string) => void;
@@ -31,7 +32,7 @@ interface AgendaViewProps {
 
 type CalendarView = 'day' | 'week' | 'month';
 
-export const AgendaView = ({ jobs, properties, onStartJob, onViewJob, onRescheduleJob, onAddJob }: AgendaViewProps) => {
+export const AgendaView = ({ jobs, properties, employees = [], onStartJob, onViewJob, onRescheduleJob, onAddJob }: AgendaViewProps) => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [currentWeekStart, setCurrentWeekStart] = useState(startOfWeek(new Date()));
   const [currentMonth, setCurrentMonth] = useState(startOfMonth(new Date()));
@@ -146,6 +147,7 @@ export const AgendaView = ({ jobs, properties, onStartJob, onViewJob, onReschedu
         open={showAddJobModal}
         onOpenChange={setShowAddJobModal}
         properties={properties}
+        employees={employees}
         onAddJob={handleAddJob}
       />
       

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { format } from 'date-fns';
 import { Briefcase } from 'lucide-react';
-import { Job, JobStatus, Property } from '@/types';
+import { Job, JobStatus, Property, Employee } from '@/types';
 import { STANDARD_CHECKLIST_TEMPLATE } from '@/data/checklist';
 import {
   Dialog,
@@ -17,10 +17,11 @@ interface AddJobModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   properties: Property[];
+  employees?: Employee[];
   onAddJob: (job: Job) => void;
 }
 
-export const AddJobModal = ({ open, onOpenChange, properties, onAddJob }: AddJobModalProps) => {
+export const AddJobModal = ({ open, onOpenChange, properties, employees = [], onAddJob }: AddJobModalProps) => {
   const [formData, setFormData] = useState<JobFormData>({
     propertyId: '',
     clientName: '',
@@ -28,6 +29,7 @@ export const AddJobModal = ({ open, onOpenChange, properties, onAddJob }: AddJob
     selectedTime: '09:00',
     jobType: 'Standard',
     price: '',
+    assignedTo: '',
   });
 
   const selectedProperty = properties.find(p => p.id === formData.propertyId);
@@ -49,6 +51,7 @@ export const AddJobModal = ({ open, onOpenChange, properties, onAddJob }: AddJob
       status: JobStatus.SCHEDULED,
       type: formData.jobType,
       price: formData.price ? parseFloat(formData.price) : selectedProperty?.basePrice,
+      assignedTo: formData.assignedTo || undefined,
       checklist: JSON.parse(JSON.stringify(STANDARD_CHECKLIST_TEMPLATE)),
       photosBefore: [],
       photosAfter: [],
@@ -67,6 +70,7 @@ export const AddJobModal = ({ open, onOpenChange, properties, onAddJob }: AddJob
       selectedTime: '09:00',
       jobType: 'Standard',
       price: '',
+      assignedTo: '',
     });
   };
 
@@ -89,6 +93,7 @@ export const AddJobModal = ({ open, onOpenChange, properties, onAddJob }: AddJob
           formData={formData}
           onChange={handleFormChange}
           properties={properties}
+          employees={employees}
         />
 
         <div className="flex gap-2 pt-2">

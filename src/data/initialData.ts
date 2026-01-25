@@ -1,4 +1,4 @@
-import { Job, JobStatus, Property, UserProfile, InventoryItem } from '@/types';
+import { Job, JobStatus, Property, UserProfile, InventoryItem, Employee } from '@/types';
 import { STANDARD_CHECKLIST_TEMPLATE } from './checklist';
 
 export const INITIAL_PROFILE: UserProfile = {
@@ -122,4 +122,22 @@ export const INITIAL_INVENTORY: InventoryItem[] = [
   { id: 'i4', name: 'Toilet Brush', quantity: 4, unit: 'pcs', threshold: 2, category: 'Tools' },
   { id: 'i5', name: 'Trash Bags', quantity: 50, unit: 'pcs', threshold: 20, category: 'Supplies' },
   { id: 'i6', name: 'Hand Soap', quantity: 8, unit: 'bottles', threshold: 3, category: 'Amenities' },
+];
+
+export const INITIAL_EMPLOYEES: Employee[] = [
+  { 
+    id: 'e1', 
+    name: 'Maria Santos', 
+    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop&crop=face' 
+  },
+  { 
+    id: 'e2', 
+    name: 'Carlos Rivera', 
+    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face' 
+  },
+  { 
+    id: 'e3', 
+    name: 'Ana Martinez', 
+    avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face' 
+  }
 ];
