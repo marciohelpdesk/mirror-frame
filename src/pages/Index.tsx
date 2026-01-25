@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Job, Property, UserProfile, ViewState, JobStatus } from '@/types';
-import { INITIAL_JOBS, INITIAL_PROPERTIES, INITIAL_PROFILE } from '@/data/initialData';
+import { Job, Property, UserProfile, ViewState, JobStatus, Employee } from '@/types';
+import { INITIAL_JOBS, INITIAL_PROPERTIES, INITIAL_PROFILE, INITIAL_EMPLOYEES } from '@/data/initialData';
 import { BottomNav } from '@/components/BottomNav';
 import { DashboardView } from '@/views/DashboardView';
 import { AgendaView } from '@/views/AgendaView';
@@ -24,6 +24,7 @@ const Index = () => {
   const [jobs, setJobs] = useState<Job[]>(INITIAL_JOBS);
   const [properties, setProperties] = useState<Property[]>(INITIAL_PROPERTIES);
   const [userProfile, setUserProfile] = useState<UserProfile>(INITIAL_PROFILE);
+  const [employees, setEmployees] = useState<Employee[]>(INITIAL_EMPLOYEES);
   const [activeJobId, setActiveJobId] = useState<string | null>(null);
   const [activePropertyId, setActivePropertyId] = useState<string | null>(null);
 
@@ -137,6 +138,17 @@ const Index = () => {
     setView('PROPERTIES');
   };
 
+  // Employee Handlers
+  const addEmployee = (employee: Employee) => {
+    setEmployees(prev => [...prev, employee]);
+  };
+
+  const deleteEmployee = (employeeId: string) => {
+    setEmployees(prev => prev.filter(e => e.id !== employeeId));
+    // Unassign from any jobs
+    setJobs(prev => prev.map(j => j.assignedTo === employeeId ? { ...j, assignedTo: undefined } : j));
+  };
+
   // Navigation Handler
   const handleNavigate = (newView: ViewState) => {
     setView(newView);
@@ -191,6 +203,7 @@ const Index = () => {
               <AgendaView 
                 jobs={jobs}
                 properties={properties}
+                employees={employees}
                 onStartJob={startJob}
                 onViewJob={viewJob}
                 onRescheduleJob={rescheduleJob}
@@ -243,6 +256,7 @@ const Index = () => {
               <JobDetailsView 
                 job={activeJob}
                 properties={properties}
+                employees={employees}
                 onBack={() => setView('AGENDA')}
                 onStartJob={startJob}
                 onUpdateJob={updateJob}
@@ -278,8 +292,11 @@ const Index = () => {
             >
               <SettingsView 
                 userProfile={userProfile}
+                employees={employees}
                 onLogout={handleLogout}
                 onViewFinance={() => setView('FINANCE')}
+                onAddEmployee={addEmployee}
+                onDeleteEmployee={deleteEmployee}
               />
             </motion.div>
           )}

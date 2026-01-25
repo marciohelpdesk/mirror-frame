@@ -1,6 +1,6 @@
 import { format } from 'date-fns';
-import { CalendarIcon, Clock, MapPin, Briefcase, DollarSign } from 'lucide-react';
-import { Property } from '@/types';
+import { CalendarIcon, Clock, MapPin, Briefcase, DollarSign, Users } from 'lucide-react';
+import { Property, Employee } from '@/types';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,6 +18,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 export const JOB_TYPES = ['Standard', 'Deep Clean', 'Move-out'] as const;
 export const TIME_SLOTS = [
@@ -34,17 +35,23 @@ export interface JobFormData {
   selectedTime: string;
   jobType: typeof JOB_TYPES[number];
   price: string;
+  assignedTo: string;
 }
 
 interface JobFormFieldsProps {
   formData: JobFormData;
   onChange: (data: Partial<JobFormData>) => void;
   properties: Property[];
+  employees?: Employee[];
   disablePropertyChange?: boolean;
 }
 
-export const JobFormFields = ({ formData, onChange, properties, disablePropertyChange }: JobFormFieldsProps) => {
+export const JobFormFields = ({ formData, onChange, properties, employees = [], disablePropertyChange }: JobFormFieldsProps) => {
   const selectedProperty = properties.find(p => p.id === formData.propertyId);
+
+  const getInitials = (name: string) => {
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  };
 
   return (
     <div className="space-y-4">
@@ -169,6 +176,40 @@ export const JobFormFields = ({ formData, onChange, properties, disablePropertyC
           placeholder={selectedProperty?.basePrice?.toString() || '0'}
         />
       </div>
+
+      {/* Employee Assignment */}
+      {employees.length > 0 && (
+        <div className="space-y-2">
+          <Label className="flex items-center gap-2">
+            <Users className="w-4 h-4 text-muted-foreground" />
+            Assign To (optional)
+          </Label>
+          <Select 
+            value={formData.assignedTo} 
+            onValueChange={(v) => onChange({ assignedTo: v })}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select team member" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">Unassigned</SelectItem>
+              {employees.map(employee => (
+                <SelectItem key={employee.id} value={employee.id}>
+                  <div className="flex items-center gap-2">
+                    <Avatar className="w-5 h-5">
+                      <AvatarImage src={employee.avatar} />
+                      <AvatarFallback className="text-[10px]">
+                        {getInitials(employee.name)}
+                      </AvatarFallback>
+                    </Avatar>
+                    {employee.name}
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
     </div>
   );
 };

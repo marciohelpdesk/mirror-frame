@@ -1,13 +1,17 @@
 import { motion } from 'framer-motion';
 import { ChevronRight, LogOut, Wallet, Bell, Shield, HelpCircle } from 'lucide-react';
-import { UserProfile } from '@/types';
+import { UserProfile, Employee } from '@/types';
 import { PageHeader } from '@/components/PageHeader';
 import { BackgroundEffects } from '@/components/BackgroundEffects';
+import { TeamManagement } from '@/components/TeamManagement';
 
 interface SettingsViewProps {
   userProfile: UserProfile;
+  employees: Employee[];
   onLogout: () => void;
   onViewFinance: () => void;
+  onAddEmployee: (employee: Employee) => void;
+  onDeleteEmployee: (employeeId: string) => void;
 }
 
 const settingsItems = [
@@ -16,7 +20,7 @@ const settingsItems = [
   { icon: HelpCircle, label: 'Help & Support', description: 'Get assistance' },
 ];
 
-export const SettingsView = ({ userProfile, onLogout, onViewFinance }: SettingsViewProps) => {
+export const SettingsView = ({ userProfile, employees, onLogout, onViewFinance, onAddEmployee, onDeleteEmployee }: SettingsViewProps) => {
   return (
     <div className="flex flex-col h-full relative z-10 overflow-y-auto hide-scrollbar pb-32">
       <BackgroundEffects />
@@ -67,6 +71,20 @@ export const SettingsView = ({ userProfile, onLogout, onViewFinance }: SettingsV
           <ChevronRight size={20} className="text-muted-foreground" />
         </motion.button>
         
+        {/* Team Management Section */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
+          className="glass-panel p-4 mb-4"
+        >
+          <TeamManagement
+            employees={employees}
+            onAddEmployee={onAddEmployee}
+            onDeleteEmployee={onDeleteEmployee}
+          />
+        </motion.div>
+        
         {/* Settings Items */}
         <div className="space-y-2 mb-6">
           {settingsItems.map((item, i) => (
@@ -74,7 +92,7 @@ export const SettingsView = ({ userProfile, onLogout, onViewFinance }: SettingsV
               key={item.label}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.15 + i * 0.05 }}
+              transition={{ delay: 0.2 + i * 0.05 }}
               className="glass-panel w-full p-4 flex items-center justify-between text-foreground active:scale-95 transition-transform"
             >
               <div className="flex items-center gap-4">

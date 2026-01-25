@@ -13,7 +13,7 @@ import {
   AlertTriangle,
   CheckCircle2
 } from 'lucide-react';
-import { Job, Property, JobStatus } from '@/types';
+import { Job, Property, JobStatus, Employee } from '@/types';
 import { PageHeader } from '@/components/PageHeader';
 import { BackgroundEffects } from '@/components/BackgroundEffects';
 import { Button } from '@/components/ui/button';
@@ -42,6 +42,7 @@ import { toast } from 'sonner';
 interface JobDetailsViewProps {
   job: Job;
   properties: Property[];
+  employees?: Employee[];
   onBack: () => void;
   onStartJob: (jobId: string) => void;
   onUpdateJob: (job: Job) => void;
@@ -51,6 +52,7 @@ interface JobDetailsViewProps {
 export const JobDetailsView = ({ 
   job, 
   properties, 
+  employees = [],
   onBack, 
   onStartJob, 
   onUpdateJob, 
@@ -64,9 +66,11 @@ export const JobDetailsView = ({
     selectedTime: job.time,
     jobType: job.type,
     price: job.price?.toString() || '',
+    assignedTo: job.assignedTo || '',
   });
 
   const property = properties.find(p => p.id === job.propertyId);
+  const assignedEmployee = employees.find(e => e.id === job.assignedTo);
 
   const handleFormChange = (data: Partial<JobFormData>) => {
     setFormData(prev => ({ ...prev, ...data }));
@@ -86,6 +90,7 @@ export const JobDetailsView = ({
       time: formData.selectedTime,
       type: formData.jobType,
       price: formData.price ? parseFloat(formData.price) : job.price,
+      assignedTo: formData.assignedTo || undefined,
     };
 
     onUpdateJob(updatedJob);
@@ -231,6 +236,19 @@ export const JobDetailsView = ({
           </div>
         </div>
 
+        {/* Assigned To */}
+        {assignedEmployee && (
+          <div className="glass-panel p-4">
+            <h3 className="text-sm font-medium text-muted-foreground mb-2">Assigned To</h3>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full overflow-hidden bg-primary/10">
+                <img src={assignedEmployee.avatar} alt={assignedEmployee.name} className="w-full h-full object-cover" />
+              </div>
+              <p className="font-medium">{assignedEmployee.name}</p>
+            </div>
+          </div>
+        )}
+
         {/* Property Info */}
         {property && (
           <div className="glass-panel p-4">
@@ -289,6 +307,7 @@ export const JobDetailsView = ({
             formData={formData}
             onChange={handleFormChange}
             properties={properties}
+            employees={employees}
           />
 
           <div className="flex gap-2 pt-2">
