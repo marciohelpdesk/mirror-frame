@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { TrendingUp, Clock, CheckCircle2 } from 'lucide-react';
 import { Job, JobStatus } from '@/types';
 import { PageHeader } from '@/components/PageHeader';
 import { JobCard } from '@/components/JobCard';
 import { BackgroundEffects } from '@/components/BackgroundEffects';
+import { LiquidProgressBubble } from '@/components/LiquidProgressBubble';
 import { useLanguage } from '@/contexts/LanguageContext';
 import purLogo from '@/assets/pur-logo.png';
 
@@ -28,6 +29,26 @@ export const DashboardView = ({ jobs, onStartJob, onViewJob, userProfile }: Dash
   const inProgressJobs = todayJobs.filter(j => j.status === JobStatus.IN_PROGRESS);
   const scheduledJobs = todayJobs.filter(j => j.status === JobStatus.SCHEDULED);
   const completedJobs = todayJobs.filter(j => j.status === JobStatus.COMPLETED);
+
+  // Calculate purification progress based on all today's jobs checklists
+  const purificationProgress = useMemo(() => {
+    const activeJobs = [...inProgressJobs, ...completedJobs];
+    if (activeJobs.length === 0) return 0;
+    
+    let totalItems = 0;
+    let completedItems = 0;
+    
+    activeJobs.forEach(job => {
+      job.checklist.forEach(section => {
+        section.items.forEach(item => {
+          totalItems++;
+          if (item.completed) completedItems++;
+        });
+      });
+    });
+    
+    return totalItems > 0 ? (completedItems / totalItems) * 100 : 0;
+  }, [inProgressJobs, completedJobs]);
 
   const greeting = currentTime.getHours() < 12 ? t('dashboard.goodMorning') : 
                    currentTime.getHours() < 17 ? t('dashboard.goodAfternoon') : t('dashboard.goodEvening');
@@ -97,6 +118,16 @@ export const DashboardView = ({ jobs, onStartJob, onViewJob, userProfile }: Dash
             <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">{t('dashboard.done')}</p>
           </motion.div>
         </div>
+
+        {/* Purification Bubble */}
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.4 }}
+          className="flex justify-center mb-8"
+        >
+          <LiquidProgressBubble percentage={purificationProgress} />
+        </motion.div>
 
         {/* Today's Jobs */}
         <div className="mb-6">

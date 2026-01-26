@@ -257,6 +257,15 @@
   66% { transform: translateY(10px) rotate(-2deg); }
 }
 
+@keyframes wave {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-wave {
+  animation: wave 4s linear infinite;
+}
+
 @keyframes pulse-glow {
   0%, 100% { box-shadow: 0 0 20px rgba(34, 211, 238, 0.4); }
   50% { box-shadow: 0 0 40px rgba(34, 211, 238, 0.6); }
