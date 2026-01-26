@@ -86,7 +86,6 @@ export const LoginView = ({ onSignIn, onSignUp, isLoading, error }: LoginViewPro
                   placeholder="••••••••"
                   className="w-full p-4 bg-white/50 border border-border rounded-xl text-foreground font-medium focus:border-primary outline-none transition-colors placeholder:text-muted-foreground pr-12"
                   required
-                  minLength={6}
                 />
                 <button 
                   type="button"
