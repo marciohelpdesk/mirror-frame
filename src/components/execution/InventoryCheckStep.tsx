@@ -28,6 +28,7 @@ export const InventoryCheckStep = ({
   });
 
   const handleQuantityChange = (itemId: string, delta: number) => {
+    if (!inventory) return;
     const item = inventory.find(i => i.id === itemId);
     if (!item) return;
 
@@ -173,7 +174,7 @@ export const InventoryCheckStep = ({
           </motion.div>
         ))}
 
-        {inventory.length === 0 && (
+        {(!inventory || inventory.length === 0) && (
           <div className="text-center py-8">
             <Package className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
             <p className="text-sm text-muted-foreground">Nenhum item de inventário cadastrado</p>
