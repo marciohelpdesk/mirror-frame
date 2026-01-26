@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Check, Clock, Camera, ClipboardCheck, Star, MessageSquare, FileDown, AlertTriangle, Package, Search } from 'lucide-react';
+import { Check, Clock, Camera, ClipboardCheck, Star, MessageSquare, FileDown, AlertTriangle, Package, Search, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Job, InventoryItem } from '@/types';
@@ -7,6 +7,7 @@ import { useState } from 'react';
 import { generateCleaningReport, downloadPdf } from '@/lib/pdfGenerator';
 import { toast } from 'sonner';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { PdfPreviewModal } from './PdfPreviewModal';
 
 interface SummaryStepProps {
   job: Job;
@@ -20,6 +21,9 @@ export const SummaryStep = ({ job, inventory, onComplete, onBack }: SummaryStepP
   const [note, setNote] = useState(job.reportNote || '');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+  const [pdfBlob, setPdfBlob] = useState<Blob | null>(null);
+  const [pdfFilename, setPdfFilename] = useState('');
 
   // Calculate stats
   const totalTasks = job.checklist.reduce((acc, s) => acc + s.items.length, 0);
@@ -45,8 +49,11 @@ export const SummaryStep = ({ job, inventory, onComplete, onBack }: SummaryStepP
     return remaining <= item.threshold;
   });
 
-  const handleGeneratePdf = async () => {
+  const handlePreviewPdf = async () => {
+    setShowPreview(true);
     setIsGeneratingPdf(true);
+    setPdfBlob(null);
+    
     try {
       const blob = await generateCleaningReport({
         job: { ...job, reportNote: note, endTime: Date.now() },
@@ -56,13 +63,21 @@ export const SummaryStep = ({ job, inventory, onComplete, onBack }: SummaryStepP
       });
       
       const filename = `relatorio-${job.clientName.replace(/\s+/g, '-').toLowerCase()}-${new Date().toISOString().split('T')[0]}.pdf`;
-      downloadPdf(blob, filename);
-      toast.success('PDF report generated successfully!');
+      setPdfBlob(blob);
+      setPdfFilename(filename);
     } catch (error) {
       console.error('Error generating PDF:', error);
-      toast.error('Error generating PDF report');
+      toast.error('Erro ao gerar pré-visualização do PDF');
+      setShowPreview(false);
     } finally {
       setIsGeneratingPdf(false);
+    }
+  };
+
+  const handleDownloadPdf = () => {
+    if (pdfBlob && pdfFilename) {
+      downloadPdf(pdfBlob, pdfFilename);
+      toast.success('Relatório PDF baixado com sucesso!');
     }
   };
 
@@ -269,14 +284,24 @@ export const SummaryStep = ({ job, inventory, onComplete, onBack }: SummaryStepP
         {/* Generate PDF Button */}
         <Button
           variant="outline"
-          onClick={handleGeneratePdf}
+          onClick={handlePreviewPdf}
           disabled={isGeneratingPdf}
           className="w-full mb-4 h-12 rounded-xl gap-2"
         >
-          <FileDown className="w-5 h-5" />
-          {isGeneratingPdf ? t('exec.summary.generatingPdf') : t('exec.summary.downloadPdf')}
+          <Eye className="w-5 h-5" />
+          {t('exec.summary.previewPdf')}
         </Button>
       </div>
+
+      {/* PDF Preview Modal */}
+      <PdfPreviewModal
+        isOpen={showPreview}
+        onClose={() => setShowPreview(false)}
+        pdfBlob={pdfBlob}
+        filename={pdfFilename}
+        isLoading={isGeneratingPdf}
+        onDownload={handleDownloadPdf}
+      />
 
       {/* Actions */}
       <div className="p-4 flex gap-3">
