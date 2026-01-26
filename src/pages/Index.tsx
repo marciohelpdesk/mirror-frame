@@ -161,20 +161,25 @@ const Index = () => {
   // Render Login if not authenticated
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-muted/50 flex items-center justify-center">
-        <LoginView 
-          onLogin={handleLogin}
-          isLoading={authLoading}
-          error={authError}
-        />
-      </div>
+      <>
+        <div className="bg-florida-sky-fixed" />
+        <div className="min-h-screen relative z-10 flex items-center justify-center">
+          <LoginView 
+            onLogin={handleLogin}
+            isLoading={authLoading}
+            error={authError}
+          />
+        </div>
+      </>
     );
   }
 
   // Main App View
   return (
-    <div className="min-h-screen bg-muted/50 flex items-center justify-center">
-      <div className="mobile-frame bg-florida-sky overflow-hidden">
+    <>
+      <div className="bg-florida-sky-fixed" />
+      <div className="min-h-screen relative z-10 flex items-center justify-center">
+      <div className="mobile-frame">
         <AnimatePresence mode="wait">
           {view === 'DASHBOARD' && (
             <motion.div
@@ -327,6 +332,7 @@ const Index = () => {
         )}
       </div>
     </div>
+    </>
   );
 };
 

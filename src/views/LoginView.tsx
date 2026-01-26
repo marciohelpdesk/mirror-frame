@@ -22,7 +22,7 @@ export const LoginView = ({ onLogin, isLoading, error }: LoginViewProps) => {
   };
 
   return (
-    <div className="mobile-frame relative flex flex-col bg-florida-sky overflow-hidden">
+    <div className="mobile-frame relative flex flex-col">
       <BackgroundEffects />
       
       <div className="flex-1 w-full overflow-y-auto overflow-x-hidden relative z-20 flex flex-col items-center justify-center p-6 min-h-[600px]">
