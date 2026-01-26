@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Eye, EyeOff } from 'lucide-react';
 import { BackgroundEffects } from '@/components/BackgroundEffects';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { ForgotPasswordModal } from '@/components/ForgotPasswordModal';
 import purLogo from '@/assets/pur-logo.png';
 
 interface LoginViewProps {
@@ -18,6 +19,7 @@ export const LoginView = ({ onSignIn, onSignUp, isLoading, error }: LoginViewPro
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [authMode, setAuthMode] = useState<'SIGN_IN' | 'SIGN_UP'>('SIGN_IN');
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -96,6 +98,18 @@ export const LoginView = ({ onSignIn, onSignUp, isLoading, error }: LoginViewPro
                 </button>
               </div>
             </div>
+
+            {authMode === 'SIGN_IN' && (
+              <div className="text-right">
+                <button
+                  type="button"
+                  onClick={() => setShowForgotPassword(true)}
+                  className="text-sm text-primary hover:text-primary/80 transition-colors"
+                >
+                  {t('login.forgotPassword') || 'Esqueci minha senha'}
+                </button>
+              </div>
+            )}
             
             {error && (
               <p className="text-destructive text-sm text-center">{error}</p>
@@ -120,6 +134,11 @@ export const LoginView = ({ onSignIn, onSignUp, isLoading, error }: LoginViewPro
           </div>
         </motion.div>
       </div>
+
+      <ForgotPasswordModal 
+        isOpen={showForgotPassword} 
+        onClose={() => setShowForgotPassword(false)} 
+      />
     </div>
   );
 };
