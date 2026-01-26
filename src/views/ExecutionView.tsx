@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, AlertTriangle } from 'lucide-react';
-import { Job, ExecutionStep, ChecklistSection, InventoryItem, DamageReport, InventoryUsage } from '@/types';
+import { Job, ExecutionStep, ChecklistSection, InventoryItem, DamageReport, InventoryUsage, LostAndFoundItem } from '@/types';
 import { ExecutionStepper } from '@/components/execution/ExecutionStepper';
 import { PhotoCaptureStep } from '@/components/execution/PhotoCaptureStep';
 import { ChecklistStep } from '@/components/execution/ChecklistStep';
 import { DamageReportStep } from '@/components/execution/DamageReportStep';
+import { LostAndFoundStep } from '@/components/execution/LostAndFoundStep';
 import { InventoryCheckStep } from '@/components/execution/InventoryCheckStep';
 import { SummaryStep } from '@/components/execution/SummaryStep';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -28,7 +29,7 @@ interface ExecutionViewProps {
   onCancel: () => void;
 }
 
-const STEP_ORDER: ExecutionStep[] = ['BEFORE_PHOTOS', 'CHECKLIST', 'DAMAGE_REPORT', 'INVENTORY_CHECK', 'AFTER_PHOTOS', 'SUMMARY'];
+const STEP_ORDER: ExecutionStep[] = ['BEFORE_PHOTOS', 'CHECKLIST', 'DAMAGE_REPORT', 'LOST_AND_FOUND', 'INVENTORY_CHECK', 'AFTER_PHOTOS', 'SUMMARY'];
 
 export const ExecutionView = ({ job, inventory, onUpdateJob, onComplete, onCancel }: ExecutionViewProps) => {
   const { t } = useLanguage();
@@ -72,6 +73,10 @@ export const ExecutionView = ({ job, inventory, onUpdateJob, onComplete, onCance
 
   const handleDamagesChange = (damages: DamageReport[]) => {
     onUpdateJob({ ...job, damages });
+  };
+
+  const handleLostAndFoundChange = (lostAndFound: LostAndFoundItem[]) => {
+    onUpdateJob({ ...job, lostAndFound });
   };
 
   const handleInventoryUsedChange = (inventoryUsed: InventoryUsage[]) => {
@@ -142,6 +147,16 @@ export const ExecutionView = ({ job, inventory, onUpdateJob, onComplete, onCance
               key="damage"
               damages={job.damages || []}
               onDamagesChange={handleDamagesChange}
+              onNext={goToNextStep}
+              onBack={goToPrevStep}
+            />
+          )}
+
+          {currentStep === 'LOST_AND_FOUND' && (
+            <LostAndFoundStep
+              key="lostfound"
+              items={job.lostAndFound || []}
+              onItemsChange={handleLostAndFoundChange}
               onNext={goToNextStep}
               onBack={goToPrevStep}
             />

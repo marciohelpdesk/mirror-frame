@@ -64,6 +64,7 @@ export const AddJobModal = ({ open, onOpenChange, properties, employees = [], on
       photosAfter: [],
       damages: [],
       inventoryUsed: [],
+      lostAndFound: [],
     };
 
     onAddJob(newJob);

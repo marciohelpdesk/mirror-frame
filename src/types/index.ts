@@ -4,7 +4,7 @@ export enum JobStatus {
   COMPLETED = 'COMPLETED'
 }
 
-export type ExecutionStep = 'BEFORE_PHOTOS' | 'CHECKLIST' | 'DAMAGE_REPORT' | 'INVENTORY_CHECK' | 'AFTER_PHOTOS' | 'SUMMARY';
+export type ExecutionStep = 'BEFORE_PHOTOS' | 'CHECKLIST' | 'DAMAGE_REPORT' | 'LOST_AND_FOUND' | 'INVENTORY_CHECK' | 'AFTER_PHOTOS' | 'SUMMARY';
 
 export interface UserProfile {
   name: string;
@@ -74,6 +74,7 @@ export interface Job {
   
   damages: DamageReport[];
   inventoryUsed: InventoryUsage[];
+  lostAndFound: LostAndFoundItem[];
 }
 
 export type RoomType = 'bedroom' | 'bathroom' | 'kitchen' | 'living_room' | 'dining_room' | 'office' | 'laundry' | 'garage' | 'other';
