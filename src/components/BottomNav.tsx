@@ -18,11 +18,19 @@ const navItems = [
 export const BottomNav = ({ currentView, onNavigate }: BottomNavProps) => {
   const [ripples, setRipples] = useState<{ id: number; x: number; y: number; itemId: ViewState }[]>([]);
 
+  const triggerHaptic = () => {
+    if ('vibrate' in navigator) {
+      navigator.vibrate(10);
+    }
+  };
+
   const handleClick = (e: React.MouseEvent<HTMLButtonElement>, itemId: ViewState) => {
     const button = e.currentTarget;
     const rect = button.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
+    
+    triggerHaptic();
     
     const rippleId = Date.now();
     setRipples(prev => [...prev, { id: rippleId, x, y, itemId }]);
