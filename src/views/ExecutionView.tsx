@@ -25,6 +25,7 @@ import {
 interface ExecutionViewProps {
   job: Job;
   inventory: InventoryItem[];
+  userId: string;
   onUpdateJob: (job: Job) => void;
   onComplete: (job: Job) => void;
   onCancel: () => void;
@@ -32,7 +33,7 @@ interface ExecutionViewProps {
 
 const STEP_ORDER: ExecutionStep[] = ['BEFORE_PHOTOS', 'CHECKLIST', 'DAMAGE_REPORT', 'LOST_AND_FOUND', 'INVENTORY_CHECK', 'AFTER_PHOTOS', 'SUMMARY'];
 
-export const ExecutionView = ({ job, inventory, onUpdateJob, onComplete, onCancel }: ExecutionViewProps) => {
+export const ExecutionView = ({ job, inventory, userId, onUpdateJob, onComplete, onCancel }: ExecutionViewProps) => {
   const { t } = useLanguage();
   const [currentStep, setCurrentStep] = useState<ExecutionStep>(job.currentStep || 'BEFORE_PHOTOS');
   const [completedSteps, setCompletedSteps] = useState<ExecutionStep[]>([]);
@@ -156,6 +157,8 @@ export const ExecutionView = ({ job, inventory, onUpdateJob, onComplete, onCance
               onPhotosChange={handlePhotosBeforeChange}
               onNext={goToNextStep}
               minPhotos={1}
+              userId={userId}
+              jobId={job.id}
             />
           )}
 
@@ -176,6 +179,8 @@ export const ExecutionView = ({ job, inventory, onUpdateJob, onComplete, onCance
               onDamagesChange={handleDamagesChange}
               onNext={goToNextStep}
               onBack={goToPrevStep}
+              userId={userId}
+              jobId={job.id}
             />
           )}
 
@@ -186,6 +191,8 @@ export const ExecutionView = ({ job, inventory, onUpdateJob, onComplete, onCance
               onItemsChange={handleLostAndFoundChange}
               onNext={goToNextStep}
               onBack={goToPrevStep}
+              userId={userId}
+              jobId={job.id}
             />
           )}
 
@@ -209,6 +216,8 @@ export const ExecutionView = ({ job, inventory, onUpdateJob, onComplete, onCance
               onNext={goToNextStep}
               onBack={goToPrevStep}
               minPhotos={1}
+              userId={userId}
+              jobId={job.id}
             />
           )}
 

@@ -1,25 +1,86 @@
-import { useState } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Plus, Trash2, Camera, MapPin, ArrowRight, ArrowLeft } from 'lucide-react';
+import { Search, Plus, Trash2, Camera, MapPin, ArrowRight, ArrowLeft, Upload, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { LostAndFoundItem } from '@/types';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { usePhotoUpload } from '@/hooks/usePhotoUpload';
+import { useToast } from '@/hooks/use-toast';
+import { compressForThumbnail } from '@/lib/imageUtils';
 
 interface LostAndFoundStepProps {
   items: LostAndFoundItem[];
   onItemsChange: (items: LostAndFoundItem[]) => void;
   onNext: () => void;
   onBack: () => void;
+  userId: string;
+  jobId: string;
 }
 
-export const LostAndFoundStep = ({ items, onItemsChange, onNext, onBack }: LostAndFoundStepProps) => {
+export const LostAndFoundStep = ({ items, onItemsChange, onNext, onBack, userId, jobId }: LostAndFoundStepProps) => {
   const { t } = useLanguage();
   const [isAdding, setIsAdding] = useState(false);
   const [newItem, setNewItem] = useState<Partial<LostAndFoundItem>>({
     description: '',
     location: '',
   });
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const { uploadPhoto, isUploading } = usePhotoUpload();
+  const { toast } = useToast();
+
+  const processAndUpload = useCallback(async (file: File) => {
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: t('common.error'),
+        description: t('exec.photo.invalidFile'),
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setIsProcessing(true);
+    let fileToUpload: File | Blob = file;
+
+    try {
+      const compressedBlob = await compressForThumbnail(file);
+      if (compressedBlob.size < file.size) {
+        fileToUpload = compressedBlob;
+      }
+    } catch (err) {
+      console.warn('Compression failed, using original:', err);
+    }
+
+    const url = await uploadPhoto(fileToUpload, {
+      userId,
+      category: 'jobs-lost-found',
+      entityId: jobId,
+    });
+
+    setIsProcessing(false);
+
+    if (url) {
+      setNewItem(prev => ({ ...prev, photoUrl: url }));
+    } else {
+      toast({
+        title: t('common.error'),
+        description: t('exec.photo.uploadFailed'),
+        variant: 'destructive',
+      });
+    }
+  }, [userId, jobId, uploadPhoto, toast, t]);
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    await processAndUpload(file);
+    if (e.target) {
+      e.target.value = '';
+    }
+  };
 
   const handleAddItem = () => {
     if (!newItem.description?.trim()) return;
@@ -41,16 +102,7 @@ export const LostAndFoundStep = ({ items, onItemsChange, onNext, onBack }: LostA
     onItemsChange(items.filter(i => i.id !== id));
   };
 
-  const handlePhotoCapture = () => {
-    // Simulated photo capture - in production this would use device camera
-    const mockPhotos = [
-      'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=200&h=200&fit=crop',
-      'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=200&h=200&fit=crop',
-      'https://images.unsplash.com/photo-1560343090-f0409e92791a?w=200&h=200&fit=crop',
-    ];
-    const randomPhoto = mockPhotos[Math.floor(Math.random() * mockPhotos.length)];
-    setNewItem(prev => ({ ...prev, photoUrl: randomPhoto }));
-  };
+  const isLoading = isUploading || isProcessing;
 
   return (
     <motion.div
@@ -59,6 +111,25 @@ export const LostAndFoundStep = ({ items, onItemsChange, onNext, onBack }: LostA
       exit={{ opacity: 0, y: -20 }}
       className="flex flex-col h-full"
     >
+      {/* Hidden inputs */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        onChange={handleFileSelect}
+        className="hidden"
+        disabled={isLoading}
+      />
+      <input
+        ref={cameraInputRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        onChange={handleFileSelect}
+        className="hidden"
+        disabled={isLoading}
+      />
+
       {/* Header */}
       <div className="px-4 py-3">
         <div className="flex items-center gap-3 mb-2">
@@ -159,7 +230,14 @@ export const LostAndFoundStep = ({ items, onItemsChange, onNext, onBack }: LostA
               {/* Photo */}
               <div className="mb-4">
                 <p className="text-xs text-muted-foreground mb-2">{t('exec.lostFound.photo')}</p>
-                {newItem.photoUrl ? (
+                {isLoading ? (
+                  <div className="w-24 h-24 rounded-lg border-2 border-dashed border-muted flex flex-col items-center justify-center gap-1">
+                    <Loader2 className="w-5 h-5 animate-spin text-primary" />
+                    <span className="text-[10px] text-muted-foreground">
+                      {isProcessing ? 'Optimizing...' : 'Uploading...'}
+                    </span>
+                  </div>
+                ) : newItem.photoUrl ? (
                   <div className="relative w-24 h-24 rounded-lg overflow-hidden">
                     <img src={newItem.photoUrl} alt="" className="w-full h-full object-cover" />
                     <button
@@ -170,13 +248,22 @@ export const LostAndFoundStep = ({ items, onItemsChange, onNext, onBack }: LostA
                     </button>
                   </div>
                 ) : (
-                  <button
-                    onClick={handlePhotoCapture}
-                    className="w-24 h-24 rounded-lg border-2 border-dashed border-muted flex flex-col items-center justify-center gap-1 hover:border-accent transition-colors"
-                  >
-                    <Camera className="w-5 h-5 text-muted-foreground" />
-                    <span className="text-[10px] text-muted-foreground">{t('common.add')}</span>
-                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => cameraInputRef.current?.click()}
+                      className="w-20 h-20 rounded-lg border-2 border-dashed border-muted flex flex-col items-center justify-center gap-1 hover:border-accent transition-colors"
+                    >
+                      <Camera className="w-5 h-5 text-muted-foreground" />
+                      <span className="text-[10px] text-muted-foreground">Camera</span>
+                    </button>
+                    <button
+                      onClick={() => fileInputRef.current?.click()}
+                      className="w-20 h-20 rounded-lg border-2 border-dashed border-muted flex flex-col items-center justify-center gap-1 hover:border-primary transition-colors"
+                    >
+                      <Upload className="w-5 h-5 text-muted-foreground" />
+                      <span className="text-[10px] text-muted-foreground">Gallery</span>
+                    </button>
+                  </div>
                 )}
               </div>
 
@@ -185,12 +272,13 @@ export const LostAndFoundStep = ({ items, onItemsChange, onNext, onBack }: LostA
                   variant="outline"
                   onClick={() => setIsAdding(false)}
                   className="flex-1"
+                  disabled={isLoading}
                 >
                   {t('common.cancel')}
                 </Button>
                 <Button
                   onClick={handleAddItem}
-                  disabled={!newItem.description?.trim()}
+                  disabled={!newItem.description?.trim() || isLoading}
                   className="flex-1 bg-accent hover:bg-accent/90 text-accent-foreground"
                 >
                   {t('common.add')}

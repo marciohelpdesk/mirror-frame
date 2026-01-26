@@ -1,16 +1,21 @@
-import { useState } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { AlertTriangle, Plus, Trash2, Camera, Sofa, Tv, Droplet, HelpCircle, ArrowRight, ArrowLeft } from 'lucide-react';
+import { AlertTriangle, Plus, Trash2, Camera, Sofa, Tv, Droplet, HelpCircle, ArrowRight, ArrowLeft, Upload, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { DamageReport } from '@/types';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { usePhotoUpload } from '@/hooks/usePhotoUpload';
+import { useToast } from '@/hooks/use-toast';
+import { compressForThumbnail } from '@/lib/imageUtils';
 
 interface DamageReportStepProps {
   damages: DamageReport[];
   onDamagesChange: (damages: DamageReport[]) => void;
   onNext: () => void;
   onBack: () => void;
+  userId: string;
+  jobId: string;
 }
 
 const DAMAGE_TYPE_CONFIGS = [
@@ -26,7 +31,7 @@ const SEVERITY_CONFIGS = [
   { value: 'high' as const, labelKey: 'exec.damage.severityHigh', color: 'bg-rose-500/20 text-rose-400 border-rose-500/30' },
 ];
 
-export const DamageReportStep = ({ damages, onDamagesChange, onNext, onBack }: DamageReportStepProps) => {
+export const DamageReportStep = ({ damages, onDamagesChange, onNext, onBack, userId, jobId }: DamageReportStepProps) => {
   const { t } = useLanguage();
   const [isAdding, setIsAdding] = useState(false);
   const [newDamage, setNewDamage] = useState<Partial<DamageReport>>({
@@ -34,6 +39,62 @@ export const DamageReportStep = ({ damages, onDamagesChange, onNext, onBack }: D
     severity: 'medium',
     description: '',
   });
+  const [isProcessing, setIsProcessing] = useState(false);
+  
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const { uploadPhoto, isUploading } = usePhotoUpload();
+  const { toast } = useToast();
+
+  const processAndUpload = useCallback(async (file: File) => {
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: t('common.error'),
+        description: t('exec.photo.invalidFile'),
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setIsProcessing(true);
+    let fileToUpload: File | Blob = file;
+
+    try {
+      const compressedBlob = await compressForThumbnail(file);
+      if (compressedBlob.size < file.size) {
+        fileToUpload = compressedBlob;
+      }
+    } catch (err) {
+      console.warn('Compression failed, using original:', err);
+    }
+
+    const url = await uploadPhoto(fileToUpload, {
+      userId,
+      category: 'jobs-damages',
+      entityId: jobId,
+    });
+
+    setIsProcessing(false);
+
+    if (url) {
+      setNewDamage(prev => ({ ...prev, photoUrl: url }));
+    } else {
+      toast({
+        title: t('common.error'),
+        description: t('exec.photo.uploadFailed'),
+        variant: 'destructive',
+      });
+    }
+  }, [userId, jobId, uploadPhoto, toast, t]);
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    await processAndUpload(file);
+    if (e.target) {
+      e.target.value = '';
+    }
+  };
 
   const handleAddDamage = () => {
     if (!newDamage.description?.trim()) return;
@@ -55,12 +116,6 @@ export const DamageReportStep = ({ damages, onDamagesChange, onNext, onBack }: D
     onDamagesChange(damages.filter(d => d.id !== id));
   };
 
-  const handlePhotoCapture = () => {
-    // Simulated photo capture
-    const mockPhoto = `https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=300&fit=crop&t=${Date.now()}`;
-    setNewDamage(prev => ({ ...prev, photoUrl: mockPhoto }));
-  };
-
   const getTypeIcon = (type: DamageReport['type']) => {
     const typeConfig = DAMAGE_TYPE_CONFIGS.find(t => t.value === type);
     return typeConfig?.icon || HelpCircle;
@@ -75,6 +130,8 @@ export const DamageReportStep = ({ damages, onDamagesChange, onNext, onBack }: D
     return SEVERITY_CONFIGS.find(s => s.value === severity) || SEVERITY_CONFIGS[1];
   };
 
+  const isLoading = isUploading || isProcessing;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -82,6 +139,25 @@ export const DamageReportStep = ({ damages, onDamagesChange, onNext, onBack }: D
       exit={{ opacity: 0, y: -20 }}
       className="flex flex-col h-full"
     >
+      {/* Hidden inputs */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        onChange={handleFileSelect}
+        className="hidden"
+        disabled={isLoading}
+      />
+      <input
+        ref={cameraInputRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        onChange={handleFileSelect}
+        className="hidden"
+        disabled={isLoading}
+      />
+
       {/* Header */}
       <div className="px-4 py-3">
         <div className="flex items-center gap-3 mb-2">
@@ -217,7 +293,14 @@ export const DamageReportStep = ({ damages, onDamagesChange, onNext, onBack }: D
               {/* Photo */}
               <div className="mb-4">
                 <p className="text-xs text-muted-foreground mb-2">{t('exec.damage.photo')}</p>
-                {newDamage.photoUrl ? (
+                {isLoading ? (
+                  <div className="w-24 h-24 rounded-lg border-2 border-dashed border-muted flex flex-col items-center justify-center gap-1">
+                    <Loader2 className="w-5 h-5 animate-spin text-primary" />
+                    <span className="text-[10px] text-muted-foreground">
+                      {isProcessing ? 'Optimizing...' : 'Uploading...'}
+                    </span>
+                  </div>
+                ) : newDamage.photoUrl ? (
                   <div className="relative w-24 h-24 rounded-lg overflow-hidden">
                     <img src={newDamage.photoUrl} alt="" className="w-full h-full object-cover" />
                     <button
@@ -228,13 +311,22 @@ export const DamageReportStep = ({ damages, onDamagesChange, onNext, onBack }: D
                     </button>
                   </div>
                 ) : (
-                  <button
-                    onClick={handlePhotoCapture}
-                    className="w-24 h-24 rounded-lg border-2 border-dashed border-muted flex flex-col items-center justify-center gap-1 hover:border-secondary transition-colors"
-                  >
-                    <Camera className="w-5 h-5 text-muted-foreground" />
-                    <span className="text-[10px] text-muted-foreground">{t('common.add')}</span>
-                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => cameraInputRef.current?.click()}
+                      className="w-20 h-20 rounded-lg border-2 border-dashed border-muted flex flex-col items-center justify-center gap-1 hover:border-secondary transition-colors"
+                    >
+                      <Camera className="w-5 h-5 text-muted-foreground" />
+                      <span className="text-[10px] text-muted-foreground">Camera</span>
+                    </button>
+                    <button
+                      onClick={() => fileInputRef.current?.click()}
+                      className="w-20 h-20 rounded-lg border-2 border-dashed border-muted flex flex-col items-center justify-center gap-1 hover:border-primary transition-colors"
+                    >
+                      <Upload className="w-5 h-5 text-muted-foreground" />
+                      <span className="text-[10px] text-muted-foreground">Gallery</span>
+                    </button>
+                  </div>
                 )}
               </div>
 
@@ -244,12 +336,13 @@ export const DamageReportStep = ({ damages, onDamagesChange, onNext, onBack }: D
                   variant="outline"
                   onClick={() => setIsAdding(false)}
                   className="flex-1"
+                  disabled={isLoading}
                 >
                   {t('common.cancel')}
                 </Button>
                 <Button
                   onClick={handleAddDamage}
-                  disabled={!newDamage.description?.trim()}
+                  disabled={!newDamage.description?.trim() || isLoading}
                   className="flex-1 bg-secondary text-secondary-foreground"
                 >
                   {t('common.add')}

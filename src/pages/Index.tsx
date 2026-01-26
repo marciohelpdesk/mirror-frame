@@ -339,6 +339,7 @@ const Index = () => {
               <ExecutionView
                 job={activeJob}
                 inventory={inventoryItems}
+                userId={user!.id}
                 onUpdateJob={handleUpdateJob}
                 onComplete={completeJob}
                 onCancel={cancelExecution}
