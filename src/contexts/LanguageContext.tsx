@@ -317,6 +317,17 @@ const translations: Record<Language, Record<string, string>> = {
     'checklist.preset.recurring': 'Recurring Clean',
     'checklist.preset.postConstruction': 'Post Construction',
     'checklist.preset.commercial': 'Commercial Clean',
+    
+    // Profile
+    'profile.edit': 'Edit Profile',
+    'profile.name': 'Name',
+    'profile.email': 'Email',
+    'profile.phone': 'Phone',
+    'profile.role': 'Role',
+    'profile.photo': 'Photo',
+    'profile.changePhoto': 'Change Photo',
+    'profile.updated': 'Profile Updated',
+    'profile.updatedDesc': 'Your information has been saved',
   },
   pt: {
     // Navigation
@@ -626,6 +637,17 @@ const translations: Record<Language, Record<string, string>> = {
     'checklist.preset.recurring': 'Limpeza Recorrente',
     'checklist.preset.postConstruction': 'Pós Construção',
     'checklist.preset.commercial': 'Limpeza Comercial',
+    
+    // Profile
+    'profile.edit': 'Editar Perfil',
+    'profile.name': 'Nome',
+    'profile.email': 'E-mail',
+    'profile.phone': 'Telefone',
+    'profile.role': 'Cargo',
+    'profile.photo': 'Foto',
+    'profile.changePhoto': 'Alterar Foto',
+    'profile.updated': 'Perfil Atualizado',
+    'profile.updatedDesc': 'Suas informações foram salvas',
   },
 };
 

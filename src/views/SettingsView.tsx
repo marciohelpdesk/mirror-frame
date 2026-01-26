@@ -1,9 +1,11 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { ChevronRight, LogOut, Wallet, Bell, Shield, HelpCircle, Globe } from 'lucide-react';
+import { ChevronRight, LogOut, Wallet, Bell, Shield, HelpCircle, Globe, Pencil } from 'lucide-react';
 import { UserProfile, Employee } from '@/types';
 import { PageHeader } from '@/components/PageHeader';
 import { BackgroundEffects } from '@/components/BackgroundEffects';
 import { TeamManagement } from '@/components/TeamManagement';
+import { EditProfileModal } from '@/components/EditProfileModal';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Switch } from '@/components/ui/switch';
 
@@ -14,10 +16,12 @@ interface SettingsViewProps {
   onViewFinance: () => void;
   onAddEmployee: (employee: Employee) => void;
   onDeleteEmployee: (employeeId: string) => void;
+  onUpdateProfile: (profile: UserProfile) => void;
 }
 
-export const SettingsView = ({ userProfile, employees, onLogout, onViewFinance, onAddEmployee, onDeleteEmployee }: SettingsViewProps) => {
+export const SettingsView = ({ userProfile, employees, onLogout, onViewFinance, onAddEmployee, onDeleteEmployee, onUpdateProfile }: SettingsViewProps) => {
   const { t, language, setLanguage } = useLanguage();
+  const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
 
   const settingsItems = [
     { icon: Bell, label: t('settings.notifications'), description: t('settings.notificationsDesc') },
@@ -43,8 +47,15 @@ export const SettingsView = ({ userProfile, employees, onLogout, onViewFinance, 
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="glass-panel p-8 flex flex-col items-center justify-center mb-6"
+          className="glass-panel p-8 flex flex-col items-center justify-center mb-6 relative"
         >
+          <button
+            onClick={() => setIsEditProfileOpen(true)}
+            className="absolute top-4 right-4 w-8 h-8 rounded-full bg-muted flex items-center justify-center hover:bg-muted/80 transition-colors"
+            aria-label={t('profile.edit')}
+          >
+            <Pencil size={14} className="text-muted-foreground" />
+          </button>
           <div className="w-28 h-28 rounded-full mb-4 border-4 border-white shadow-lg overflow-hidden">
             <img 
               src={userProfile.avatar} 
@@ -154,6 +165,13 @@ export const SettingsView = ({ userProfile, employees, onLogout, onViewFinance, 
           {t('settings.logout')} <LogOut size={16}/>
         </motion.button>
       </div>
+
+      <EditProfileModal
+        isOpen={isEditProfileOpen}
+        onClose={() => setIsEditProfileOpen(false)}
+        userProfile={userProfile}
+        onUpdateProfile={onUpdateProfile}
+      />
     </div>
   );
 };

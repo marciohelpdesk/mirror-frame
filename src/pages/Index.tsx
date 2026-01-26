@@ -150,6 +150,11 @@ const Index = () => {
     setJobs(prev => prev.map(j => j.assignedTo === employeeId ? { ...j, assignedTo: undefined } : j));
   };
 
+  // Profile Handler
+  const handleUpdateProfile = (updatedProfile: UserProfile) => {
+    setUserProfile(updatedProfile);
+  };
+
   // Navigation Handler
   const handleNavigate = (newView: ViewState) => {
     setView(newView);
@@ -304,6 +309,7 @@ const Index = () => {
                 onViewFinance={() => setView('FINANCE')}
                 onAddEmployee={addEmployee}
                 onDeleteEmployee={deleteEmployee}
+                onUpdateProfile={handleUpdateProfile}
               />
             </motion.div>
           )}
