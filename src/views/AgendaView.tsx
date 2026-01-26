@@ -10,6 +10,7 @@ import { MonthView } from '@/components/calendar/MonthView';
 import { CalendarJobItem } from '@/components/calendar/CalendarJobItem';
 import { AddJobModal } from '@/components/AddJobModal';
 import { Button } from '@/components/ui/button';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { 
   format, 
   addDays, 
@@ -33,6 +34,7 @@ interface AgendaViewProps {
 type CalendarView = 'day' | 'week' | 'month';
 
 export const AgendaView = ({ jobs, properties, employees = [], onStartJob, onViewJob, onRescheduleJob, onAddJob }: AgendaViewProps) => {
+  const { t } = useLanguage();
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [currentWeekStart, setCurrentWeekStart] = useState(startOfWeek(new Date()));
   const [currentMonth, setCurrentMonth] = useState(startOfMonth(new Date()));
@@ -114,9 +116,9 @@ export const AgendaView = ({ jobs, properties, employees = [], onStartJob, onVie
   };
 
   const viewButtons: { view: CalendarView; icon: typeof Calendar; label: string }[] = [
-    { view: 'day', icon: Calendar, label: 'Day' },
-    { view: 'week', icon: CalendarDays, label: 'Week' },
-    { view: 'month', icon: CalendarRange, label: 'Month' },
+    { view: 'day', icon: Calendar, label: t('agenda.day') },
+    { view: 'week', icon: CalendarDays, label: t('agenda.week') },
+    { view: 'month', icon: CalendarRange, label: t('agenda.month') },
   ];
 
   // Get selected date jobs for the list below
@@ -129,8 +131,8 @@ export const AgendaView = ({ jobs, properties, employees = [], onStartJob, onVie
       <BackgroundEffects />
       
       <PageHeader 
-        title="Agenda"
-        subtitle="Your Schedule"
+        title={t('agenda.title')}
+        subtitle={t('agenda.subtitle')}
         rightElement={
           <Button
             size="sm"
@@ -138,7 +140,7 @@ export const AgendaView = ({ jobs, properties, employees = [], onStartJob, onVie
             onClick={() => setShowAddJobModal(true)}
           >
             <Plus size={16} />
-            Add Job
+            {t('agenda.addJob')}
           </Button>
         }
       />
@@ -270,7 +272,7 @@ export const AgendaView = ({ jobs, properties, employees = [], onStartJob, onVie
                   animate={{ opacity: 1 }}
                   className="glass-panel p-6 text-center"
                 >
-                  <p className="text-muted-foreground text-sm">No jobs scheduled</p>
+                  <p className="text-muted-foreground text-sm">{t('agenda.noJobs')}</p>
                 </motion.div>
               )}
             </div>

@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, TrendingUp, Clock, CheckCircle2 } from 'lucide-react';
-import { Job, JobStatus, ViewState } from '@/types';
+import { TrendingUp, Clock, CheckCircle2 } from 'lucide-react';
+import { Job, JobStatus } from '@/types';
 import { PageHeader } from '@/components/PageHeader';
 import { JobCard } from '@/components/JobCard';
 import { BackgroundEffects } from '@/components/BackgroundEffects';
+import { useLanguage } from '@/contexts/LanguageContext';
 import purLogo from '@/assets/pur-logo.png';
 
 interface DashboardViewProps {
@@ -15,6 +16,7 @@ interface DashboardViewProps {
 }
 
 export const DashboardView = ({ jobs, onStartJob, onViewJob, userProfile }: DashboardViewProps) => {
+  const { t } = useLanguage();
   const [currentTime, setCurrentTime] = useState(new Date());
   
   useEffect(() => {
@@ -27,8 +29,8 @@ export const DashboardView = ({ jobs, onStartJob, onViewJob, userProfile }: Dash
   const scheduledJobs = todayJobs.filter(j => j.status === JobStatus.SCHEDULED);
   const completedJobs = todayJobs.filter(j => j.status === JobStatus.COMPLETED);
 
-  const greeting = currentTime.getHours() < 12 ? 'Good Morning' : 
-                   currentTime.getHours() < 17 ? 'Good Afternoon' : 'Good Evening';
+  const greeting = currentTime.getHours() < 12 ? t('dashboard.goodMorning') : 
+                   currentTime.getHours() < 17 ? t('dashboard.goodAfternoon') : t('dashboard.goodEvening');
 
   return (
     <div className="flex flex-col h-full relative z-10 overflow-y-auto hide-scrollbar pb-32">
@@ -66,7 +68,7 @@ export const DashboardView = ({ jobs, onStartJob, onViewJob, userProfile }: Dash
               <Clock size={16} className="text-primary" />
             </div>
             <p className="text-2xl font-light text-foreground">{inProgressJobs.length}</p>
-            <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">Active</p>
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">{t('dashboard.active')}</p>
           </motion.div>
           
           <motion.div 
@@ -79,7 +81,7 @@ export const DashboardView = ({ jobs, onStartJob, onViewJob, userProfile }: Dash
               <TrendingUp size={16} className="text-warning" />
             </div>
             <p className="text-2xl font-light text-foreground">{scheduledJobs.length}</p>
-            <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">Scheduled</p>
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">{t('dashboard.scheduled')}</p>
           </motion.div>
           
           <motion.div 
@@ -92,14 +94,14 @@ export const DashboardView = ({ jobs, onStartJob, onViewJob, userProfile }: Dash
               <CheckCircle2 size={16} className="text-success" />
             </div>
             <p className="text-2xl font-light text-foreground">{completedJobs.length}</p>
-            <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">Done</p>
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">{t('dashboard.done')}</p>
           </motion.div>
         </div>
 
         {/* Today's Jobs */}
         <div className="mb-6">
           <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4">
-            Today's Jobs
+            {t('dashboard.todayJobs')}
           </h2>
           
           <div className="space-y-3">
@@ -128,7 +130,7 @@ export const DashboardView = ({ jobs, onStartJob, onViewJob, userProfile }: Dash
                 animate={{ opacity: 1 }}
                 className="glass-panel p-8 text-center"
               >
-                <p className="text-muted-foreground">No jobs scheduled for today</p>
+                <p className="text-muted-foreground">{t('dashboard.noJobsToday')}</p>
               </motion.div>
             )}
           </div>
