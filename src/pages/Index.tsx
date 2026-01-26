@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Job, Property, UserProfile, ViewState, JobStatus, Employee, InventoryItem } from '@/types';
 import { BottomNav } from '@/components/BottomNav';
@@ -7,6 +7,7 @@ import { AgendaView } from '@/views/AgendaView';
 import { PropertiesView } from '@/views/PropertiesView';
 import { SettingsView } from '@/views/SettingsView';
 import { LoginView } from '@/views/LoginView';
+import { ResetPasswordView } from '@/views/ResetPasswordView';
 import { PropertyDetailsView } from '@/views/PropertyDetailsView';
 import { JobDetailsView } from '@/views/JobDetailsView';
 import { ExecutionView } from '@/views/ExecutionView';
@@ -23,6 +24,18 @@ const Index = () => {
   const { user, loading: authLoading, signIn, signUp, signOut } = useAuth();
   const [authError, setAuthError] = useState('');
   const [isAuthenticating, setIsAuthenticating] = useState(false);
+  const [isResetPasswordMode, setIsResetPasswordMode] = useState(false);
+  
+  // Check if we're on the reset password page
+  useEffect(() => {
+    const path = window.location.pathname;
+    const hash = window.location.hash;
+    
+    // Check for reset password route or recovery token in hash
+    if (path === '/reset-password' || hash.includes('type=recovery')) {
+      setIsResetPasswordMode(true);
+    }
+  }, []);
   
   // Data from Supabase
   const { profile, updateProfile, isLoading: profileLoading } = useProfile(user?.id);
@@ -193,6 +206,12 @@ const Index = () => {
   const activeProperty = properties.find(p => p.id === activePropertyId);
   const activeJob = jobs.find(j => j.id === activeJobId);
 
+  // Handler for password reset completion
+  const handlePasswordResetComplete = useCallback(() => {
+    setIsResetPasswordMode(false);
+    window.history.replaceState({}, '', '/');
+  }, []);
+
   // Show loading state
   if (authLoading) {
     return (
@@ -200,6 +219,18 @@ const Index = () => {
         <div className="bg-florida-sky-fixed" />
         <div className="min-h-screen relative z-10 flex items-center justify-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        </div>
+      </>
+    );
+  }
+
+  // Show Reset Password view if in reset mode
+  if (isResetPasswordMode) {
+    return (
+      <>
+        <div className="bg-florida-sky-fixed" />
+        <div className="min-h-screen relative z-10 md:flex md:items-center md:justify-center">
+          <ResetPasswordView onPasswordReset={handlePasswordResetComplete} />
         </div>
       </>
     );
