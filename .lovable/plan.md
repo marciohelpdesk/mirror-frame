@@ -1,59 +1,76 @@
 
-# Plano: Reposicionar a Bolha de Progresso na ExecutionView
+# Plano: Corrigir Sobreposição com Safe Area do iOS
 
 ## Problema Identificado
-A bolha de líquido está atualmente posicionada ao lado esquerdo do stepper (linha 134-150), criando um layout desalinhado e fora de contexto visual com os ícones circulares do stepper.
+O conteúdo do app está sobrepondo a barra de status do iOS (hora, sinal, bateria, etc.) porque:
+1. O `index.html` usa `viewport-fit=cover` e `apple-mobile-web-app-status-bar-style="black-translucent"`
+2. Isso permite que o conteúdo ocupe toda a tela, incluindo a área da barra de status
+3. **Falta** o uso de `env(safe-area-inset-top)` no CSS para criar espaço seguro
 
-## Solução Proposta
+## Solução
 
-### Opção Recomendada: Integrar a Bolha como Primeiro Step do Stepper
-Transformar a bolha em parte visual do próprio stepper, como se fosse um "indicador de progresso geral" que acompanha os steps.
+### Mudanças Necessárias
 
-**Layout proposto:**
-```text
-┌─────────────────────────────────────────────┐
-│ CLEANING NOW                            [X] │
-│ Cliente Name                                │
-├─────────────────────────────────────────────┤
-│                                             │
-│  📷 ─ 📋 ─ ⚠️ ─ 🔍 ─ 📦 ─ 📸 ─ 📄        │
-│  Before Tasks Damages Found Inv After Sum   │
-│                                             │
-│                  ┌────┐                     │
-│                  │~~~~│  ← Bolha centralizada│
-│                  │~~~~│    abaixo do stepper │
-│                  └────┘                     │
-│                                             │
-└─────────────────────────────────────────────┘
+**1. Atualizar `src/index.css`**
+
+Adicionar suporte a Safe Area Insets no CSS global:
+- Criar uma variável CSS para o safe-area-inset-top
+- Aplicar padding-top automático no container principal
+
+```css
+:root {
+  --safe-area-inset-top: env(safe-area-inset-top, 0px);
+  --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.mobile-frame {
+  padding-top: env(safe-area-inset-top, 0px);
+}
 ```
 
-### Mudanças no Layout
+**2. Atualizar `src/components/PageHeader.tsx`**
 
-**Arquivo: `src/views/ExecutionView.tsx`**
+Adicionar padding-top seguro no header para empurrar o conteúdo para baixo da barra de status:
 
-1. **Remover** a bolha da posição atual (ao lado do stepper)
-2. **Centralizar** a bolha abaixo do stepper em uma nova linha
-3. Ajustar o tamanho para ~50px para ser discreto mas visível
-4. Adicionar espaçamento apropriado
-
-### Estrutura Final do Header
-```text
-Header
-├── Título + Botão X (linha superior)
-├── Stepper (ocupando toda a largura)
-└── Bolha de Progresso (centralizada abaixo, menor)
+```tsx
+<header className="flex justify-between items-start p-6 pb-4 pt-safe">
 ```
 
-## Detalhes Técnicos
+Onde `pt-safe` será uma classe utilitária que aplica `padding-top: env(safe-area-inset-top)`.
 
-### Novo Layout da Seção de Progresso
-- O stepper volta a ocupar a largura total (`flex-1` sem concorrência)
-- A bolha fica em uma `div` separada, centralizada
-- Tamanho reduzido para 48-50px
-- Margem superior sutil para separação visual
+**3. Atualizar `src/views/ExecutionView.tsx`**
 
-### Benefícios
-- Stepper mantém alinhamento uniforme
-- Bolha não compete visualmente com os ícones dos steps
-- Layout mais limpo e contextualizado
-- A bolha funciona como "resumo visual" do progresso do checklist
+O header da ExecutionView usa `pt-4` diretamente. Precisamos adicionar o safe area inset:
+
+```tsx
+<div className="px-4 pt-4 pb-2">
+// Muda para:
+<div className="px-4 pb-2" style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 1rem)' }}>
+```
+
+### Implementação Técnica
+
+**Arquivo: `src/index.css`**
+- Adicionar variáveis CSS para safe-area-insets
+- Criar classe utilitária `.pt-safe` 
+- Aplicar `padding-top: env(safe-area-inset-top)` no `.mobile-frame`
+
+**Arquivo: `src/components/PageHeader.tsx`**
+- Modificar o padding-top do header para incluir safe-area
+
+**Arquivo: `src/views/ExecutionView.tsx`**  
+- Modificar o padding-top do header para incluir safe-area
+
+### Resultado Esperado
+
+```text
+ANTES:                          DEPOIS:
+┌───────────────────┐           ┌───────────────────┐
+│00:19 📶 🔋        │           │00:19 📶 🔋        │ ← Status bar
+│Good Morning ──────│ ← Overlap │───────────────────│ ← Safe area
+│                   │           │Good Morning       │
+│                   │           │                   │
+└───────────────────┘           └───────────────────┘
+```
+
+O conteúdo será empurrado para baixo automaticamente em dispositivos com notch (iPhone X+) e barra de status, garantindo que todos os elementos interativos fiquem acessíveis.
