@@ -7,6 +7,7 @@ interface LiquidProgressBubbleProps {
   size?: number;
   animated?: boolean;
   showPercentage?: boolean;
+  showLabel?: boolean;
 }
 
 export const LiquidProgressBubble = ({ 
@@ -14,7 +15,8 @@ export const LiquidProgressBubble = ({
   label,
   size = 180,
   animated = false,
-  showPercentage = true
+  showPercentage = true,
+  showLabel = true
 }: LiquidProgressBubbleProps) => {
   const { t } = useLanguage();
   const displayLabel = label || t('dashboard.purification');
@@ -31,9 +33,11 @@ export const LiquidProgressBubble = ({
   return (
     <div className="flex flex-col items-center gap-3">
       {/* Label */}
-      <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-muted-foreground">
-        {displayLabel}
-      </span>
+      {showLabel && (
+        <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-muted-foreground">
+          {displayLabel}
+        </span>
+      )}
       
       {/* Bubble Container */}
       <motion.div 

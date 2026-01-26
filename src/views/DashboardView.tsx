@@ -126,7 +126,7 @@ export const DashboardView = ({ jobs, onStartJob, onViewJob, userProfile }: Dash
           transition={{ delay: 0.4 }}
           className="flex justify-center mb-8"
         >
-          <LiquidProgressBubble percentage={purificationProgress} />
+          <LiquidProgressBubble percentage={purificationProgress} showLabel={false} />
         </motion.div>
 
         {/* Today's Jobs */}
