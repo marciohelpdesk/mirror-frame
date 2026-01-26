@@ -116,7 +116,7 @@ export const ExecutionView = ({ job, inventory, onUpdateJob, onComplete, onCance
   return (
     <div className="h-full flex flex-col bg-background">
       {/* Header */}
-      <div className="px-4 pt-4 pb-2">
+      <div className="px-4 pb-2 pt-safe" style={{ paddingTop: 'max(env(safe-area-inset-top, 0px), 1rem)' }}>
         <div className="flex items-center justify-between mb-4">
           <div>
             <p className="text-xs text-muted-foreground uppercase tracking-wide">{t('exec.cleaningNow')}</p>
