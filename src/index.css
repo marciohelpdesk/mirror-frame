@@ -138,6 +138,12 @@
     z-index: 0;
   }
   
+  @media (max-width: 768px) {
+    .bg-florida-sky-fixed {
+      display: none;
+    }
+  }
+  
   /* Glass Panel Effect - High Density Milk Glass */
   .glass-panel {
     background: linear-gradient(160deg, rgba(255, 255, 255, 0.98) 0%, rgba(255, 255, 255, 0.92) 100%);
@@ -182,7 +188,9 @@
   
   /* Mobile Frame */
   .mobile-frame {
-    @apply relative flex flex-col w-full h-full;
+    @apply relative flex flex-col w-full;
+    height: 100vh;
+    height: 100dvh;
     background: rgba(255, 255, 255, 0.45);
     backdrop-filter: blur(40px);
     overflow-y: auto;
