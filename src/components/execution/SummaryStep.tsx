@@ -1,19 +1,23 @@
 import { motion } from 'framer-motion';
-import { Check, Clock, Camera, ClipboardCheck, Star, MessageSquare } from 'lucide-react';
+import { Check, Clock, Camera, ClipboardCheck, Star, MessageSquare, FileDown, AlertTriangle, Package } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Job, ChecklistSection } from '@/types';
+import { Job, InventoryItem } from '@/types';
 import { useState } from 'react';
+import { generateCleaningReport, downloadPdf } from '@/lib/pdfGenerator';
+import { toast } from 'sonner';
 
 interface SummaryStepProps {
   job: Job;
+  inventory: InventoryItem[];
   onComplete: (note?: string) => void;
   onBack: () => void;
 }
 
-export const SummaryStep = ({ job, onComplete, onBack }: SummaryStepProps) => {
+export const SummaryStep = ({ job, inventory, onComplete, onBack }: SummaryStepProps) => {
   const [note, setNote] = useState(job.reportNote || '');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
   // Calculate stats
   const totalTasks = job.checklist.reduce((acc, s) => acc + s.items.length, 0);
@@ -31,6 +35,32 @@ export const SummaryStep = ({ job, onComplete, onBack }: SummaryStepProps) => {
     const mins = minutes % 60;
     if (hrs > 0) return `${hrs}h ${mins}m`;
     return `${mins} min`;
+  };
+
+  const lowStockItems = inventory.filter(item => {
+    const usage = job.inventoryUsed?.find(u => u.itemId === item.id);
+    const remaining = item.quantity - (usage?.quantityUsed || 0);
+    return remaining <= item.threshold;
+  });
+
+  const handleGeneratePdf = async () => {
+    setIsGeneratingPdf(true);
+    try {
+      const blob = await generateCleaningReport({
+        job: { ...job, reportNote: note, endTime: Date.now() },
+        inventory,
+        responsibleName: 'Maria Santos', // TODO: Get from user profile
+      });
+      
+      const filename = `relatorio-${job.clientName.replace(/\s+/g, '-').toLowerCase()}-${new Date().toISOString().split('T')[0]}.pdf`;
+      downloadPdf(blob, filename);
+      toast.success('Relatório PDF gerado com sucesso!');
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      toast.error('Erro ao gerar o relatório PDF');
+    } finally {
+      setIsGeneratingPdf(false);
+    }
   };
 
   const handleComplete = () => {
@@ -57,9 +87,9 @@ export const SummaryStep = ({ job, onComplete, onBack }: SummaryStepProps) => {
         >
           <Check className="w-8 h-8 text-primary-foreground" />
         </motion.div>
-        <h2 className="text-xl font-semibold text-foreground">Great Work!</h2>
+        <h2 className="text-xl font-semibold text-foreground">Excelente Trabalho!</h2>
         <p className="text-sm text-muted-foreground mt-1">
-          Review your cleaning summary
+          Revise o resumo da limpeza
         </p>
       </div>
 
@@ -72,39 +102,84 @@ export const SummaryStep = ({ job, onComplete, onBack }: SummaryStepProps) => {
           <div className="grid grid-cols-2 gap-3">
             <StatCard
               icon={Clock}
-              label="Duration"
+              label="Duração"
               value={formatDuration(duration)}
               color="primary"
             />
             <StatCard
               icon={ClipboardCheck}
-              label="Tasks"
+              label="Tarefas"
               value={`${completedTasks}/${totalTasks}`}
               color="success"
             />
             <StatCard
               icon={Camera}
-              label="Before"
-              value={`${job.photosBefore.length} photos`}
+              label="Antes"
+              value={`${job.photosBefore.length} fotos`}
               color="amber"
             />
             <StatCard
               icon={Camera}
-              label="After"
-              value={`${job.photosAfter.length} photos`}
+              label="Depois"
+              value={`${job.photosAfter.length} fotos`}
               color="emerald"
             />
           </div>
         </div>
 
+        {/* Damages Preview */}
+        {job.damages && job.damages.length > 0 && (
+          <div className="glass-panel p-4 mb-4 border-l-4 border-l-destructive">
+            <div className="flex items-center gap-2 mb-3">
+              <AlertTriangle className="w-4 h-4 text-destructive" />
+              <h3 className="text-sm font-semibold text-foreground">Danos Registrados ({job.damages.length})</h3>
+            </div>
+            <div className="space-y-2">
+              {job.damages.slice(0, 2).map(damage => (
+                <div key={damage.id} className="text-xs text-muted-foreground">
+                  • {damage.description.substring(0, 50)}{damage.description.length > 50 ? '...' : ''}
+                </div>
+              ))}
+              {job.damages.length > 2 && (
+                <p className="text-xs text-muted-foreground">+{job.damages.length - 2} mais</p>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Low Stock Warning */}
+        {lowStockItems.length > 0 && (
+          <div className="glass-panel p-4 mb-4 border-l-4 border-l-warning">
+            <div className="flex items-center gap-2 mb-3">
+              <Package className="w-4 h-4 text-warning" />
+              <h3 className="text-sm font-semibold text-foreground">Estoque Baixo ({lowStockItems.length})</h3>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {lowStockItems.slice(0, 3).map(item => (
+                <span 
+                  key={item.id}
+                  className="px-2 py-1 rounded-full bg-warning/20 text-warning text-xs"
+                >
+                  {item.name}
+                </span>
+              ))}
+              {lowStockItems.length > 3 && (
+                <span className="px-2 py-1 rounded-full bg-muted text-muted-foreground text-xs">
+                  +{lowStockItems.length - 3}
+                </span>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Photo Preview */}
         {(job.photosBefore.length > 0 || job.photosAfter.length > 0) && (
           <div className="glass-panel p-4 mb-4">
-            <h3 className="text-sm font-semibold text-foreground mb-3">Photo Documentation</h3>
+            <h3 className="text-sm font-semibold text-foreground mb-3">Documentação Fotográfica</h3>
             
             {job.photosBefore.length > 0 && (
               <div className="mb-3">
-                <p className="text-xs text-muted-foreground mb-2">Before ({job.photosBefore.length})</p>
+                <p className="text-xs text-muted-foreground mb-2">Antes ({job.photosBefore.length})</p>
                 <div className="flex gap-2 overflow-x-auto hide-scrollbar">
                   {job.photosBefore.slice(0, 4).map((photo, i) => (
                     <div key={i} className="w-16 h-12 rounded-lg overflow-hidden shrink-0">
@@ -117,7 +192,7 @@ export const SummaryStep = ({ job, onComplete, onBack }: SummaryStepProps) => {
 
             {job.photosAfter.length > 0 && (
               <div>
-                <p className="text-xs text-muted-foreground mb-2">After ({job.photosAfter.length})</p>
+                <p className="text-xs text-muted-foreground mb-2">Depois ({job.photosAfter.length})</p>
                 <div className="flex gap-2 overflow-x-auto hide-scrollbar">
                   {job.photosAfter.slice(0, 4).map((photo, i) => (
                     <div key={i} className="w-16 h-12 rounded-lg overflow-hidden shrink-0">
@@ -134,12 +209,12 @@ export const SummaryStep = ({ job, onComplete, onBack }: SummaryStepProps) => {
         <div className="glass-panel p-4 mb-4">
           <div className="flex items-center gap-2 mb-3">
             <MessageSquare className="w-4 h-4 text-muted-foreground" />
-            <h3 className="text-sm font-semibold text-foreground">Add a Note (optional)</h3>
+            <h3 className="text-sm font-semibold text-foreground">Adicionar Observação (opcional)</h3>
           </div>
           <Textarea
             value={note}
             onChange={(e) => setNote(e.target.value)}
-            placeholder="Any issues, special notes, or feedback..."
+            placeholder="Problemas, notas especiais ou feedback..."
             className="min-h-[80px] resize-none bg-card/50 border-muted"
           />
         </div>
@@ -149,10 +224,10 @@ export const SummaryStep = ({ job, onComplete, onBack }: SummaryStepProps) => {
           <div className="glass-panel p-4 mb-4 border-l-4 border-l-primary">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-muted-foreground">Job Earnings</p>
-                <p className="text-2xl font-bold text-foreground">${job.price.toFixed(2)}</p>
+                <p className="text-xs text-muted-foreground">Valor do Serviço</p>
+                <p className="text-2xl font-bold text-foreground">R$ {job.price.toFixed(2)}</p>
               </div>
-              <div className="flex items-center gap-1 text-amber-500">
+              <div className="flex items-center gap-1 text-warning">
                 <Star className="w-5 h-5 fill-current" />
                 <Star className="w-5 h-5 fill-current" />
                 <Star className="w-5 h-5 fill-current" />
@@ -162,6 +237,17 @@ export const SummaryStep = ({ job, onComplete, onBack }: SummaryStepProps) => {
             </div>
           </div>
         )}
+
+        {/* Generate PDF Button */}
+        <Button
+          variant="outline"
+          onClick={handleGeneratePdf}
+          disabled={isGeneratingPdf}
+          className="w-full mb-4 h-12 rounded-xl gap-2"
+        >
+          <FileDown className="w-5 h-5" />
+          {isGeneratingPdf ? 'Gerando PDF...' : 'Baixar Relatório PDF'}
+        </Button>
       </div>
 
       {/* Actions */}
@@ -172,7 +258,7 @@ export const SummaryStep = ({ job, onComplete, onBack }: SummaryStepProps) => {
           className="flex-1 h-12 rounded-xl"
           disabled={isSubmitting}
         >
-          Back
+          Voltar
         </Button>
         <Button
           onClick={handleComplete}
@@ -188,7 +274,7 @@ export const SummaryStep = ({ job, onComplete, onBack }: SummaryStepProps) => {
             </motion.div>
           ) : (
             <>
-              Complete Job
+              Concluir
               <Check className="w-4 h-4" />
             </>
           )}

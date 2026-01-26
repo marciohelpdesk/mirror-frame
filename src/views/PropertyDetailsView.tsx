@@ -20,7 +20,8 @@ import {
   Eye,
   EyeOff,
   Trash2,
-  AlertTriangle
+  AlertTriangle,
+  Mail
 } from 'lucide-react';
 import { Property } from '@/types';
 import { BackgroundEffects } from '@/components/BackgroundEffects';
@@ -377,7 +378,38 @@ export const PropertyDetailsView = ({ property, onBack, onUpdate, onDelete }: Pr
           )}
         </motion.div>
         
-        {/* House Manual Link */}
+        {/* Client Email */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.32 }}
+          className="glass-panel p-4"
+        >
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">
+              <Mail size={20} className="text-primary" />
+            </div>
+            <div className="flex-1">
+              <h3 className="font-semibold text-foreground">Email do Cliente</h3>
+              <p className="text-xs text-muted-foreground">Para envio de relatórios</p>
+            </div>
+          </div>
+          
+          {isEditing ? (
+            <input
+              type="email"
+              value={editedProperty.clientEmail || ''}
+              onChange={(e) => setEditedProperty({...editedProperty, clientEmail: e.target.value})}
+              placeholder="cliente@email.com"
+              className="w-full bg-white/10 rounded-lg px-3 py-2 text-foreground border border-white/20 focus:outline-none focus:border-secondary"
+            />
+          ) : property.clientEmail ? (
+            <p className="text-sm text-foreground">{property.clientEmail}</p>
+          ) : (
+            <p className="text-sm text-muted-foreground italic">Nenhum email cadastrado</p>
+          )}
+        </motion.div>
+        
         {(property.manualUrl || isEditing) && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}

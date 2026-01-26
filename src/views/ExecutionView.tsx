@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, AlertTriangle } from 'lucide-react';
-import { Job, ExecutionStep, ChecklistSection } from '@/types';
+import { Job, ExecutionStep, ChecklistSection, InventoryItem, DamageReport, InventoryUsage } from '@/types';
 import { ExecutionStepper } from '@/components/execution/ExecutionStepper';
 import { PhotoCaptureStep } from '@/components/execution/PhotoCaptureStep';
 import { ChecklistStep } from '@/components/execution/ChecklistStep';
+import { DamageReportStep } from '@/components/execution/DamageReportStep';
+import { InventoryCheckStep } from '@/components/execution/InventoryCheckStep';
 import { SummaryStep } from '@/components/execution/SummaryStep';
 import {
   AlertDialog,
@@ -19,14 +21,15 @@ import {
 
 interface ExecutionViewProps {
   job: Job;
+  inventory: InventoryItem[];
   onUpdateJob: (job: Job) => void;
   onComplete: (job: Job) => void;
   onCancel: () => void;
 }
 
-const STEP_ORDER: ExecutionStep[] = ['BEFORE_PHOTOS', 'CHECKLIST', 'AFTER_PHOTOS', 'SUMMARY'];
+const STEP_ORDER: ExecutionStep[] = ['BEFORE_PHOTOS', 'CHECKLIST', 'DAMAGE_REPORT', 'INVENTORY_CHECK', 'AFTER_PHOTOS', 'SUMMARY'];
 
-export const ExecutionView = ({ job, onUpdateJob, onComplete, onCancel }: ExecutionViewProps) => {
+export const ExecutionView = ({ job, inventory, onUpdateJob, onComplete, onCancel }: ExecutionViewProps) => {
   const [currentStep, setCurrentStep] = useState<ExecutionStep>(job.currentStep || 'BEFORE_PHOTOS');
   const [completedSteps, setCompletedSteps] = useState<ExecutionStep[]>([]);
   const [showExitDialog, setShowExitDialog] = useState(false);
@@ -65,6 +68,14 @@ export const ExecutionView = ({ job, onUpdateJob, onComplete, onCancel }: Execut
     onUpdateJob({ ...job, checklist });
   };
 
+  const handleDamagesChange = (damages: DamageReport[]) => {
+    onUpdateJob({ ...job, damages });
+  };
+
+  const handleInventoryUsedChange = (inventoryUsed: InventoryUsage[]) => {
+    onUpdateJob({ ...job, inventoryUsed });
+  };
+
   const handleComplete = (note?: string) => {
     const completedJob: Job = {
       ...job,
@@ -85,7 +96,7 @@ export const ExecutionView = ({ job, onUpdateJob, onComplete, onCancel }: Execut
       <div className="px-4 pt-4 pb-2">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <p className="text-xs text-muted-foreground uppercase tracking-wide">Now Cleaning</p>
+            <p className="text-xs text-muted-foreground uppercase tracking-wide">Limpando Agora</p>
             <h1 className="text-lg font-semibold text-foreground truncate">{job.clientName}</h1>
           </div>
           <button
@@ -124,6 +135,27 @@ export const ExecutionView = ({ job, onUpdateJob, onComplete, onCancel }: Execut
             />
           )}
 
+          {currentStep === 'DAMAGE_REPORT' && (
+            <DamageReportStep
+              key="damage"
+              damages={job.damages || []}
+              onDamagesChange={handleDamagesChange}
+              onNext={goToNextStep}
+              onBack={goToPrevStep}
+            />
+          )}
+
+          {currentStep === 'INVENTORY_CHECK' && (
+            <InventoryCheckStep
+              key="inventory"
+              inventory={inventory}
+              inventoryUsed={job.inventoryUsed || []}
+              onInventoryUsedChange={handleInventoryUsedChange}
+              onNext={goToNextStep}
+              onBack={goToPrevStep}
+            />
+          )}
+
           {currentStep === 'AFTER_PHOTOS' && (
             <PhotoCaptureStep
               key="after"
@@ -140,6 +172,7 @@ export const ExecutionView = ({ job, onUpdateJob, onComplete, onCancel }: Execut
             <SummaryStep
               key="summary"
               job={job}
+              inventory={inventory}
               onComplete={handleComplete}
               onBack={goToPrevStep}
             />
@@ -155,19 +188,19 @@ export const ExecutionView = ({ job, onUpdateJob, onComplete, onCancel }: Execut
               <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center">
                 <AlertTriangle className="w-5 h-5 text-amber-600" />
               </div>
-              <AlertDialogTitle>Exit Job?</AlertDialogTitle>
+              <AlertDialogTitle>Sair do Trabalho?</AlertDialogTitle>
             </div>
             <AlertDialogDescription>
-              Your progress will be saved but the job won't be marked complete. You can resume later.
+              Seu progresso será salvo, mas o trabalho não será marcado como concluído. Você pode retomar depois.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="gap-2">
-            <AlertDialogCancel className="flex-1 rounded-xl">Continue Working</AlertDialogCancel>
+            <AlertDialogCancel className="flex-1 rounded-xl">Continuar Trabalhando</AlertDialogCancel>
             <AlertDialogAction
               onClick={onCancel}
               className="flex-1 rounded-xl bg-destructive hover:bg-destructive/90"
             >
-              Exit Job
+              Sair
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

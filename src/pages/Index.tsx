@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Job, Property, UserProfile, ViewState, JobStatus, Employee } from '@/types';
-import { INITIAL_JOBS, INITIAL_PROPERTIES, INITIAL_PROFILE, INITIAL_EMPLOYEES } from '@/data/initialData';
+import { Job, Property, UserProfile, ViewState, JobStatus, Employee, InventoryItem } from '@/types';
+import { INITIAL_JOBS, INITIAL_PROPERTIES, INITIAL_PROFILE, INITIAL_EMPLOYEES, INITIAL_INVENTORY } from '@/data/initialData';
 import { BottomNav } from '@/components/BottomNav';
 import { DashboardView } from '@/views/DashboardView';
 import { AgendaView } from '@/views/AgendaView';
@@ -25,6 +25,7 @@ const Index = () => {
   const [properties, setProperties] = useState<Property[]>(INITIAL_PROPERTIES);
   const [userProfile, setUserProfile] = useState<UserProfile>(INITIAL_PROFILE);
   const [employees, setEmployees] = useState<Employee[]>(INITIAL_EMPLOYEES);
+  const [inventory, setInventory] = useState<InventoryItem[]>(INITIAL_INVENTORY);
   const [activeJobId, setActiveJobId] = useState<string | null>(null);
   const [activePropertyId, setActivePropertyId] = useState<string | null>(null);
 
@@ -275,6 +276,7 @@ const Index = () => {
             >
               <ExecutionView
                 job={activeJob}
+                inventory={inventory}
                 onUpdateJob={updateJob}
                 onComplete={completeJob}
                 onCancel={cancelExecution}

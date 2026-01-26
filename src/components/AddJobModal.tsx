@@ -55,6 +55,8 @@ export const AddJobModal = ({ open, onOpenChange, properties, employees = [], on
       checklist: JSON.parse(JSON.stringify(STANDARD_CHECKLIST_TEMPLATE)),
       photosBefore: [],
       photosAfter: [],
+      damages: [],
+      inventoryUsed: [],
     };
 
     onAddJob(newJob);

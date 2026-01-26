@@ -4,7 +4,7 @@ export enum JobStatus {
   COMPLETED = 'COMPLETED'
 }
 
-export type ExecutionStep = 'BEFORE_PHOTOS' | 'CHECKLIST' | 'INVENTORY' | 'AFTER_PHOTOS' | 'SUMMARY';
+export type ExecutionStep = 'BEFORE_PHOTOS' | 'CHECKLIST' | 'DAMAGE_REPORT' | 'INVENTORY_CHECK' | 'AFTER_PHOTOS' | 'SUMMARY';
 
 export interface UserProfile {
   name: string;
@@ -24,6 +24,11 @@ export interface InventoryItem {
   reorderPhoto?: string; 
 }
 
+export interface InventoryUsage {
+  itemId: string;
+  quantityUsed: number;
+}
+
 export interface ChecklistItem {
   id: string;
   label: string;
@@ -36,6 +41,14 @@ export interface ChecklistSection {
   id: string;
   title: string;
   items: ChecklistItem[];
+}
+
+export interface DamageReport {
+  id: string;
+  type: 'furniture' | 'electronics' | 'stain' | 'other';
+  description: string;
+  photoUrl?: string;
+  severity: 'low' | 'medium' | 'high';
 }
 
 export interface Job {
@@ -58,6 +71,9 @@ export interface Job {
   photosBefore: string[];
   photosAfter: string[];
   reportNote?: string;
+  
+  damages: DamageReport[];
+  inventoryUsed: InventoryUsage[];
 }
 
 export interface Property {
@@ -75,6 +91,7 @@ export interface Property {
   basePrice?: number; 
   status: 'READY' | 'NEEDS_CLEANING' | 'OCCUPIED';
   manualUrl?: string; 
+  clientEmail?: string;
   
   bedrooms?: number;
   bathrooms?: number;
