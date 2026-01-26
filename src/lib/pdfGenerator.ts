@@ -1,5 +1,6 @@
 import jsPDF from 'jspdf';
 import { Job, Property, InventoryItem, DamageReport, ChecklistSection } from '@/types';
+import purLogo from '@/assets/pur-logo.png';
 
 interface ReportData {
   job: Job;
@@ -25,24 +26,25 @@ export interface LaundryItem {
   unit: string;
 }
 
-// Design tokens from the template
+// Professional design tokens - refined color palette
 const COLORS = {
-  primary: [0, 150, 136] as [number, number, number],
-  accent: [38, 166, 154] as [number, number, number],
-  gold: [212, 175, 55] as [number, number, number],
-  dark: [33, 33, 33] as [number, number, number],
-  text: [66, 66, 66] as [number, number, number],
-  muted: [117, 117, 117] as [number, number, number],
-  lightGray: [245, 245, 245] as [number, number, number],
+  primary: [0, 188, 212] as [number, number, number],      // Cyan - brand color
+  accent: [0, 150, 136] as [number, number, number],       // Teal
+  gold: [255, 193, 7] as [number, number, number],         // Amber gold
+  dark: [38, 50, 56] as [number, number, number],          // Blue-grey dark
+  text: [55, 71, 79] as [number, number, number],          // Blue-grey
+  muted: [120, 144, 156] as [number, number, number],      // Blue-grey light
+  lightGray: [236, 239, 241] as [number, number, number],  // Blue-grey 50
   cardBg: [250, 250, 250] as [number, number, number],
   success: [76, 175, 80] as [number, number, number],
   warning: [255, 152, 0] as [number, number, number],
   danger: [244, 67, 54] as [number, number, number],
   white: [255, 255, 255] as [number, number, number],
+  headerBg: [0, 188, 212] as [number, number, number],     // Cyan header
 };
 
 const FONTS = {
-  title: 'times',
+  title: 'helvetica',
   body: 'helvetica',
 };
 
@@ -50,15 +52,41 @@ class ProfessionalReportGenerator {
   private pdf: jsPDF;
   private pageWidth: number;
   private pageHeight: number;
-  private margin: number = 20;
-  private yPos: number = 20;
+  private margin: number = 15;
+  private yPos: number = 15;
   private contentWidth: number;
+  private logoLoaded: boolean = false;
+  private logoDataUrl: string = '';
 
   constructor() {
     this.pdf = new jsPDF('p', 'mm', 'a4');
     this.pageWidth = this.pdf.internal.pageSize.getWidth();
     this.pageHeight = this.pdf.internal.pageSize.getHeight();
     this.contentWidth = this.pageWidth - (this.margin * 2);
+  }
+
+  private async loadLogo(): Promise<void> {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0);
+          this.logoDataUrl = canvas.toDataURL('image/png');
+          this.logoLoaded = true;
+        }
+        resolve();
+      };
+      img.onerror = () => {
+        console.warn('Could not load logo for PDF');
+        resolve();
+      };
+      img.src = purLogo;
+    });
   }
 
   private checkPageBreak(neededSpace: number): void {
@@ -74,7 +102,6 @@ class ProfessionalReportGenerator {
         return false;
       }
       
-      // Determine format from data URL
       let format = 'JPEG';
       if (imageData.includes('data:image/png')) {
         format = 'PNG';
@@ -90,55 +117,121 @@ class ProfessionalReportGenerator {
     }
   }
 
-  private drawLogo(): void {
-    const centerX = this.pageWidth / 2;
-    const logoY = 15;
-    
-    // Draw stylized gold drop
-    this.pdf.setFillColor(COLORS.gold[0], COLORS.gold[1], COLORS.gold[2]);
-    this.pdf.circle(centerX, logoY + 8, 6, 'F');
-    
-    // Top point
-    this.pdf.setFillColor(COLORS.gold[0] - 30, COLORS.gold[1] - 30, COLORS.gold[2] - 10);
-    this.pdf.triangle(centerX, logoY - 2, centerX - 5, logoY + 6, centerX + 5, logoY + 6, 'F');
-    
-    // Highlight
-    this.pdf.setFillColor(255, 255, 255);
-    this.pdf.circle(centerX - 1.5, logoY + 5, 1.2, 'F');
-    
-    // Green accent at bottom
-    this.pdf.setFillColor(0, 100, 50);
-    this.pdf.ellipse(centerX, logoY + 14, 3, 1.5, 'F');
-  }
-
   private drawHeader(propertyName: string, date: string, startTime: string, endTime: string, auditorName: string): void {
-    this.drawLogo();
+    // Header background with gradient effect (simulated with rectangles)
+    this.pdf.setFillColor(COLORS.primary[0], COLORS.primary[1], COLORS.primary[2]);
+    this.pdf.rect(0, 0, this.pageWidth, 55, 'F');
     
-    // Property name
-    this.pdf.setFont(FONTS.title, 'normal');
-    this.pdf.setFontSize(28);
-    this.pdf.setTextColor(COLORS.dark[0], COLORS.dark[1], COLORS.dark[2]);
-    this.pdf.text(propertyName, this.pageWidth / 2, 45, { align: 'center' });
+    // Decorative accent bar
+    this.pdf.setFillColor(COLORS.accent[0], COLORS.accent[1], COLORS.accent[2]);
+    this.pdf.rect(0, 55, this.pageWidth, 3, 'F');
     
-    // Subtitle
+    // Logo
+    const logoSize = 22;
+    const logoX = this.margin;
+    const logoY = 8;
+    
+    if (this.logoLoaded && this.logoDataUrl) {
+      try {
+        this.pdf.addImage(this.logoDataUrl, 'PNG', logoX, logoY, logoSize, logoSize);
+      } catch (e) {
+        // Fallback: draw text
+        this.pdf.setTextColor(255, 255, 255);
+        this.pdf.setFontSize(24);
+        this.pdf.setFont(FONTS.title, 'bold');
+        this.pdf.text('PUR', logoX + 5, logoY + 15);
+      }
+    } else {
+      // Fallback: draw brand text
+      this.pdf.setTextColor(255, 255, 255);
+      this.pdf.setFontSize(24);
+      this.pdf.setFont(FONTS.title, 'bold');
+      this.pdf.text('PUR', logoX + 5, logoY + 15);
+    }
+    
+    // Brand name next to logo
+    this.pdf.setTextColor(255, 255, 255);
+    this.pdf.setFont(FONTS.title, 'bold');
+    this.pdf.setFontSize(18);
+    this.pdf.text('MAISON PUR', logoX + logoSize + 5, logoY + 10);
+    
+    // Tagline
     this.pdf.setFont(FONTS.body, 'normal');
-    this.pdf.setFontSize(9);
-    this.pdf.setTextColor(COLORS.muted[0], COLORS.muted[1], COLORS.muted[2]);
-    const subtitle = 'R E L A T Ó R I O   D E   I N S P E Ç Ã O  •  G U E S T   R E A D Y';
-    this.pdf.text(subtitle, this.pageWidth / 2, 53, { align: 'center' });
-    
-    // Meta info line
     this.pdf.setFontSize(8);
-    this.pdf.setTextColor(COLORS.text[0], COLORS.text[1], COLORS.text[2]);
-    const metaLine = `DATA: ${date}     •     HORÁRIO: ${startTime} - ${endTime}     •     AUDITOR: ${auditorName}`;
-    this.pdf.text(metaLine, this.pageWidth / 2, 62, { align: 'center' });
+    this.pdf.setTextColor(255, 255, 255);
+    this.pdf.text('EXCELÊNCIA EM GESTÃO DE PROPRIEDADES', logoX + logoSize + 5, logoY + 16);
     
-    // Decorative line
-    this.pdf.setDrawColor(COLORS.gold[0], COLORS.gold[1], COLORS.gold[2]);
-    this.pdf.setLineWidth(0.5);
-    this.pdf.line(this.margin, 67, this.pageWidth - this.margin, 67);
+    // Report type badge
+    this.pdf.setFillColor(255, 255, 255);
+    this.pdf.roundedRect(this.pageWidth - this.margin - 50, 10, 50, 12, 2, 2, 'F');
+    this.pdf.setTextColor(COLORS.primary[0], COLORS.primary[1], COLORS.primary[2]);
+    this.pdf.setFont(FONTS.body, 'bold');
+    this.pdf.setFontSize(8);
+    this.pdf.text('RELATÓRIO DE INSPEÇÃO', this.pageWidth - this.margin - 25, 17, { align: 'center' });
     
-    this.yPos = 75;
+    // Property name - main title
+    this.pdf.setFont(FONTS.title, 'bold');
+    this.pdf.setFontSize(20);
+    this.pdf.setTextColor(255, 255, 255);
+    this.pdf.text(propertyName.toUpperCase(), this.pageWidth / 2, 40, { align: 'center' });
+    
+    // Meta info box
+    const metaBoxY = 62;
+    this.pdf.setFillColor(COLORS.lightGray[0], COLORS.lightGray[1], COLORS.lightGray[2]);
+    this.pdf.roundedRect(this.margin, metaBoxY, this.contentWidth, 18, 3, 3, 'F');
+    
+    // Meta info content - 4 columns
+    const colWidth = this.contentWidth / 4;
+    const metaTextY = metaBoxY + 11;
+    
+    // Date column
+    this.pdf.setFont(FONTS.body, 'bold');
+    this.pdf.setFontSize(7);
+    this.pdf.setTextColor(COLORS.muted[0], COLORS.muted[1], COLORS.muted[2]);
+    this.pdf.text('DATA', this.margin + colWidth * 0.5, metaBoxY + 6, { align: 'center' });
+    this.pdf.setFont(FONTS.body, 'normal');
+    this.pdf.setFontSize(10);
+    this.pdf.setTextColor(COLORS.dark[0], COLORS.dark[1], COLORS.dark[2]);
+    this.pdf.text(date, this.margin + colWidth * 0.5, metaTextY, { align: 'center' });
+    
+    // Start time column
+    this.pdf.setFont(FONTS.body, 'bold');
+    this.pdf.setFontSize(7);
+    this.pdf.setTextColor(COLORS.muted[0], COLORS.muted[1], COLORS.muted[2]);
+    this.pdf.text('INÍCIO', this.margin + colWidth * 1.5, metaBoxY + 6, { align: 'center' });
+    this.pdf.setFont(FONTS.body, 'normal');
+    this.pdf.setFontSize(10);
+    this.pdf.setTextColor(COLORS.dark[0], COLORS.dark[1], COLORS.dark[2]);
+    this.pdf.text(startTime, this.margin + colWidth * 1.5, metaTextY, { align: 'center' });
+    
+    // End time column
+    this.pdf.setFont(FONTS.body, 'bold');
+    this.pdf.setFontSize(7);
+    this.pdf.setTextColor(COLORS.muted[0], COLORS.muted[1], COLORS.muted[2]);
+    this.pdf.text('TÉRMINO', this.margin + colWidth * 2.5, metaBoxY + 6, { align: 'center' });
+    this.pdf.setFont(FONTS.body, 'normal');
+    this.pdf.setFontSize(10);
+    this.pdf.setTextColor(COLORS.dark[0], COLORS.dark[1], COLORS.dark[2]);
+    this.pdf.text(endTime, this.margin + colWidth * 2.5, metaTextY, { align: 'center' });
+    
+    // Auditor column
+    this.pdf.setFont(FONTS.body, 'bold');
+    this.pdf.setFontSize(7);
+    this.pdf.setTextColor(COLORS.muted[0], COLORS.muted[1], COLORS.muted[2]);
+    this.pdf.text('RESPONSÁVEL', this.margin + colWidth * 3.5, metaBoxY + 6, { align: 'center' });
+    this.pdf.setFont(FONTS.body, 'normal');
+    this.pdf.setFontSize(10);
+    this.pdf.setTextColor(COLORS.dark[0], COLORS.dark[1], COLORS.dark[2]);
+    this.pdf.text(auditorName, this.margin + colWidth * 3.5, metaTextY, { align: 'center' });
+    
+    // Vertical separators
+    this.pdf.setDrawColor(200, 200, 200);
+    this.pdf.setLineWidth(0.3);
+    for (let i = 1; i < 4; i++) {
+      this.pdf.line(this.margin + colWidth * i, metaBoxY + 4, this.margin + colWidth * i, metaBoxY + 14);
+    }
+    
+    this.yPos = 88;
   }
 
   private drawSectionCard(
@@ -612,40 +705,65 @@ class ProfessionalReportGenerator {
   }
 
   private drawFooter(responsibleName: string, date: string): void {
-    const footerY = this.pageHeight - 25;
+    const footerY = this.pageHeight - 30;
     
-    this.pdf.setDrawColor(230, 230, 230);
-    this.pdf.setLineWidth(0.3);
-    this.pdf.line(this.margin, footerY - 10, this.pageWidth - this.margin, footerY - 10);
+    // Footer background
+    this.pdf.setFillColor(COLORS.dark[0], COLORS.dark[1], COLORS.dark[2]);
+    this.pdf.rect(0, footerY - 5, this.pageWidth, 40, 'F');
     
-    this.pdf.setFont(FONTS.body, 'bold');
-    this.pdf.setFontSize(9);
-    this.pdf.setTextColor(COLORS.dark[0], COLORS.dark[1], COLORS.dark[2]);
-    this.pdf.text('MAISON PUR', this.margin, footerY);
+    // Accent line
+    this.pdf.setFillColor(COLORS.primary[0], COLORS.primary[1], COLORS.primary[2]);
+    this.pdf.rect(0, footerY - 5, this.pageWidth, 2, 'F');
     
+    // Logo in footer (small)
+    const logoSize = 10;
+    if (this.logoLoaded && this.logoDataUrl) {
+      try {
+        this.pdf.addImage(this.logoDataUrl, 'PNG', this.margin, footerY + 2, logoSize, logoSize);
+      } catch (e) {
+        // Fallback
+      }
+    }
+    
+    // Brand name
+    this.pdf.setFont(FONTS.title, 'bold');
+    this.pdf.setFontSize(12);
+    this.pdf.setTextColor(255, 255, 255);
+    this.pdf.text('MAISON PUR', this.margin + logoSize + 4, footerY + 7);
+    
+    // Tagline
     this.pdf.setFont(FONTS.body, 'normal');
     this.pdf.setFontSize(7);
-    this.pdf.setTextColor(COLORS.primary[0], COLORS.primary[1], COLORS.primary[2]);
-    this.pdf.text('EXCELÊNCIA EM PROPRIEDADES', this.margin, footerY + 5);
+    this.pdf.setTextColor(COLORS.muted[0], COLORS.muted[1], COLORS.muted[2]);
+    this.pdf.text('Excelência em Gestão de Propriedades', this.margin + logoSize + 4, footerY + 12);
+    
+    // Signature area
+    const signatureX = this.pageWidth - this.margin - 55;
+    this.pdf.setFillColor(COLORS.lightGray[0], COLORS.lightGray[1], COLORS.lightGray[2]);
+    this.pdf.roundedRect(signatureX, footerY, 55, 16, 2, 2, 'F');
     
     this.pdf.setDrawColor(COLORS.dark[0], COLORS.dark[1], COLORS.dark[2]);
-    this.pdf.setLineWidth(0.2);
-    const signatureX = this.pageWidth - this.margin - 50;
-    this.pdf.line(signatureX, footerY - 2, this.pageWidth - this.margin, footerY - 2);
+    this.pdf.setLineWidth(0.5);
+    this.pdf.line(signatureX + 5, footerY + 10, signatureX + 50, footerY + 10);
     
     this.pdf.setFont(FONTS.body, 'bold');
-    this.pdf.setFontSize(7);
+    this.pdf.setFontSize(6);
     this.pdf.setTextColor(COLORS.dark[0], COLORS.dark[1], COLORS.dark[2]);
-    this.pdf.text('ASSINATURA RESPONSÁVEL', signatureX + 25, footerY + 3, { align: 'center' });
-    this.pdf.text(date, signatureX + 25, footerY + 7, { align: 'center' });
+    this.pdf.text('ASSINATURA DO RESPONSÁVEL', signatureX + 27.5, footerY + 14, { align: 'center' });
     
+    // Verified badge
     this.pdf.setFillColor(COLORS.success[0], COLORS.success[1], COLORS.success[2]);
-    this.pdf.setTextColor(COLORS.success[0], COLORS.success[1], COLORS.success[2]);
-    this.pdf.setFontSize(14);
-    this.pdf.text('✓', this.pageWidth / 2, footerY - 15, { align: 'center' });
+    this.pdf.roundedRect(this.pageWidth / 2 - 20, footerY + 2, 40, 12, 2, 2, 'F');
+    this.pdf.setTextColor(255, 255, 255);
+    this.pdf.setFont(FONTS.body, 'bold');
+    this.pdf.setFontSize(8);
+    this.pdf.text('✓ VERIFICADO', this.pageWidth / 2, footerY + 10, { align: 'center' });
   }
 
-  public generate(data: ReportData): Blob {
+  public async generate(data: ReportData): Promise<Blob> {
+    // Load logo first
+    await this.loadLogo();
+    
     const { job, property, inventory, responsibleName, lostAndFound, laundryExpedition } = data;
     
     const dateStr = new Date(job.date).toLocaleDateString('pt-BR');
@@ -656,7 +774,7 @@ class ProfessionalReportGenerator {
       ? new Date(job.endTime).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
       : '--:--:--';
     
-    // Draw header
+    // Draw header with logo
     this.drawHeader(
       property?.name || job.clientName,
       dateStr,
@@ -665,12 +783,15 @@ class ProfessionalReportGenerator {
       responsibleName
     );
     
+    // Summary section - shows what was done at a glance
+    this.drawSummarySection(job);
+    
     // Draw each checklist section as a card with photos
     job.checklist.forEach((section, index) => {
       const beforePhoto = job.photosBefore[index];
       const afterPhoto = job.photosAfter[index];
       
-      // Filter damages related to this section (simple matching by title words)
+      // Filter damages related to this section
       const sectionDamages = (job.damages || []).filter(d => {
         const sectionWords = section.title.toLowerCase().split(' ');
         return sectionWords.some(word => d.description.toLowerCase().includes(word));
@@ -698,22 +819,103 @@ class ProfessionalReportGenerator {
     // Draw footer on last page
     this.drawFooter(responsibleName, dateStr);
     
-    // Add page numbers
+    // Add page numbers with better styling
     const totalPages = this.pdf.getNumberOfPages();
     for (let i = 1; i <= totalPages; i++) {
       this.pdf.setPage(i);
-      this.pdf.setFontSize(7);
-      this.pdf.setTextColor(COLORS.muted[0], COLORS.muted[1], COLORS.muted[2]);
-      this.pdf.text(`Página ${i} de ${totalPages}`, this.pageWidth / 2, this.pageHeight - 8, { align: 'center' });
+      this.pdf.setFontSize(8);
+      this.pdf.setTextColor(150, 150, 150);
+      this.pdf.text(`${i} / ${totalPages}`, this.pageWidth / 2, this.pageHeight - 5, { align: 'center' });
     }
     
     return this.pdf.output('blob');
+  }
+  
+  private drawSummarySection(job: Job): void {
+    this.checkPageBreak(35);
+    
+    const cardX = this.margin;
+    const cardY = this.yPos;
+    const cardWidth = this.contentWidth;
+    const cardHeight = 28;
+    
+    // Card background
+    this.pdf.setFillColor(COLORS.white[0], COLORS.white[1], COLORS.white[2]);
+    this.pdf.setDrawColor(COLORS.primary[0], COLORS.primary[1], COLORS.primary[2]);
+    this.pdf.setLineWidth(0.5);
+    this.pdf.roundedRect(cardX, cardY, cardWidth, cardHeight, 3, 3, 'FD');
+    
+    // Title
+    this.pdf.setFont(FONTS.title, 'bold');
+    this.pdf.setFontSize(11);
+    this.pdf.setTextColor(COLORS.dark[0], COLORS.dark[1], COLORS.dark[2]);
+    this.pdf.text('RESUMO DA INSPEÇÃO', cardX + 8, cardY + 8);
+    
+    // Calculate totals
+    let totalTasks = 0;
+    let completedTasks = 0;
+    job.checklist.forEach(section => {
+      section.items.forEach(item => {
+        totalTasks++;
+        if (item.completed) completedTasks++;
+      });
+    });
+    
+    const damageCount = job.damages?.length || 0;
+    const lostFoundCount = job.lostAndFound?.length || 0;
+    const photoCount = (job.photosBefore?.length || 0) + (job.photosAfter?.length || 0);
+    
+    // Stats in columns
+    const statWidth = cardWidth / 4;
+    const statY = cardY + 20;
+    
+    // Tasks completed
+    this.pdf.setFont(FONTS.body, 'bold');
+    this.pdf.setFontSize(14);
+    this.pdf.setTextColor(COLORS.success[0], COLORS.success[1], COLORS.success[2]);
+    this.pdf.text(`${completedTasks}/${totalTasks}`, cardX + statWidth * 0.5, statY, { align: 'center' });
+    this.pdf.setFont(FONTS.body, 'normal');
+    this.pdf.setFontSize(7);
+    this.pdf.setTextColor(COLORS.muted[0], COLORS.muted[1], COLORS.muted[2]);
+    this.pdf.text('Tarefas', cardX + statWidth * 0.5, statY + 5, { align: 'center' });
+    
+    // Damages
+    this.pdf.setFont(FONTS.body, 'bold');
+    this.pdf.setFontSize(14);
+    this.pdf.setTextColor(damageCount > 0 ? COLORS.warning[0] : COLORS.success[0], damageCount > 0 ? COLORS.warning[1] : COLORS.success[1], damageCount > 0 ? COLORS.warning[2] : COLORS.success[2]);
+    this.pdf.text(`${damageCount}`, cardX + statWidth * 1.5, statY, { align: 'center' });
+    this.pdf.setFont(FONTS.body, 'normal');
+    this.pdf.setFontSize(7);
+    this.pdf.setTextColor(COLORS.muted[0], COLORS.muted[1], COLORS.muted[2]);
+    this.pdf.text('Avarias', cardX + statWidth * 1.5, statY + 5, { align: 'center' });
+    
+    // Lost & Found
+    this.pdf.setFont(FONTS.body, 'bold');
+    this.pdf.setFontSize(14);
+    this.pdf.setTextColor(COLORS.dark[0], COLORS.dark[1], COLORS.dark[2]);
+    this.pdf.text(`${lostFoundCount}`, cardX + statWidth * 2.5, statY, { align: 'center' });
+    this.pdf.setFont(FONTS.body, 'normal');
+    this.pdf.setFontSize(7);
+    this.pdf.setTextColor(COLORS.muted[0], COLORS.muted[1], COLORS.muted[2]);
+    this.pdf.text('Achados', cardX + statWidth * 2.5, statY + 5, { align: 'center' });
+    
+    // Photos
+    this.pdf.setFont(FONTS.body, 'bold');
+    this.pdf.setFontSize(14);
+    this.pdf.setTextColor(COLORS.primary[0], COLORS.primary[1], COLORS.primary[2]);
+    this.pdf.text(`${photoCount}`, cardX + statWidth * 3.5, statY, { align: 'center' });
+    this.pdf.setFont(FONTS.body, 'normal');
+    this.pdf.setFontSize(7);
+    this.pdf.setTextColor(COLORS.muted[0], COLORS.muted[1], COLORS.muted[2]);
+    this.pdf.text('Fotos', cardX + statWidth * 3.5, statY + 5, { align: 'center' });
+    
+    this.yPos = cardY + cardHeight + 8;
   }
 }
 
 export const generateCleaningReport = async (data: ReportData): Promise<Blob> => {
   const generator = new ProfessionalReportGenerator();
-  return generator.generate(data);
+  return await generator.generate(data);
 };
 
 export const downloadPdf = (blob: Blob, filename: string) => {
