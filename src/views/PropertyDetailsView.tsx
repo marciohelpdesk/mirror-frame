@@ -25,9 +25,10 @@ import {
   DollarSign
 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { Property, Room } from '@/types';
+import { Property, Room, ChecklistSection } from '@/types';
 import { BackgroundEffects } from '@/components/BackgroundEffects';
 import { RoomManagement } from '@/components/RoomManagement';
+import { ChecklistTemplateEditor } from '@/components/ChecklistTemplateEditor';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -459,6 +460,18 @@ export const PropertyDetailsView = ({ property, onBack, onUpdate, onDelete }: Pr
           />
         </motion.div>
         
+        {/* Checklist Template */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.24 }}
+        >
+          <ChecklistTemplateEditor
+            template={isEditing ? (editedProperty.checklistTemplate || []) : (property.checklistTemplate || [])}
+            onTemplateChange={(checklistTemplate: ChecklistSection[]) => setEditedProperty({...editedProperty, checklistTemplate})}
+            isEditing={isEditing}
+          />
+        </motion.div>
         {/* Cleaning Notes */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}

@@ -107,6 +107,7 @@ export interface Property {
   bathrooms?: number;
   sqft?: number;
   rooms?: Room[];
+  checklistTemplate?: ChecklistSection[];
 }
 
 export interface Employee {

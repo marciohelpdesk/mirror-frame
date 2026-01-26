@@ -282,6 +282,18 @@ const translations: Record<Language, Record<string, string>> = {
     'rooms.type.laundry': 'Laundry',
     'rooms.type.garage': 'Garage',
     'rooms.type.other': 'Other',
+    
+    // Checklist Template Editor
+    'checklist.title': 'Cleaning Checklist',
+    'checklist.tasks': 'tasks',
+    'checklist.useDefault': 'Use Default',
+    'checklist.addSection': 'Add Section',
+    'checklist.newSectionPlaceholder': 'New section name...',
+    'checklist.newTaskPlaceholder': 'New task...',
+    'checklist.photoRequired': 'Photo required',
+    'checklist.noPhoto': 'No photo required',
+    'checklist.resetToDefault': 'Reset to default',
+    'checklist.usingDefault': 'Using default checklist template',
   },
   pt: {
     // Navigation
@@ -556,6 +568,18 @@ const translations: Record<Language, Record<string, string>> = {
     'rooms.type.laundry': 'Lavanderia',
     'rooms.type.garage': 'Garagem',
     'rooms.type.other': 'Outro',
+    
+    // Checklist Template Editor
+    'checklist.title': 'Lista de Limpeza',
+    'checklist.tasks': 'tarefas',
+    'checklist.useDefault': 'Usar Padrão',
+    'checklist.addSection': 'Adicionar Seção',
+    'checklist.newSectionPlaceholder': 'Nome da nova seção...',
+    'checklist.newTaskPlaceholder': 'Nova tarefa...',
+    'checklist.photoRequired': 'Foto obrigatória',
+    'checklist.noPhoto': 'Sem foto obrigatória',
+    'checklist.resetToDefault': 'Restaurar padrão',
+    'checklist.usingDefault': 'Usando lista de tarefas padrão',
   },
 };
 
