@@ -1,5 +1,6 @@
 import { Home, Calendar, Building2, Settings } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useState } from 'react';
 import type { ViewState } from '@/types';
 
 interface BottomNavProps {
@@ -15,6 +16,24 @@ const navItems = [
 ];
 
 export const BottomNav = ({ currentView, onNavigate }: BottomNavProps) => {
+  const [ripples, setRipples] = useState<{ id: number; x: number; y: number; itemId: ViewState }[]>([]);
+
+  const handleClick = (e: React.MouseEvent<HTMLButtonElement>, itemId: ViewState) => {
+    const button = e.currentTarget;
+    const rect = button.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
+    const rippleId = Date.now();
+    setRipples(prev => [...prev, { id: rippleId, x, y, itemId }]);
+    
+    setTimeout(() => {
+      setRipples(prev => prev.filter(r => r.id !== rippleId));
+    }, 600);
+    
+    onNavigate(itemId);
+  };
+
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 px-3 pb-3 md:left-1/2 md:-translate-x-1/2 md:w-[375px]">
       <div className="glass-panel flex justify-between items-center py-2 px-3">
@@ -25,9 +44,29 @@ export const BottomNav = ({ currentView, onNavigate }: BottomNavProps) => {
           return (
             <button
               key={item.id}
-              onClick={() => onNavigate(item.id)}
-              className="relative flex flex-col items-center justify-center gap-1.5 min-w-[72px] min-h-[56px] py-2 px-3 rounded-xl transition-all active:scale-95"
+              onClick={(e) => handleClick(e, item.id)}
+              className="relative flex flex-col items-center justify-center gap-1.5 min-w-[72px] min-h-[56px] py-2 px-3 rounded-xl transition-all active:scale-95 overflow-hidden"
             >
+              <AnimatePresence>
+                {ripples
+                  .filter(r => r.itemId === item.id)
+                  .map(ripple => (
+                    <motion.span
+                      key={ripple.id}
+                      initial={{ scale: 0, opacity: 0.5 }}
+                      animate={{ scale: 4, opacity: 0 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.6, ease: "easeOut" }}
+                      className="absolute rounded-full bg-primary/30 pointer-events-none"
+                      style={{
+                        left: ripple.x - 10,
+                        top: ripple.y - 10,
+                        width: 20,
+                        height: 20,
+                      }}
+                    />
+                  ))}
+              </AnimatePresence>
               {isActive && (
                 <motion.div
                   layoutId="nav-indicator"
