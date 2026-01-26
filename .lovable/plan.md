@@ -1,66 +1,95 @@
 
-# Plano: Editar Perfil
+# Plano: Bolha de Líquido com Progresso Animado
 
 ## Resumo
-Adicionar funcionalidade para editar o perfil do usuário diretamente na tela de Configurações, permitindo alterar nome, e-mail, telefone e foto de perfil.
+Adicionar uma bolha decorativa com efeito de líquido animado no Dashboard, acima da seção "Today's Jobs". O líquido vai enchendo conforme as tarefas do checklist são concluídas, criando uma visualização impactante do progresso de "purificação" do dia.
 
-## O que será criado
+## Visualização do Conceito
 
-### 1. Modal de Edição de Perfil
-Um novo componente de diálogo que permite ao usuário:
-- Alterar foto de perfil (simulada com fotos demo)
-- Editar nome completo
-- Editar e-mail
-- Editar telefone
-- Visualizar cargo (somente leitura)
-
-### 2. Fluxo de Interação
-- O cartão de perfil na tela de Configurações terá um ícone de edição
-- Ao clicar, abre o modal com os dados atuais pré-preenchidos
-- Após salvar, os dados são atualizados e uma notificação de sucesso aparece
+A bolha será inspirada na imagem fornecida:
+- Uma esfera/círculo grande com borda sutil e fundo semi-transparente
+- Líquido cyan/turquesa que preenche de baixo para cima
+- Porcentagem grande centralizada
+- Texto "PURIFICATION" acima
+- Animação suave tipo onda no topo do líquido
 
 ## Arquivos a serem modificados/criados
 
 | Arquivo | Ação | Descrição |
 |---------|------|-----------|
-| `src/components/EditProfileModal.tsx` | Criar | Modal de edição com formulário validado |
-| `src/views/SettingsView.tsx` | Modificar | Adicionar botão de edição e integrar modal |
-| `src/pages/Index.tsx` | Modificar | Adicionar handler `onUpdateProfile` |
-| `src/contexts/LanguageContext.tsx` | Modificar | Adicionar traduções EN/PT |
+| `src/components/LiquidProgressBubble.tsx` | Criar | Novo componente com a bolha de líquido animada |
+| `src/views/DashboardView.tsx` | Modificar | Integrar a bolha acima da seção "Today's Jobs" |
+| `src/index.css` | Modificar | Adicionar animação de onda para o líquido |
+| `src/contexts/LanguageContext.tsx` | Modificar | Adicionar traduções para "Purification" |
+
+## O que será criado
+
+### 1. Componente LiquidProgressBubble
+- Esfera glassmorphism de aproximadamente 200x200px
+- Preenchimento de líquido animado com gradiente cyan
+- Animação de onda no topo do líquido usando SVG path
+- Porcentagem centralizada com tipografia elegante
+- Texto "PURIFICATION" acima da bolha
+- Transição suave quando a porcentagem muda
+
+### 2. Cálculo do Progresso
+O progresso será calculado baseado em:
+- Total de itens do checklist de todos os jobs do dia que estão IN_PROGRESS
+- Itens completados / Total de itens = Porcentagem
+- Atualização em tempo real conforme tarefas são marcadas
+
+### 3. Animação de Onda
+```text
+- SVG path curvo animado horizontalmente
+- Movimento contínuo tipo "água mexendo"
+- Amplitude reduz quando se aproxima de 100%
+```
 
 ## Detalhes Técnicos
 
-### Validação do Formulário (Zod)
+### Estrutura do Componente
 ```text
-name: obrigatório, max 100 caracteres
-email: formato de e-mail válido, max 255 caracteres
-phone: opcional, max 20 caracteres
+LiquidProgressBubble
+├── Wrapper (relative container)
+│   ├── Label "PURIFICATION" (acima)
+│   └── Bubble Container (circular, glassmorphism)
+│       ├── Liquid Fill (clip-path circular)
+│       │   ├── Wave SVG (animado horizontalmente)
+│       │   └── Solid Fill (abaixo da onda)
+│       └── Percentage Text (centralizado, z-index alto)
 ```
 
+### Props do Componente
+```text
+interface LiquidProgressBubbleProps {
+  percentage: number;  // 0-100
+  label?: string;      // default: "PURIFICATION"
+  size?: number;       // default: 200px
+}
+```
+
+### CSS para Animação de Onda
+```text
+@keyframes wave {
+  0% { transform: translateX(0); }
+  50% { transform: translateX(-25%); }
+  100% { transform: translateX(-50%); }
+}
+```
+
+### Integração no DashboardView
+O componente será inserido antes do título "Today's Jobs":
+1. Calcular progresso baseado nos jobs IN_PROGRESS
+2. Se não houver jobs em progresso, mostrar 0%
+3. Se houver jobs completados, considerar 100% para esses
+
 ### Novas Traduções
-- `profile.edit` - "Editar Perfil" / "Edit Profile"
-- `profile.name` - "Nome" / "Name"
-- `profile.email` - "E-mail" / "Email"
-- `profile.phone` - "Telefone" / "Phone"
-- `profile.role` - "Cargo" / "Role"
-- `profile.photo` - "Foto" / "Photo"
-- `profile.changePhoto` - "Alterar Foto" / "Change Photo"
-- `profile.updated` - "Perfil Atualizado" / "Profile Updated"
-- `profile.updatedDesc` - "Suas informações foram salvas" / "Your information has been saved"
+| Chave | EN | PT |
+|-------|----|----|
+| `dashboard.purification` | PURIFICATION | PURIFICAÇÃO |
 
-### Estrutura do Modal
-1. **Seção de Foto**: Avatar circular com botão de câmera sobreposto
-2. **Campos de Formulário**: 
-   - Nome (input text)
-   - E-mail (input email)
-   - Telefone (input tel)
-   - Cargo (texto somente leitura com badge)
-3. **Botões**: Cancelar e Salvar
-
-### Integração no Index.tsx
-Nova função `handleUpdateProfile` que recebe `UserProfile` atualizado e chama `setUserProfile`
-
-### Integração no SettingsView
-- Novo estado `isEditProfileOpen`
-- Ícone de lápis no canto do cartão de perfil
-- Componente `EditProfileModal` renderizado condicionalmente
+## Estilo Visual
+- Bolha: borda branca sutil, fundo branco semi-transparente (0.2)
+- Líquido: gradiente cyan (#22d3ee) para turquesa (#06b6d4)
+- Porcentagem: fonte Outfit, peso 200 (light), tamanho 48px
+- Onda: animação suave de 4 segundos, loop infinito
