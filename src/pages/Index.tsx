@@ -163,7 +163,7 @@ const Index = () => {
     return (
       <>
         <div className="bg-florida-sky-fixed" />
-        <div className="min-h-screen relative z-10 flex items-center justify-center">
+        <div className="min-h-screen relative z-10 md:flex md:items-center md:justify-center">
           <LoginView 
             onLogin={handleLogin}
             isLoading={authLoading}
@@ -178,7 +178,7 @@ const Index = () => {
   return (
     <>
       <div className="bg-florida-sky-fixed" />
-      <div className="min-h-screen relative z-10 flex items-center justify-center">
+      <div className="min-h-screen relative z-10 md:flex md:items-center md:justify-center">
       <div className="mobile-frame">
         <AnimatePresence mode="wait">
           {view === 'DASHBOARD' && (
