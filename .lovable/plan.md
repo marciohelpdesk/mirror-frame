@@ -1,95 +1,59 @@
 
-# Plano: Bolha de Líquido com Progresso Animado
+# Plano: Reposicionar a Bolha de Progresso na ExecutionView
 
-## Resumo
-Adicionar uma bolha decorativa com efeito de líquido animado no Dashboard, acima da seção "Today's Jobs". O líquido vai enchendo conforme as tarefas do checklist são concluídas, criando uma visualização impactante do progresso de "purificação" do dia.
+## Problema Identificado
+A bolha de líquido está atualmente posicionada ao lado esquerdo do stepper (linha 134-150), criando um layout desalinhado e fora de contexto visual com os ícones circulares do stepper.
 
-## Visualização do Conceito
+## Solução Proposta
 
-A bolha será inspirada na imagem fornecida:
-- Uma esfera/círculo grande com borda sutil e fundo semi-transparente
-- Líquido cyan/turquesa que preenche de baixo para cima
-- Porcentagem grande centralizada
-- Texto "PURIFICATION" acima
-- Animação suave tipo onda no topo do líquido
+### Opção Recomendada: Integrar a Bolha como Primeiro Step do Stepper
+Transformar a bolha em parte visual do próprio stepper, como se fosse um "indicador de progresso geral" que acompanha os steps.
 
-## Arquivos a serem modificados/criados
-
-| Arquivo | Ação | Descrição |
-|---------|------|-----------|
-| `src/components/LiquidProgressBubble.tsx` | Criar | Novo componente com a bolha de líquido animada |
-| `src/views/DashboardView.tsx` | Modificar | Integrar a bolha acima da seção "Today's Jobs" |
-| `src/index.css` | Modificar | Adicionar animação de onda para o líquido |
-| `src/contexts/LanguageContext.tsx` | Modificar | Adicionar traduções para "Purification" |
-
-## O que será criado
-
-### 1. Componente LiquidProgressBubble
-- Esfera glassmorphism de aproximadamente 200x200px
-- Preenchimento de líquido animado com gradiente cyan
-- Animação de onda no topo do líquido usando SVG path
-- Porcentagem centralizada com tipografia elegante
-- Texto "PURIFICATION" acima da bolha
-- Transição suave quando a porcentagem muda
-
-### 2. Cálculo do Progresso
-O progresso será calculado baseado em:
-- Total de itens do checklist de todos os jobs do dia que estão IN_PROGRESS
-- Itens completados / Total de itens = Porcentagem
-- Atualização em tempo real conforme tarefas são marcadas
-
-### 3. Animação de Onda
+**Layout proposto:**
 ```text
-- SVG path curvo animado horizontalmente
-- Movimento contínuo tipo "água mexendo"
-- Amplitude reduz quando se aproxima de 100%
+┌─────────────────────────────────────────────┐
+│ CLEANING NOW                            [X] │
+│ Cliente Name                                │
+├─────────────────────────────────────────────┤
+│                                             │
+│  📷 ─ 📋 ─ ⚠️ ─ 🔍 ─ 📦 ─ 📸 ─ 📄        │
+│  Before Tasks Damages Found Inv After Sum   │
+│                                             │
+│                  ┌────┐                     │
+│                  │~~~~│  ← Bolha centralizada│
+│                  │~~~~│    abaixo do stepper │
+│                  └────┘                     │
+│                                             │
+└─────────────────────────────────────────────┘
+```
+
+### Mudanças no Layout
+
+**Arquivo: `src/views/ExecutionView.tsx`**
+
+1. **Remover** a bolha da posição atual (ao lado do stepper)
+2. **Centralizar** a bolha abaixo do stepper em uma nova linha
+3. Ajustar o tamanho para ~50px para ser discreto mas visível
+4. Adicionar espaçamento apropriado
+
+### Estrutura Final do Header
+```text
+Header
+├── Título + Botão X (linha superior)
+├── Stepper (ocupando toda a largura)
+└── Bolha de Progresso (centralizada abaixo, menor)
 ```
 
 ## Detalhes Técnicos
 
-### Estrutura do Componente
-```text
-LiquidProgressBubble
-├── Wrapper (relative container)
-│   ├── Label "PURIFICATION" (acima)
-│   └── Bubble Container (circular, glassmorphism)
-│       ├── Liquid Fill (clip-path circular)
-│       │   ├── Wave SVG (animado horizontalmente)
-│       │   └── Solid Fill (abaixo da onda)
-│       └── Percentage Text (centralizado, z-index alto)
-```
+### Novo Layout da Seção de Progresso
+- O stepper volta a ocupar a largura total (`flex-1` sem concorrência)
+- A bolha fica em uma `div` separada, centralizada
+- Tamanho reduzido para 48-50px
+- Margem superior sutil para separação visual
 
-### Props do Componente
-```text
-interface LiquidProgressBubbleProps {
-  percentage: number;  // 0-100
-  label?: string;      // default: "PURIFICATION"
-  size?: number;       // default: 200px
-}
-```
-
-### CSS para Animação de Onda
-```text
-@keyframes wave {
-  0% { transform: translateX(0); }
-  50% { transform: translateX(-25%); }
-  100% { transform: translateX(-50%); }
-}
-```
-
-### Integração no DashboardView
-O componente será inserido antes do título "Today's Jobs":
-1. Calcular progresso baseado nos jobs IN_PROGRESS
-2. Se não houver jobs em progresso, mostrar 0%
-3. Se houver jobs completados, considerar 100% para esses
-
-### Novas Traduções
-| Chave | EN | PT |
-|-------|----|----|
-| `dashboard.purification` | PURIFICATION | PURIFICAÇÃO |
-
-## Estilo Visual
-- Bolha: borda branca sutil, fundo branco semi-transparente (0.2)
-- Líquido: gradiente cyan (#22d3ee) para turquesa (#06b6d4)
-- Porcentagem: fonte Outfit, peso 200 (light), tamanho 48px
-- Onda: animação suave de 4 segundos, loop infinito
+### Benefícios
+- Stepper mantém alinhamento uniforme
+- Bolha não compete visualmente com os ícones dos steps
+- Layout mais limpo e contextualizado
+- A bolha funciona como "resumo visual" do progresso do checklist
