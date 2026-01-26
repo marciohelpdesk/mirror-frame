@@ -46,6 +46,7 @@ export const InventoryCheckStep = ({
   };
 
   const getLowStockItems = () => {
+    if (!inventory || inventory.length === 0) return [];
     return inventory.filter(item => {
       const used = usages[item.id] || 0;
       const remaining = item.quantity - used;
@@ -55,7 +56,7 @@ export const InventoryCheckStep = ({
 
   const lowStockItems = getLowStockItems();
 
-  const groupedInventory = inventory.reduce((acc, item) => {
+  const groupedInventory = (inventory || []).reduce((acc, item) => {
     if (!acc[item.category]) {
       acc[item.category] = [];
     }
