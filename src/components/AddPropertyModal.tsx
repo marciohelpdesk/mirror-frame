@@ -2,8 +2,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { motion, AnimatePresence } from 'framer-motion';
-import { X, Camera, Plus, Home, MapPin, Key, Wifi, FileText, DollarSign, Bed, Bath, Ruler } from 'lucide-react';
+import { Plus, Home, MapPin, Key, Wifi, FileText, DollarSign, Bed, Bath, Ruler } from 'lucide-react';
 import { Property } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -25,6 +24,7 @@ import {
 } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { PhotoUploader } from '@/components/PhotoUploader';
 
 const PROPERTY_TYPES = ['Apartment', 'House', 'Villa', 'Loft', 'Studio'] as const;
 const SERVICE_TYPES = [
@@ -38,13 +38,6 @@ const SERVICE_TYPES = [
   'Post Construction'
 ] as const;
 const STATUS_OPTIONS = ['READY', 'NEEDS_CLEANING', 'OCCUPIED'] as const;
-
-// Demo photos for simulation
-const DEMO_PHOTOS = [
-  'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&h=600&fit=crop',
-  'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&h=600&fit=crop',
-  'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&h=600&fit=crop',
-];
 
 const propertySchema = z.object({
   name: z.string().min(1, 'Property name is required').max(100, 'Name must be less than 100 characters'),
@@ -68,12 +61,12 @@ interface AddPropertyModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onAdd: (property: Property) => void;
+  userId?: string;
 }
 
-export const AddPropertyModal = ({ open, onOpenChange, onAdd }: AddPropertyModalProps) => {
+export const AddPropertyModal = ({ open, onOpenChange, onAdd, userId }: AddPropertyModalProps) => {
   const { t } = useLanguage();
   const [photo, setPhoto] = useState<string | null>(null);
-  const [isCapturing, setIsCapturing] = useState(false);
   const { toast } = useToast();
 
   const form = useForm<PropertyFormValues>({
@@ -94,15 +87,6 @@ export const AddPropertyModal = ({ open, onOpenChange, onAdd }: AddPropertyModal
       sqft: undefined,
     },
   });
-
-  const handlePhotoCapture = () => {
-    setIsCapturing(true);
-    setTimeout(() => {
-      const randomPhoto = DEMO_PHOTOS[Math.floor(Math.random() * DEMO_PHOTOS.length)];
-      setPhoto(`${randomPhoto}&t=${Date.now()}`);
-      setIsCapturing(false);
-    }, 500);
-  };
 
   const handleRemovePhoto = () => {
     setPhoto(null);
@@ -155,39 +139,19 @@ export const AddPropertyModal = ({ open, onOpenChange, onAdd }: AddPropertyModal
               {/* Photo Upload */}
               <div className="space-y-2">
                 <label className="field-label">{t('propertyModal.photo')}</label>
-                {photo ? (
-                  <div className="relative aspect-video rounded-xl overflow-hidden">
-                    <img src={photo} alt="Property" className="w-full h-full object-cover" />
-                    <button
-                      type="button"
-                      onClick={handleRemovePhoto}
-                      className="absolute top-2 right-2 w-8 h-8 bg-destructive/90 rounded-full flex items-center justify-center"
-                    >
-                      <X className="w-4 h-4 text-destructive-foreground" />
-                    </button>
-                  </div>
+                {userId ? (
+                  <PhotoUploader
+                    userId={userId}
+                    category="properties"
+                    currentPhoto={photo}
+                    onPhotoChange={(url) => setPhoto(url)}
+                    aspectRatio="video"
+                    placeholder={t('propertyModal.addPhoto')}
+                  />
                 ) : (
-                  <motion.button
-                    type="button"
-                    onClick={handlePhotoCapture}
-                    disabled={isCapturing}
-                    whileTap={{ scale: 0.98 }}
-                    className="w-full aspect-video rounded-xl border-2 border-dashed border-muted-foreground/30 flex flex-col items-center justify-center gap-2 text-muted-foreground hover:border-primary hover:text-primary transition-colors"
-                  >
-                    {isCapturing ? (
-                      <motion.div
-                        animate={{ rotate: 360 }}
-                        transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-                      >
-                        <Camera className="w-8 h-8" />
-                      </motion.div>
-                    ) : (
-                      <>
-                        <Camera className="w-8 h-8" />
-                        <span className="text-sm font-medium">{t('propertyModal.addPhoto')}</span>
-                      </>
-                    )}
-                  </motion.button>
+                  <div className="w-full aspect-video rounded-xl border-2 border-dashed border-muted-foreground/30 flex items-center justify-center text-muted-foreground">
+                    <span className="text-sm">{t('propertyModal.addPhoto')}</span>
+                  </div>
                 )}
               </div>
 
