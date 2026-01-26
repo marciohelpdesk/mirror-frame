@@ -24,6 +24,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const PROPERTY_TYPES = ['Apartment', 'House', 'Villa', 'Loft', 'Studio'] as const;
 const SERVICE_TYPES = [
@@ -70,6 +71,7 @@ interface AddPropertyModalProps {
 }
 
 export const AddPropertyModal = ({ open, onOpenChange, onAdd }: AddPropertyModalProps) => {
+  const { t } = useLanguage();
   const [photo, setPhoto] = useState<string | null>(null);
   const [isCapturing, setIsCapturing] = useState(false);
   const { toast } = useToast();
@@ -127,8 +129,8 @@ export const AddPropertyModal = ({ open, onOpenChange, onAdd }: AddPropertyModal
 
     onAdd(newProperty);
     toast({
-      title: 'Property Added',
-      description: `${values.name} has been added successfully.`,
+      title: t('propertyModal.addedTitle'),
+      description: t('propertyModal.addedDescription').replace('{name}', values.name),
     });
     
     // Reset form
@@ -143,7 +145,7 @@ export const AddPropertyModal = ({ open, onOpenChange, onAdd }: AddPropertyModal
         <DialogHeader className="px-4 pt-4 pb-2">
           <DialogTitle className="text-lg font-semibold text-foreground flex items-center gap-2">
             <Home className="w-5 h-5 text-primary" />
-            Add New Property
+            {t('propertyModal.title')}
           </DialogTitle>
         </DialogHeader>
 
@@ -152,7 +154,7 @@ export const AddPropertyModal = ({ open, onOpenChange, onAdd }: AddPropertyModal
             <div className="flex-1 overflow-y-auto px-4 pb-4 hide-scrollbar space-y-4">
               {/* Photo Upload */}
               <div className="space-y-2">
-                <label className="field-label">Property Photo</label>
+                <label className="field-label">{t('propertyModal.photo')}</label>
                 {photo ? (
                   <div className="relative aspect-video rounded-xl overflow-hidden">
                     <img src={photo} alt="Property" className="w-full h-full object-cover" />
@@ -182,7 +184,7 @@ export const AddPropertyModal = ({ open, onOpenChange, onAdd }: AddPropertyModal
                     ) : (
                       <>
                         <Camera className="w-8 h-8" />
-                        <span className="text-sm font-medium">Add Photo</span>
+                        <span className="text-sm font-medium">{t('propertyModal.addPhoto')}</span>
                       </>
                     )}
                   </motion.button>
@@ -193,7 +195,7 @@ export const AddPropertyModal = ({ open, onOpenChange, onAdd }: AddPropertyModal
               <div className="glass-panel p-3 space-y-3">
                 <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
                   <Home className="w-4 h-4 text-primary" />
-                  Basic Information
+                  {t('propertyModal.basicInfo')}
                 </h3>
 
                 <FormField
@@ -201,7 +203,7 @@ export const AddPropertyModal = ({ open, onOpenChange, onAdd }: AddPropertyModal
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="field-label">Property Name *</FormLabel>
+                      <FormLabel className="field-label">{t('propertyModal.name')} *</FormLabel>
                       <FormControl>
                         <Input 
                           placeholder="e.g., Ocean View Loft" 
@@ -220,7 +222,7 @@ export const AddPropertyModal = ({ open, onOpenChange, onAdd }: AddPropertyModal
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="field-label flex items-center gap-1">
-                        <MapPin className="w-3 h-3" /> Address *
+                        <MapPin className="w-3 h-3" /> {t('propertyModal.address')} *
                       </FormLabel>
                       <FormControl>
                         <Input 
@@ -240,7 +242,7 @@ export const AddPropertyModal = ({ open, onOpenChange, onAdd }: AddPropertyModal
                     name="type"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="field-label">Type *</FormLabel>
+                        <FormLabel className="field-label">{t('propertyModal.type')} *</FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger className="h-11 rounded-xl bg-card/50 border-muted">
@@ -263,7 +265,7 @@ export const AddPropertyModal = ({ open, onOpenChange, onAdd }: AddPropertyModal
                     name="status"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="field-label">Status *</FormLabel>
+                        <FormLabel className="field-label">{t('propertyModal.status')} *</FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger className="h-11 rounded-xl bg-card/50 border-muted">
@@ -287,7 +289,7 @@ export const AddPropertyModal = ({ open, onOpenChange, onAdd }: AddPropertyModal
                   name="serviceType"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="field-label">Service Type *</FormLabel>
+                      <FormLabel className="field-label">{t('propertyModal.serviceType')} *</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger className="h-11 rounded-xl bg-card/50 border-muted">
@@ -310,7 +312,7 @@ export const AddPropertyModal = ({ open, onOpenChange, onAdd }: AddPropertyModal
               <div className="glass-panel p-3 space-y-3">
                 <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
                   <Ruler className="w-4 h-4 text-primary" />
-                  Property Details
+                  {t('propertyModal.propertyDetails')}
                 </h3>
 
                 <div className="grid grid-cols-3 gap-3">
@@ -320,7 +322,7 @@ export const AddPropertyModal = ({ open, onOpenChange, onAdd }: AddPropertyModal
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel className="field-label flex items-center gap-1">
-                          <Bed className="w-3 h-3" /> Beds
+                          <Bed className="w-3 h-3" /> {t('propertyModal.beds')}
                         </FormLabel>
                         <FormControl>
                           <Input 
@@ -341,7 +343,7 @@ export const AddPropertyModal = ({ open, onOpenChange, onAdd }: AddPropertyModal
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel className="field-label flex items-center gap-1">
-                          <Bath className="w-3 h-3" /> Baths
+                          <Bath className="w-3 h-3" /> {t('propertyModal.baths')}
                         </FormLabel>
                         <FormControl>
                           <Input 
@@ -361,7 +363,7 @@ export const AddPropertyModal = ({ open, onOpenChange, onAdd }: AddPropertyModal
                     name="sqft"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="field-label">Sqft</FormLabel>
+                        <FormLabel className="field-label">{t('propertyModal.sqft')}</FormLabel>
                         <FormControl>
                           <Input 
                             type="number" 
@@ -382,7 +384,7 @@ export const AddPropertyModal = ({ open, onOpenChange, onAdd }: AddPropertyModal
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="field-label flex items-center gap-1">
-                        <DollarSign className="w-3 h-3" /> Base Price
+                        <DollarSign className="w-3 h-3" /> {t('propertyModal.basePrice')}
                       </FormLabel>
                       <FormControl>
                         <Input 
@@ -402,7 +404,7 @@ export const AddPropertyModal = ({ open, onOpenChange, onAdd }: AddPropertyModal
               <div className="glass-panel p-3 space-y-3">
                 <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
                   <Key className="w-4 h-4 text-primary" />
-                  Access Information
+                  {t('propertyModal.accessInfo')}
                 </h3>
 
                 <div className="grid grid-cols-2 gap-3">
@@ -412,7 +414,7 @@ export const AddPropertyModal = ({ open, onOpenChange, onAdd }: AddPropertyModal
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel className="field-label flex items-center gap-1">
-                          <Key className="w-3 h-3" /> Access Code
+                          <Key className="w-3 h-3" /> {t('propertyModal.accessCode')}
                         </FormLabel>
                         <FormControl>
                           <Input 
@@ -432,7 +434,7 @@ export const AddPropertyModal = ({ open, onOpenChange, onAdd }: AddPropertyModal
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel className="field-label flex items-center gap-1">
-                          <Wifi className="w-3 h-3" /> WiFi Password
+                          <Wifi className="w-3 h-3" /> {t('propertyModal.wifiPassword')}
                         </FormLabel>
                         <FormControl>
                           <Input 
@@ -452,7 +454,7 @@ export const AddPropertyModal = ({ open, onOpenChange, onAdd }: AddPropertyModal
                   name="suppliesLocation"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="field-label">Supplies Location</FormLabel>
+                      <FormLabel className="field-label">{t('propertyModal.suppliesLocation')}</FormLabel>
                       <FormControl>
                         <Input 
                           placeholder="e.g., Hallway closet, code 0000"
@@ -470,7 +472,7 @@ export const AddPropertyModal = ({ open, onOpenChange, onAdd }: AddPropertyModal
               <div className="glass-panel p-3 space-y-3">
                 <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
                   <FileText className="w-4 h-4 text-primary" />
-                  Notes
+                  {t('propertyModal.notes')}
                 </h3>
 
                 <FormField
@@ -478,7 +480,7 @@ export const AddPropertyModal = ({ open, onOpenChange, onAdd }: AddPropertyModal
                   name="notes"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="field-label">Special Instructions</FormLabel>
+                      <FormLabel className="field-label">{t('propertyModal.specialInstructions')}</FormLabel>
                       <FormControl>
                         <Textarea 
                           placeholder="Any special notes or instructions for cleaners..."
@@ -501,14 +503,14 @@ export const AddPropertyModal = ({ open, onOpenChange, onAdd }: AddPropertyModal
                 onClick={() => onOpenChange(false)}
                 className="flex-1 h-12 rounded-xl"
               >
-                Cancel
+                {t('common.cancel')}
               </Button>
               <Button
                 type="submit"
                 className="flex-1 h-12 rounded-xl bg-primary text-primary-foreground gap-2"
               >
                 <Plus className="w-4 h-4" />
-                Add Property
+                {t('propertyModal.addProperty')}
               </Button>
             </div>
           </form>

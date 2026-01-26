@@ -1,6 +1,7 @@
 import { Clock, MapPin, Play, Check } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Job, JobStatus } from '@/types';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface JobCardProps {
   job: Job;
@@ -16,6 +17,7 @@ const formatTime = (ms: number) => {
 };
 
 export const JobCard = ({ job, onStart, onView }: JobCardProps) => {
+  const { t } = useLanguage();
   const elapsed = job.startTime ? Date.now() - job.startTime : 0;
   
   const statusClasses = {
@@ -25,9 +27,9 @@ export const JobCard = ({ job, onStart, onView }: JobCardProps) => {
   };
   
   const statusLabels = {
-    [JobStatus.SCHEDULED]: 'Scheduled',
-    [JobStatus.IN_PROGRESS]: 'In Progress',
-    [JobStatus.COMPLETED]: 'Completed',
+    [JobStatus.SCHEDULED]: t('status.scheduled'),
+    [JobStatus.IN_PROGRESS]: t('status.inProgress'),
+    [JobStatus.COMPLETED]: t('status.completed'),
   };
 
   return (

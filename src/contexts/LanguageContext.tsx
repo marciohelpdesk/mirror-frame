@@ -125,6 +125,36 @@ const translations: Record<Language, Record<string, string>> = {
     'jobForm.time': 'Time',
     'jobForm.assignTo': 'Assign To',
     'jobForm.notes': 'Notes',
+    
+    // Job Modal
+    'jobModal.title': 'Schedule New Job',
+    'jobModal.description': 'Create a new cleaning job with property and time details.',
+    'jobModal.create': 'Create Job',
+    
+    // Property Modal
+    'propertyModal.title': 'Add New Property',
+    'propertyModal.photo': 'Property Photo',
+    'propertyModal.addPhoto': 'Add Photo',
+    'propertyModal.basicInfo': 'Basic Information',
+    'propertyModal.name': 'Property Name',
+    'propertyModal.address': 'Address',
+    'propertyModal.type': 'Type',
+    'propertyModal.status': 'Status',
+    'propertyModal.serviceType': 'Service Type',
+    'propertyModal.propertyDetails': 'Property Details',
+    'propertyModal.beds': 'Beds',
+    'propertyModal.baths': 'Baths',
+    'propertyModal.sqft': 'Sqft',
+    'propertyModal.basePrice': 'Base Price',
+    'propertyModal.accessInfo': 'Access Information',
+    'propertyModal.accessCode': 'Access Code',
+    'propertyModal.wifiPassword': 'WiFi Password',
+    'propertyModal.suppliesLocation': 'Supplies Location',
+    'propertyModal.notes': 'Notes',
+    'propertyModal.specialInstructions': 'Special Instructions',
+    'propertyModal.addProperty': 'Add Property',
+    'propertyModal.addedTitle': 'Property Added',
+    'propertyModal.addedDescription': '{name} has been added successfully.',
   },
   pt: {
     // Navigation
@@ -242,6 +272,36 @@ const translations: Record<Language, Record<string, string>> = {
     'jobForm.time': 'Horário',
     'jobForm.assignTo': 'Atribuir A',
     'jobForm.notes': 'Observações',
+    
+    // Job Modal
+    'jobModal.title': 'Agendar Novo Trabalho',
+    'jobModal.description': 'Crie um novo trabalho de limpeza com detalhes da propriedade e horário.',
+    'jobModal.create': 'Criar Trabalho',
+    
+    // Property Modal
+    'propertyModal.title': 'Adicionar Nova Propriedade',
+    'propertyModal.photo': 'Foto da Propriedade',
+    'propertyModal.addPhoto': 'Adicionar Foto',
+    'propertyModal.basicInfo': 'Informações Básicas',
+    'propertyModal.name': 'Nome da Propriedade',
+    'propertyModal.address': 'Endereço',
+    'propertyModal.type': 'Tipo',
+    'propertyModal.status': 'Status',
+    'propertyModal.serviceType': 'Tipo de Serviço',
+    'propertyModal.propertyDetails': 'Detalhes da Propriedade',
+    'propertyModal.beds': 'Quartos',
+    'propertyModal.baths': 'Banheiros',
+    'propertyModal.sqft': 'M²',
+    'propertyModal.basePrice': 'Preço Base',
+    'propertyModal.accessInfo': 'Informações de Acesso',
+    'propertyModal.accessCode': 'Código de Acesso',
+    'propertyModal.wifiPassword': 'Senha WiFi',
+    'propertyModal.suppliesLocation': 'Local dos Suprimentos',
+    'propertyModal.notes': 'Notas',
+    'propertyModal.specialInstructions': 'Instruções Especiais',
+    'propertyModal.addProperty': 'Adicionar Propriedade',
+    'propertyModal.addedTitle': 'Propriedade Adicionada',
+    'propertyModal.addedDescription': '{name} foi adicionada com sucesso.',
   },
 };
 
