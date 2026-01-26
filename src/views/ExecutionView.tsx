@@ -130,23 +130,18 @@ export const ExecutionView = ({ job, inventory, onUpdateJob, onComplete, onCance
           </button>
         </div>
 
-        {/* Progress Bubble + Stepper Row */}
-        <div className="flex items-center gap-4">
-          {/* Mini Liquid Bubble */}
-          <div className="flex-shrink-0">
-            <LiquidProgressBubble 
-              percentage={checklistProgress} 
-              label=""
-              size={60}
-              animated={true}
-              showPercentage={false}
-            />
-          </div>
-          
-          {/* Stepper */}
-          <div className="flex-1">
-            <ExecutionStepper currentStep={currentStep} completedSteps={completedSteps} />
-          </div>
+        {/* Stepper - full width */}
+        <ExecutionStepper currentStep={currentStep} completedSteps={completedSteps} />
+        
+        {/* Progress Bubble - centered below stepper */}
+        <div className="flex justify-center mt-3">
+          <LiquidProgressBubble 
+            percentage={checklistProgress} 
+            size={48}
+            animated={true}
+            showPercentage={false}
+            showLabel={false}
+          />
         </div>
       </div>
 
