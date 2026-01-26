@@ -116,4 +116,19 @@ export interface Employee {
   avatar: string; 
 }
 
+export interface LostAndFoundItem {
+  id: string;
+  description: string;
+  location: string;
+  photoUrl?: string;
+  date: string;
+}
+
+export interface LaundryItem {
+  id: string;
+  name: string;
+  quantity: number;
+  unit: string;
+}
+
 export type ViewState = 'DASHBOARD' | 'AGENDA' | 'EXECUTION' | 'PROPERTIES' | 'SETTINGS' | 'JOB_DETAILS' | 'PROPERTY_DETAILS' | 'FINANCE';
