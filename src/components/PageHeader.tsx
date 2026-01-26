@@ -9,7 +9,7 @@ interface PageHeaderProps {
 
 export const PageHeader = ({ title, subtitle, rightElement, leftElement }: PageHeaderProps) => {
   return (
-    <header className="flex justify-between items-start p-6 pb-4">
+    <header className="flex justify-between items-start p-6 pb-4 pt-safe">
       <div className="flex items-center gap-3">
         {leftElement}
         <div>

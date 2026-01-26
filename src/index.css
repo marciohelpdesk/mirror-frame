@@ -8,6 +8,10 @@
 
 @layer base {
   :root {
+    /* Safe Area Insets */
+    --safe-area-inset-top: env(safe-area-inset-top, 0px);
+    --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+    
     /* Florida Sky Gradient Colors (HSL) */
     --sky-pink: 340 100% 93%;
     --sky-blue: 176 100% 85%;
@@ -186,11 +190,21 @@
     pointer-events: none;
   }
   
+  /* Safe Area Padding */
+  .pt-safe {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+  
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  
   /* Mobile Frame */
   .mobile-frame {
     @apply relative flex flex-col w-full;
     height: 100vh;
     height: 100dvh;
+    padding-top: env(safe-area-inset-top, 0px);
     background: rgba(255, 255, 255, 0.45);
     backdrop-filter: blur(40px);
     overflow-y: auto;
