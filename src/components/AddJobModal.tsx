@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { JobFormFields, JobFormData } from '@/components/JobFormFields';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface AddJobModalProps {
   open: boolean;
@@ -22,6 +23,7 @@ interface AddJobModalProps {
 }
 
 export const AddJobModal = ({ open, onOpenChange, properties, employees = [], onAddJob }: AddJobModalProps) => {
+  const { t } = useLanguage();
   const [formData, setFormData] = useState<JobFormData>({
     propertyId: '',
     clientName: '',
@@ -84,10 +86,10 @@ export const AddJobModal = ({ open, onOpenChange, properties, employees = [], on
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Briefcase className="w-5 h-5 text-primary" />
-            Schedule New Job
+            {t('jobModal.title')}
           </DialogTitle>
           <DialogDescription>
-            Create a new cleaning job with property and time details.
+            {t('jobModal.description')}
           </DialogDescription>
         </DialogHeader>
 
@@ -104,14 +106,14 @@ export const AddJobModal = ({ open, onOpenChange, properties, employees = [], on
             className="flex-1"
             onClick={() => onOpenChange(false)}
           >
-            Cancel
+            {t('common.cancel')}
           </Button>
           <Button
             className="flex-1"
             onClick={handleSubmit}
             disabled={!isValid}
           >
-            Create Job
+            {t('jobModal.create')}
           </Button>
         </div>
       </DialogContent>

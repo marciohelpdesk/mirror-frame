@@ -2,21 +2,23 @@ import { Home, Calendar, Building2, Settings } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState } from 'react';
 import type { ViewState } from '@/types';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface BottomNavProps {
   currentView: ViewState;
   onNavigate: (view: ViewState) => void;
 }
 
-const navItems = [
-  { id: 'DASHBOARD' as ViewState, icon: Home, label: 'Home' },
-  { id: 'AGENDA' as ViewState, icon: Calendar, label: 'Agenda' },
-  { id: 'PROPERTIES' as ViewState, icon: Building2, label: 'Properties' },
-  { id: 'SETTINGS' as ViewState, icon: Settings, label: 'Settings' },
-];
-
 export const BottomNav = ({ currentView, onNavigate }: BottomNavProps) => {
+  const { t } = useLanguage();
   const [ripples, setRipples] = useState<{ id: number; x: number; y: number; itemId: ViewState }[]>([]);
+  
+  const navItems = [
+    { id: 'DASHBOARD' as ViewState, icon: Home, label: t('nav.dashboard') },
+    { id: 'AGENDA' as ViewState, icon: Calendar, label: t('nav.agenda') },
+    { id: 'PROPERTIES' as ViewState, icon: Building2, label: t('nav.properties') },
+    { id: 'SETTINGS' as ViewState, icon: Settings, label: t('nav.settings') },
+  ];
 
   const triggerHaptic = () => {
     if ('vibrate' in navigator) {
