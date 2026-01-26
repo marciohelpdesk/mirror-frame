@@ -1,146 +1,124 @@
 
-# Plano: Corrigir Corte do Background na Responsividade
+# Plano: Manter Background e Efeitos Apenas Dentro do Mobile-Frame
 
 ## Problema Identificado
 
-O background "Florida Sky" (gradiente rosa para ciano) esta sendo cortado em algumas situacoes de responsividade devido a:
+Conforme a imagem, o background gradient "Florida Sky" e os efeitos "mercury drops" estao aparecendo **fora** do mobile-frame:
+- Topo: area rosa visivel acima do frame
+- Inferior: area ciano visivel abaixo do frame
 
-1. **Altura fixa do mobile-frame**: Em desktop, o `.mobile-frame` tem altura fixa de 812px, mas o conteudo pode ser maior
-2. **min-h-screen vs altura real**: O container pai usa `min-h-screen` mas o background nao acompanha o scroll
-3. **overflow-hidden no mobile-frame**: Esconde partes do conteudo e background quando maior que o container
-4. **BackgroundEffects com position absolute**: Os "mercury drops" sao absolutos ao container pai, nao ao viewport
+O design deveria ter o background e efeitos **apenas dentro** do mobile-frame, com a area externa sendo neutra (ou transparente).
 
-## Solucoes Disponiveis
+## Solucao
 
-### Solucao 1: Background Fixo no Viewport (Recomendada)
+Mover o background gradient e os efeitos para **dentro** do mobile-frame, e deixar a area externa com uma cor neutra.
 
-Mover o gradiente para um elemento fixo que cobre toda a tela, independente do scroll.
+## Mudancas Necessarias
 
-**Mudancas:**
-- Criar classe `.bg-florida-sky-fixed` com `position: fixed; inset: 0;`
-- Aplicar no `Index.tsx` como elemento separado atras do mobile-frame
-- BackgroundEffects fica relativo ao viewport, nao ao frame
+### 1. Arquivo: src/pages/Index.tsx
 
-**Vantagens:** 
-- Background nunca corta
-- Funciona em qualquer tamanho de tela
-- Performance melhor (nao recalcula no scroll)
+Remover o `bg-florida-sky-fixed` externo e deixar o background neutro fora do frame:
 
-### Solucao 2: Altura Minima Dinamica
-
-Ajustar a altura minima do container para acompanhar o conteudo.
-
-**Mudancas:**
-- Remover `height: 812px` fixo em desktop para casos de conteudo longo
-- Usar `min-h-[812px]` em vez de altura fixa
-- Garantir que o background preenche `100%` da altura
-
-**Vantagens:**
-- Mantem o design do "frame" mobile
-- Conteudo pode crescer naturalmente
-
-### Solucao 3: Background com attachment fixed
-
-Usar CSS `background-attachment: fixed` para o gradiente seguir o viewport.
-
-**Mudancas em index.css:**
-```css
-.bg-florida-sky {
-  background: linear-gradient(180deg, hsl(var(--sky-pink)) 0%, hsl(var(--sky-blue)) 100%);
-  background-attachment: fixed;
-}
-```
-
-**Vantagens:**
-- Menor mudanca de codigo
-- Gradiente sempre preenche a tela
-
----
-
-## Detalhes da Implementacao (Solucao 1 - Recomendada)
-
-### Arquivo: src/index.css
-
-Adicionar nova classe para background fixo:
-
-```css
-.bg-florida-sky-fixed {
-  position: fixed;
-  inset: 0;
-  background: linear-gradient(180deg, hsl(var(--sky-pink)) 0%, hsl(var(--sky-blue)) 100%);
-  z-index: 0;
-}
-```
-
-### Arquivo: src/pages/Index.tsx
-
-Estrutura atualizada:
-
+**De:**
 ```tsx
 return (
   <>
-    {/* Background Fixo - Cobre toda a tela */}
     <div className="bg-florida-sky-fixed" />
-    
     <div className="min-h-screen relative z-10 flex items-center justify-center">
-      <div className="mobile-frame">
-        {/* ... conteudo */}
-      </div>
+      <LoginView ... />
     </div>
   </>
 );
 ```
 
-### Arquivo: src/components/BackgroundEffects.tsx
-
-Tornar os efeitos fixos ao viewport:
-
+**Para:**
 ```tsx
 return (
-  <div className="fixed inset-0 overflow-hidden pointer-events-none z-[1]">
-    {/* mercury drops */}
+  <div className="min-h-screen bg-slate-100 flex items-center justify-center">
+    <LoginView ... />
   </div>
 );
 ```
 
-### Arquivo: src/index.css - Mobile Frame
+### 2. Arquivo: src/views/LoginView.tsx
 
-Ajustar overflow para nao cortar:
+O `mobile-frame` ja esta sendo usado e contera o background internamente. Precisamos adicionar o background gradient **dentro** do frame:
+
+**De:**
+```tsx
+<div className="mobile-frame relative flex flex-col">
+  <BackgroundEffects />
+  ...
+```
+
+**Para:**
+```tsx
+<div className="mobile-frame relative flex flex-col bg-florida-sky">
+  <BackgroundEffects />
+  ...
+```
+
+### 3. Arquivo: src/components/BackgroundEffects.tsx
+
+Mudar os efeitos de `fixed` para `absolute` para ficarem contidos no mobile-frame:
+
+**De:**
+```tsx
+<div className="fixed inset-0 overflow-hidden pointer-events-none z-[1]">
+```
+
+**Para:**
+```tsx
+<div className="absolute inset-0 overflow-hidden pointer-events-none z-[1]">
+```
+
+### 4. Arquivo: src/index.css
+
+Garantir que o mobile-frame tenha `overflow: hidden` para cortar qualquer conteudo que saia:
 
 ```css
 .mobile-frame {
   @apply relative flex flex-col w-full h-full;
   background: rgba(255, 255, 255, 0.45);
   backdrop-filter: blur(40px);
-  overflow-y: auto; /* Permitir scroll interno */
-  overflow-x: hidden;
+  overflow: hidden; /* Corta conteudo que sair do frame */
 }
 ```
 
 ---
 
-## Resultado Esperado
+## Resultado Visual Esperado
 
 ```text
-+---------------------------+
-|     Background Fixo       |  <- Gradiente sempre visivel
-|   (cobre toda a tela)     |
-|                           |
-|   +-------------------+   |
-|   |   Mobile Frame    |   |  <- Conteudo com scroll interno
-|   |   (glassmorphism) |   |
-|   |                   |   |
-|   +-------------------+   |
-|                           |
-+---------------------------+
++------------------------------------+
+|                                    |
+|      Fundo Neutro (slate-100)      |
+|                                    |
+|     +------------------------+     |
+|     |   MOBILE FRAME         |     |
+|     |   (bg-florida-sky)     |     |
+|     |   Rosa -> Ciano        |     |
+|     |                        |     |
+|     |   [Logo]               |     |
+|     |   [Login Card]         |     |
+|     |   [Mercury Drops]      |     |
+|     |                        |     |
+|     +------------------------+     |
+|                                    |
+|      Fundo Neutro (slate-100)      |
+|                                    |
++------------------------------------+
 ```
 
 ## Arquivos a Modificar
 
-1. `src/index.css` - Adicionar classe bg-florida-sky-fixed e ajustar mobile-frame
-2. `src/pages/Index.tsx` - Reestruturar layout com background separado
-3. `src/components/BackgroundEffects.tsx` - Opcional: tornar drops fixos
+| Arquivo | Mudanca |
+|---------|---------|
+| src/pages/Index.tsx | Remover bg-florida-sky-fixed, usar bg-slate-100 externo |
+| src/views/LoginView.tsx | Adicionar bg-florida-sky no mobile-frame |
+| src/components/BackgroundEffects.tsx | Mudar fixed para absolute |
+| src/index.css | Ajustar overflow do mobile-frame |
 
-## Tempo Estimado
+## Observacao
 
-Aproximadamente 10-15 minutos para implementar a Solucao 1.
+Sera necessario aplicar a mesma logica nas outras views do app (Dashboard, Agenda, etc.) para manter consistencia.
