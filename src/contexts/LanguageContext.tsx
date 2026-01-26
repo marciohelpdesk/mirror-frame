@@ -328,6 +328,9 @@ const translations: Record<Language, Record<string, string>> = {
     'profile.changePhoto': 'Change Photo',
     'profile.updated': 'Profile Updated',
     'profile.updatedDesc': 'Your information has been saved',
+    
+    // Purification
+    'dashboard.purification': 'PURIFICATION',
   },
   pt: {
     // Navigation
@@ -648,6 +651,9 @@ const translations: Record<Language, Record<string, string>> = {
     'profile.changePhoto': 'Alterar Foto',
     'profile.updated': 'Perfil Atualizado',
     'profile.updatedDesc': 'Suas informações foram salvas',
+    
+    // Purification
+    'dashboard.purification': 'PURIFICAÇÃO',
   },
 };
 
