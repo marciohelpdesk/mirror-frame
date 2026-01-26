@@ -294,6 +294,14 @@ const translations: Record<Language, Record<string, string>> = {
     'checklist.noPhoto': 'No photo required',
     'checklist.resetToDefault': 'Reset to default',
     'checklist.usingDefault': 'Using default checklist template',
+    'checklist.selectPreset': 'Select preset...',
+    'checklist.preset.standard': 'Standard Clean',
+    'checklist.preset.airbnb': 'Airbnb Turnover',
+    'checklist.preset.deepClean': 'Deep Clean',
+    'checklist.preset.moveInOut': 'Move In/Out',
+    'checklist.preset.recurring': 'Recurring Clean',
+    'checklist.preset.postConstruction': 'Post Construction',
+    'checklist.preset.commercial': 'Commercial Clean',
   },
   pt: {
     // Navigation
@@ -580,6 +588,14 @@ const translations: Record<Language, Record<string, string>> = {
     'checklist.noPhoto': 'Sem foto obrigatória',
     'checklist.resetToDefault': 'Restaurar padrão',
     'checklist.usingDefault': 'Usando lista de tarefas padrão',
+    'checklist.selectPreset': 'Selecionar preset...',
+    'checklist.preset.standard': 'Limpeza Padrão',
+    'checklist.preset.airbnb': 'Airbnb Turnover',
+    'checklist.preset.deepClean': 'Limpeza Profunda',
+    'checklist.preset.moveInOut': 'Mudança',
+    'checklist.preset.recurring': 'Limpeza Recorrente',
+    'checklist.preset.postConstruction': 'Pós Construção',
+    'checklist.preset.commercial': 'Limpeza Comercial',
   },
 };
 

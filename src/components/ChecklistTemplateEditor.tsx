@@ -8,15 +8,21 @@ import {
   ChevronUp,
   Camera,
   GripVertical,
-  Copy,
-  RotateCcw
+  RotateCcw,
+  Sparkles
 } from 'lucide-react';
 import { ChecklistSection, ChecklistItem } from '@/types';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Checkbox } from '@/components/ui/checkbox';
-import { STANDARD_CHECKLIST_TEMPLATE } from '@/data/checklist';
+import { STANDARD_CHECKLIST_TEMPLATE, CHECKLIST_PRESETS, ChecklistPresetKey } from '@/data/checklist';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface ChecklistTemplateEditorProps {
   template: ChecklistSection[];
@@ -111,18 +117,20 @@ export const ChecklistTemplateEditor = ({
     onTemplateChange(JSON.parse(JSON.stringify(STANDARD_CHECKLIST_TEMPLATE)));
   };
 
-  const handleCopyFromDefault = () => {
-    const defaultCopy = JSON.parse(JSON.stringify(STANDARD_CHECKLIST_TEMPLATE));
-    // Generate new IDs to avoid conflicts
-    const copiedSections = defaultCopy.map((section: ChecklistSection) => ({
-      ...section,
-      id: `section-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      items: section.items.map((item: ChecklistItem) => ({
-        ...item,
-        id: `item-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      })),
-    }));
-    onTemplateChange([...template, ...copiedSections]);
+  const handleApplyPreset = (presetKey: ChecklistPresetKey) => {
+    const preset = CHECKLIST_PRESETS[presetKey];
+    if (preset) {
+      // Deep clone and generate new IDs to avoid conflicts
+      const newTemplate = JSON.parse(JSON.stringify(preset.template)).map((section: ChecklistSection) => ({
+        ...section,
+        id: `section-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        items: section.items.map((item: ChecklistItem) => ({
+          ...item,
+          id: `item-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        })),
+      }));
+      onTemplateChange(newTemplate);
+    }
   };
 
   const totalTasks = template.reduce((acc, section) => acc + section.items.length, 0);
@@ -146,16 +154,22 @@ export const ChecklistTemplateEditor = ({
           </div>
         </div>
         
-        {isEditing && template.length === 0 && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleCopyFromDefault}
-            className="gap-1"
-          >
-            <Copy size={14} />
-            {t('checklist.useDefault')}
-          </Button>
+        {isEditing && (
+          <div className="flex items-center gap-2">
+            <Select onValueChange={(value) => handleApplyPreset(value as ChecklistPresetKey)}>
+              <SelectTrigger className="w-[160px] h-9 text-xs bg-card/50 border-muted">
+                <Sparkles size={14} className="mr-1 text-secondary" />
+                <SelectValue placeholder={t('checklist.selectPreset')} />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.entries(CHECKLIST_PRESETS).map(([key, preset]) => (
+                  <SelectItem key={key} value={key} className="text-xs">
+                    {t(preset.labelKey)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         )}
       </div>
 
