@@ -37,7 +37,7 @@ export const SummaryStep = ({ job, inventory, onComplete, onBack }: SummaryStepP
     return `${mins} min`;
   };
 
-  const lowStockItems = inventory.filter(item => {
+  const lowStockItems = (inventory || []).filter(item => {
     const usage = job.inventoryUsed?.find(u => u.itemId === item.id);
     const remaining = item.quantity - (usage?.quantityUsed || 0);
     return remaining <= item.threshold;
