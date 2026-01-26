@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Package, Minus, Plus, ArrowRight, ArrowLeft, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { InventoryItem, InventoryUsage } from '@/types';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface InventoryCheckStepProps {
   inventory: InventoryItem[];
@@ -19,6 +20,7 @@ export const InventoryCheckStep = ({
   onNext,
   onBack,
 }: InventoryCheckStepProps) => {
+  const { t } = useLanguage();
   const [usages, setUsages] = useState<Record<string, number>>(() => {
     const initial: Record<string, number> = {};
     inventoryUsed.forEach(u => {
@@ -79,9 +81,9 @@ export const InventoryCheckStep = ({
             <Package className="w-5 h-5 text-emerald-400" />
           </div>
           <div>
-            <h2 className="text-lg font-semibold text-foreground">Inventário</h2>
+            <h2 className="text-lg font-semibold text-foreground">{t('exec.inventory.title')}</h2>
             <p className="text-xs text-muted-foreground">
-              Registre os itens utilizados na limpeza
+              {t('exec.inventory.subtitle')}
             </p>
           </div>
         </div>
@@ -98,7 +100,7 @@ export const InventoryCheckStep = ({
           >
             <div className="flex items-center gap-2 mb-2">
               <AlertTriangle className="w-4 h-4 text-amber-400" />
-              <span className="text-sm font-semibold text-amber-400">Estoque Baixo</span>
+              <span className="text-sm font-semibold text-amber-400">{t('exec.inventory.lowStock')}</span>
             </div>
             <div className="flex flex-wrap gap-2">
               {lowStockItems.map(item => {
@@ -139,10 +141,10 @@ export const InventoryCheckStep = ({
                     <div className="flex-1">
                       <p className="text-sm font-medium text-foreground">{item.name}</p>
                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <span>Disponível: {item.quantity} {item.unit}</span>
+                        <span>{t('exec.inventory.available')}: {item.quantity} {item.unit}</span>
                         {used > 0 && (
                           <span className={isLow ? 'text-amber-400' : 'text-secondary'}>
-                            (usado: {used})
+                            ({t('exec.inventory.used')}: {used})
                           </span>
                         )}
                       </div>
@@ -177,7 +179,7 @@ export const InventoryCheckStep = ({
         {(!inventory || inventory.length === 0) && (
           <div className="text-center py-8">
             <Package className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
-            <p className="text-sm text-muted-foreground">Nenhum item de inventário cadastrado</p>
+            <p className="text-sm text-muted-foreground">{t('exec.inventory.noItems')}</p>
           </div>
         )}
       </div>
@@ -190,13 +192,13 @@ export const InventoryCheckStep = ({
           className="flex-1 h-12 rounded-xl gap-2"
         >
           <ArrowLeft className="w-4 h-4" />
-          Voltar
+          {t('common.back')}
         </Button>
         <Button
           onClick={onNext}
           className="flex-1 h-12 rounded-xl bg-primary text-primary-foreground gap-2"
         >
-          Continuar
+          {t('common.continue')}
           <ArrowRight className="w-4 h-4" />
         </Button>
       </div>

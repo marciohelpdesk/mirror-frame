@@ -6,6 +6,7 @@ import { Job, InventoryItem } from '@/types';
 import { useState } from 'react';
 import { generateCleaningReport, downloadPdf } from '@/lib/pdfGenerator';
 import { toast } from 'sonner';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface SummaryStepProps {
   job: Job;
@@ -15,6 +16,7 @@ interface SummaryStepProps {
 }
 
 export const SummaryStep = ({ job, inventory, onComplete, onBack }: SummaryStepProps) => {
+  const { t } = useLanguage();
   const [note, setNote] = useState(job.reportNote || '');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
@@ -54,10 +56,10 @@ export const SummaryStep = ({ job, inventory, onComplete, onBack }: SummaryStepP
       
       const filename = `relatorio-${job.clientName.replace(/\s+/g, '-').toLowerCase()}-${new Date().toISOString().split('T')[0]}.pdf`;
       downloadPdf(blob, filename);
-      toast.success('Relatório PDF gerado com sucesso!');
+      toast.success('PDF report generated successfully!');
     } catch (error) {
       console.error('Error generating PDF:', error);
-      toast.error('Erro ao gerar o relatório PDF');
+      toast.error('Error generating PDF report');
     } finally {
       setIsGeneratingPdf(false);
     }
@@ -87,9 +89,9 @@ export const SummaryStep = ({ job, inventory, onComplete, onBack }: SummaryStepP
         >
           <Check className="w-8 h-8 text-primary-foreground" />
         </motion.div>
-        <h2 className="text-xl font-semibold text-foreground">Excelente Trabalho!</h2>
+        <h2 className="text-xl font-semibold text-foreground">{t('exec.summary.greatJob')}</h2>
         <p className="text-sm text-muted-foreground mt-1">
-          Revise o resumo da limpeza
+          {t('exec.summary.reviewSummary')}
         </p>
       </div>
 
@@ -102,26 +104,26 @@ export const SummaryStep = ({ job, inventory, onComplete, onBack }: SummaryStepP
           <div className="grid grid-cols-2 gap-3">
             <StatCard
               icon={Clock}
-              label="Duração"
+              label={t('exec.summary.duration')}
               value={formatDuration(duration)}
               color="primary"
             />
             <StatCard
               icon={ClipboardCheck}
-              label="Tarefas"
+              label={t('exec.summary.tasks')}
               value={`${completedTasks}/${totalTasks}`}
               color="success"
             />
             <StatCard
               icon={Camera}
-              label="Antes"
-              value={`${job.photosBefore.length} fotos`}
+              label={t('exec.summary.before')}
+              value={`${job.photosBefore.length} ${t('exec.summary.photos')}`}
               color="amber"
             />
             <StatCard
               icon={Camera}
-              label="Depois"
-              value={`${job.photosAfter.length} fotos`}
+              label={t('exec.summary.after')}
+              value={`${job.photosAfter.length} ${t('exec.summary.photos')}`}
               color="emerald"
             />
           </div>
@@ -132,7 +134,7 @@ export const SummaryStep = ({ job, inventory, onComplete, onBack }: SummaryStepP
           <div className="glass-panel p-4 mb-4 border-l-4 border-l-destructive">
             <div className="flex items-center gap-2 mb-3">
               <AlertTriangle className="w-4 h-4 text-destructive" />
-              <h3 className="text-sm font-semibold text-foreground">Danos Registrados ({job.damages.length})</h3>
+              <h3 className="text-sm font-semibold text-foreground">{t('exec.summary.damagesRecorded')} ({job.damages.length})</h3>
             </div>
             <div className="space-y-2">
               {job.damages.slice(0, 2).map(damage => (
@@ -141,7 +143,7 @@ export const SummaryStep = ({ job, inventory, onComplete, onBack }: SummaryStepP
                 </div>
               ))}
               {job.damages.length > 2 && (
-                <p className="text-xs text-muted-foreground">+{job.damages.length - 2} mais</p>
+                <p className="text-xs text-muted-foreground">+{job.damages.length - 2} {t('exec.summary.more')}</p>
               )}
             </div>
           </div>
@@ -152,7 +154,7 @@ export const SummaryStep = ({ job, inventory, onComplete, onBack }: SummaryStepP
           <div className="glass-panel p-4 mb-4 border-l-4 border-l-warning">
             <div className="flex items-center gap-2 mb-3">
               <Package className="w-4 h-4 text-warning" />
-              <h3 className="text-sm font-semibold text-foreground">Estoque Baixo ({lowStockItems.length})</h3>
+              <h3 className="text-sm font-semibold text-foreground">{t('exec.summary.lowStock')} ({lowStockItems.length})</h3>
             </div>
             <div className="flex flex-wrap gap-2">
               {lowStockItems.slice(0, 3).map(item => (
@@ -175,11 +177,11 @@ export const SummaryStep = ({ job, inventory, onComplete, onBack }: SummaryStepP
         {/* Photo Preview */}
         {(job.photosBefore.length > 0 || job.photosAfter.length > 0) && (
           <div className="glass-panel p-4 mb-4">
-            <h3 className="text-sm font-semibold text-foreground mb-3">Documentação Fotográfica</h3>
+            <h3 className="text-sm font-semibold text-foreground mb-3">{t('exec.summary.photoDocumentation')}</h3>
             
             {job.photosBefore.length > 0 && (
               <div className="mb-3">
-                <p className="text-xs text-muted-foreground mb-2">Antes ({job.photosBefore.length})</p>
+                <p className="text-xs text-muted-foreground mb-2">{t('exec.summary.before')} ({job.photosBefore.length})</p>
                 <div className="flex gap-2 overflow-x-auto hide-scrollbar">
                   {job.photosBefore.slice(0, 4).map((photo, i) => (
                     <div key={i} className="w-16 h-12 rounded-lg overflow-hidden shrink-0">
@@ -192,7 +194,7 @@ export const SummaryStep = ({ job, inventory, onComplete, onBack }: SummaryStepP
 
             {job.photosAfter.length > 0 && (
               <div>
-                <p className="text-xs text-muted-foreground mb-2">Depois ({job.photosAfter.length})</p>
+                <p className="text-xs text-muted-foreground mb-2">{t('exec.summary.after')} ({job.photosAfter.length})</p>
                 <div className="flex gap-2 overflow-x-auto hide-scrollbar">
                   {job.photosAfter.slice(0, 4).map((photo, i) => (
                     <div key={i} className="w-16 h-12 rounded-lg overflow-hidden shrink-0">
@@ -209,12 +211,12 @@ export const SummaryStep = ({ job, inventory, onComplete, onBack }: SummaryStepP
         <div className="glass-panel p-4 mb-4">
           <div className="flex items-center gap-2 mb-3">
             <MessageSquare className="w-4 h-4 text-muted-foreground" />
-            <h3 className="text-sm font-semibold text-foreground">Adicionar Observação (opcional)</h3>
+            <h3 className="text-sm font-semibold text-foreground">{t('exec.summary.addNote')}</h3>
           </div>
           <Textarea
             value={note}
             onChange={(e) => setNote(e.target.value)}
-            placeholder="Problemas, notas especiais ou feedback..."
+            placeholder={t('exec.summary.notePlaceholder')}
             className="min-h-[80px] resize-none bg-card/50 border-muted"
           />
         </div>
@@ -224,7 +226,7 @@ export const SummaryStep = ({ job, inventory, onComplete, onBack }: SummaryStepP
           <div className="glass-panel p-4 mb-4 border-l-4 border-l-primary">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-muted-foreground">Valor do Serviço</p>
+                <p className="text-xs text-muted-foreground">{t('exec.summary.serviceValue')}</p>
                 <p className="text-2xl font-bold text-foreground">R$ {job.price.toFixed(2)}</p>
               </div>
               <div className="flex items-center gap-1 text-warning">
@@ -246,7 +248,7 @@ export const SummaryStep = ({ job, inventory, onComplete, onBack }: SummaryStepP
           className="w-full mb-4 h-12 rounded-xl gap-2"
         >
           <FileDown className="w-5 h-5" />
-          {isGeneratingPdf ? 'Gerando PDF...' : 'Baixar Relatório PDF'}
+          {isGeneratingPdf ? t('exec.summary.generatingPdf') : t('exec.summary.downloadPdf')}
         </Button>
       </div>
 
@@ -258,7 +260,7 @@ export const SummaryStep = ({ job, inventory, onComplete, onBack }: SummaryStepP
           className="flex-1 h-12 rounded-xl"
           disabled={isSubmitting}
         >
-          Voltar
+          {t('common.back')}
         </Button>
         <Button
           onClick={handleComplete}
@@ -274,7 +276,7 @@ export const SummaryStep = ({ job, inventory, onComplete, onBack }: SummaryStepP
             </motion.div>
           ) : (
             <>
-              Concluir
+              {t('exec.summary.complete')}
               <Check className="w-4 h-4" />
             </>
           )}

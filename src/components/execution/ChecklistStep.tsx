@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, Camera, ChevronDown, ChevronUp, ArrowRight, X, Plus } from 'lucide-react';
+import { Check, Camera, ChevronDown, ChevronUp, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ChecklistSection, ChecklistItem } from '@/types';
 import { Progress } from '@/components/ui/progress';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface ChecklistStepProps {
   checklist: ChecklistSection[];
@@ -21,6 +22,7 @@ export const ChecklistStep = ({
   onNext,
   onBack,
 }: ChecklistStepProps) => {
+  const { t } = useLanguage();
   const [expandedSections, setExpandedSections] = useState<string[]>(
     checklist.length > 0 ? [checklist[0].id] : []
   );
@@ -108,7 +110,7 @@ export const ChecklistStep = ({
       {/* Header with Progress */}
       <div className="px-4 py-3">
         <div className="flex items-center justify-between mb-2">
-          <h2 className="text-xl font-semibold text-foreground">Cleaning Checklist</h2>
+          <h2 className="text-xl font-semibold text-foreground">{t('exec.checklist.title')}</h2>
           <span className="text-sm font-medium text-primary">
             {completedItems}/{totalItems}
           </span>
@@ -153,7 +155,7 @@ export const ChecklistStep = ({
                   <div className="text-left">
                     <h3 className="font-medium text-foreground">{section.title}</h3>
                     <p className="text-xs text-muted-foreground">
-                      {completed} of {total} tasks
+                      {completed} {t('exec.checklist.of')} {total} {t('exec.checklist.tasks')}
                     </p>
                   </div>
                 </div>
@@ -200,14 +202,14 @@ export const ChecklistStep = ({
           onClick={onBack}
           className="flex-1 h-12 rounded-xl"
         >
-          Back
+          {t('common.back')}
         </Button>
         <Button
           onClick={onNext}
           disabled={!allCompleted}
           className="flex-1 h-12 rounded-xl bg-primary text-primary-foreground gap-2"
         >
-          {allCompleted ? 'Continue' : `${totalItems - completedItems} remaining`}
+          {allCompleted ? t('common.continue') : `${totalItems - completedItems} ${t('exec.checklist.remaining')}`}
           {allCompleted && <ArrowRight className="w-4 h-4" />}
         </Button>
       </div>

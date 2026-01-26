@@ -1,27 +1,29 @@
 import { ExecutionStep } from '@/types';
 import { Check, Camera, ClipboardList, CameraIcon, FileText, AlertTriangle, Package } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface ExecutionStepperProps {
   currentStep: ExecutionStep;
   completedSteps: ExecutionStep[];
 }
 
-const STEPS: { key: ExecutionStep; label: string; icon: React.ElementType }[] = [
-  { key: 'BEFORE_PHOTOS', label: 'Antes', icon: Camera },
-  { key: 'CHECKLIST', label: 'Tarefas', icon: ClipboardList },
-  { key: 'DAMAGE_REPORT', label: 'Danos', icon: AlertTriangle },
-  { key: 'INVENTORY_CHECK', label: 'Estoque', icon: Package },
-  { key: 'AFTER_PHOTOS', label: 'Depois', icon: CameraIcon },
-  { key: 'SUMMARY', label: 'Resumo', icon: FileText },
+const STEP_KEYS: { key: ExecutionStep; labelKey: string; icon: React.ElementType }[] = [
+  { key: 'BEFORE_PHOTOS', labelKey: 'exec.step.beforePhotos', icon: Camera },
+  { key: 'CHECKLIST', labelKey: 'exec.step.checklist', icon: ClipboardList },
+  { key: 'DAMAGE_REPORT', labelKey: 'exec.step.damages', icon: AlertTriangle },
+  { key: 'INVENTORY_CHECK', labelKey: 'exec.step.inventory', icon: Package },
+  { key: 'AFTER_PHOTOS', labelKey: 'exec.step.afterPhotos', icon: CameraIcon },
+  { key: 'SUMMARY', labelKey: 'exec.step.summary', icon: FileText },
 ];
 
 export const ExecutionStepper = ({ currentStep, completedSteps }: ExecutionStepperProps) => {
-  const currentIndex = STEPS.findIndex(s => s.key === currentStep);
+  const { t } = useLanguage();
+  const currentIndex = STEP_KEYS.findIndex(s => s.key === currentStep);
 
   return (
     <div className="flex items-center justify-between px-1">
-      {STEPS.map((step, index) => {
+      {STEP_KEYS.map((step, index) => {
         const Icon = step.icon;
         const isCompleted = completedSteps.includes(step.key);
         const isCurrent = step.key === currentStep;
@@ -53,12 +55,12 @@ export const ExecutionStepper = ({ currentStep, completedSteps }: ExecutionStepp
                 )}
               </motion.div>
               <span className={`text-[9px] mt-1 font-medium text-center ${isCurrent ? 'text-primary' : 'text-muted-foreground'}`}>
-                {step.label}
+                {t(step.labelKey)}
               </span>
             </div>
 
             {/* Connector Line */}
-            {index < STEPS.length - 1 && (
+            {index < STEP_KEYS.length - 1 && (
               <div className="flex-1 h-0.5 mx-1 mb-4">
                 <motion.div
                   initial={false}
