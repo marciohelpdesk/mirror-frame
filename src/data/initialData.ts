@@ -25,7 +25,8 @@ export const INITIAL_PROPERTIES: Property[] = [
     basePrice: 150.00,
     bedrooms: 2,
     bathrooms: 1,
-    sqft: 950
+    sqft: 950,
+    clientEmail: 'cliente@oceanview.com'
   },
   { 
     id: 'p2',
@@ -42,7 +43,8 @@ export const INITIAL_PROPERTIES: Property[] = [
     basePrice: 85.00,
     bedrooms: 1,
     bathrooms: 1,
-    sqft: 450
+    sqft: 450,
+    clientEmail: 'cliente@downtown.com'
   },
   {
     id: 'p3',
@@ -59,7 +61,8 @@ export const INITIAL_PROPERTIES: Property[] = [
     basePrice: 275.00,
     bedrooms: 4,
     bathrooms: 3,
-    sqft: 2800
+    sqft: 2800,
+    clientEmail: 'cliente@coralgables.com'
   }
 ];
 
@@ -83,7 +86,9 @@ export const INITIAL_JOBS: Job[] = [
     currentStep: 'CHECKLIST',
     photosBefore: [],
     photosAfter: [],
-    price: 150
+    price: 150,
+    damages: [],
+    inventoryUsed: []
   },
   {
     id: 'j2',
@@ -97,7 +102,9 @@ export const INITIAL_JOBS: Job[] = [
     checklist: JSON.parse(JSON.stringify(STANDARD_CHECKLIST_TEMPLATE)),
     photosBefore: [],
     photosAfter: [],
-    price: 85
+    price: 85,
+    damages: [],
+    inventoryUsed: []
   },
   {
     id: 'j3',
@@ -111,7 +118,9 @@ export const INITIAL_JOBS: Job[] = [
     checklist: JSON.parse(JSON.stringify(STANDARD_CHECKLIST_TEMPLATE)),
     photosBefore: [],
     photosAfter: [],
-    price: 275
+    price: 275,
+    damages: [],
+    inventoryUsed: []
   }
 ];
 
