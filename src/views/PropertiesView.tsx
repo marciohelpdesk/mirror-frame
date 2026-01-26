@@ -7,6 +7,7 @@ import { PropertyCard } from '@/components/PropertyCard';
 import { BackgroundEffects } from '@/components/BackgroundEffects';
 import { AddPropertyModal } from '@/components/AddPropertyModal';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useAuth } from '@/hooks/useAuth';
 
 interface PropertiesViewProps {
   properties: Property[];
@@ -16,6 +17,7 @@ interface PropertiesViewProps {
 
 export const PropertiesView = ({ properties, onViewProperty, onAddProperty }: PropertiesViewProps) => {
   const { t } = useLanguage();
+  const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
 
@@ -83,6 +85,7 @@ export const PropertiesView = ({ properties, onViewProperty, onAddProperty }: Pr
         open={showAddModal}
         onOpenChange={setShowAddModal}
         onAdd={onAddProperty}
+        userId={user?.id}
       />
     </div>
   );

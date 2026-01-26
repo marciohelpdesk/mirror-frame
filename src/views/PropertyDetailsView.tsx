@@ -29,6 +29,8 @@ import { Property, Room, ChecklistSection } from '@/types';
 import { BackgroundEffects } from '@/components/BackgroundEffects';
 import { RoomManagement } from '@/components/RoomManagement';
 import { ChecklistTemplateEditor } from '@/components/ChecklistTemplateEditor';
+import { PhotoUploader } from '@/components/PhotoUploader';
+import { useAuth } from '@/hooks/useAuth';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -49,6 +51,7 @@ interface PropertyDetailsViewProps {
 
 export const PropertyDetailsView = ({ property, onBack, onUpdate, onDelete }: PropertyDetailsViewProps) => {
   const { t } = useLanguage();
+  const { user } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [editedProperty, setEditedProperty] = useState<Property>(property);
   const [showAccessCode, setShowAccessCode] = useState(false);
@@ -137,37 +140,41 @@ export const PropertyDetailsView = ({ property, onBack, onUpdate, onDelete }: Pr
           animate={{ opacity: 1, y: 0 }}
           className="glass-panel overflow-hidden"
         >
-          {property.photo ? (
+          {isEditing && user?.id ? (
+            <div className="p-4 space-y-3">
+              <label className="text-sm font-medium text-foreground">Property Photo</label>
+              <PhotoUploader
+                userId={user.id}
+                category="properties"
+                entityId={property.id}
+                currentPhoto={editedProperty.photo || undefined}
+                onPhotoChange={(url) => setEditedProperty({...editedProperty, photo: url || undefined})}
+                aspectRatio="video"
+                placeholder="Upload property photo"
+              />
+              <div className="mt-3">
+                <label className="text-sm font-medium text-foreground mb-1 block">Property Name</label>
+                <input
+                  type="text"
+                  value={editedProperty.name}
+                  onChange={(e) => setEditedProperty({...editedProperty, name: e.target.value})}
+                  className="text-lg font-bold text-foreground bg-muted/50 rounded-lg px-3 py-2 w-full border border-border focus:outline-none focus:border-primary"
+                />
+              </div>
+            </div>
+          ) : property.photo ? (
             <div className="h-48 bg-gradient-to-br from-secondary/20 to-accent/20 relative">
               <img src={property.photo} alt={property.name} className="w-full h-full object-cover" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
               <div className="absolute bottom-4 left-4 right-4">
-                {isEditing ? (
-                  <input
-                    type="text"
-                    value={editedProperty.name}
-                    onChange={(e) => setEditedProperty({...editedProperty, name: e.target.value})}
-                    className="text-2xl font-bold text-white bg-white/20 backdrop-blur-sm rounded-lg px-3 py-1 w-full border border-white/30 focus:outline-none focus:border-secondary"
-                  />
-                ) : (
-                  <h2 className="text-2xl font-bold text-white">{property.name}</h2>
-                )}
+                <h2 className="text-2xl font-bold text-white">{property.name}</h2>
               </div>
             </div>
           ) : (
             <div className="h-48 bg-gradient-to-br from-secondary/20 to-accent/20 flex items-center justify-center relative">
               <Home size={64} className="text-secondary/50" />
               <div className="absolute bottom-4 left-4 right-4">
-                {isEditing ? (
-                  <input
-                    type="text"
-                    value={editedProperty.name}
-                    onChange={(e) => setEditedProperty({...editedProperty, name: e.target.value})}
-                    className="text-2xl font-bold text-white bg-white/20 backdrop-blur-sm rounded-lg px-3 py-1 w-full border border-white/30 focus:outline-none focus:border-secondary"
-                  />
-                ) : (
-                  <h2 className="text-2xl font-bold text-white">{property.name}</h2>
-                )}
+                <h2 className="text-2xl font-bold text-white">{property.name}</h2>
               </div>
             </div>
           )}

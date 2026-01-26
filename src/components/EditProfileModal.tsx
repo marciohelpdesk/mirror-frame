@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { z } from 'zod';
-import { Camera } from 'lucide-react';
+import { User } from 'lucide-react';
 import { UserProfile } from '@/types';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
 import {
   Dialog,
   DialogContent,
@@ -15,6 +16,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+import { PhotoUploader } from '@/components/PhotoUploader';
 
 interface EditProfileModalProps {
   isOpen: boolean;
@@ -22,13 +24,6 @@ interface EditProfileModalProps {
   userProfile: UserProfile;
   onUpdateProfile: (profile: UserProfile) => void;
 }
-
-const DEMO_AVATARS = [
-  'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop&crop=face',
-  'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
-  'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&h=150&fit=crop&crop=face',
-  'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face',
-];
 
 const profileSchema = z.object({
   name: z.string().trim().min(1, 'Name is required').max(100, 'Name must be less than 100 characters'),
@@ -39,13 +34,24 @@ const profileSchema = z.object({
 export const EditProfileModal = ({ isOpen, onClose, userProfile, onUpdateProfile }: EditProfileModalProps) => {
   const { t } = useLanguage();
   const { toast } = useToast();
+  const { user } = useAuth();
   
   const [name, setName] = useState(userProfile.name);
   const [email, setEmail] = useState(userProfile.email);
   const [phone, setPhone] = useState(userProfile.phone);
   const [avatar, setAvatar] = useState(userProfile.avatar);
-  const [showAvatarPicker, setShowAvatarPicker] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Reset form when modal opens with new profile data
+  useEffect(() => {
+    if (isOpen) {
+      setName(userProfile.name);
+      setEmail(userProfile.email);
+      setPhone(userProfile.phone);
+      setAvatar(userProfile.avatar);
+      setErrors({});
+    }
+  }, [isOpen, userProfile]);
 
   const handleSubmit = () => {
     const result = profileSchema.safeParse({ name, email, phone });
@@ -79,11 +85,6 @@ export const EditProfileModal = ({ isOpen, onClose, userProfile, onUpdateProfile
     onClose();
   };
 
-  const handleAvatarSelect = (newAvatar: string) => {
-    setAvatar(newAvatar);
-    setShowAvatarPicker(false);
-  };
-
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
@@ -94,40 +95,23 @@ export const EditProfileModal = ({ isOpen, onClose, userProfile, onUpdateProfile
         <div className="space-y-6 py-4">
           {/* Avatar Section */}
           <div className="flex flex-col items-center">
-            <div className="relative">
-              <div className="w-24 h-24 rounded-full border-4 border-primary/20 shadow-lg overflow-hidden">
-                <img 
-                  src={avatar} 
-                  className="w-full h-full object-cover" 
-                  alt="Profile" 
+            {user?.id ? (
+              <div className="w-32">
+                <PhotoUploader
+                  userId={user.id}
+                  category="profile"
+                  currentPhoto={avatar || undefined}
+                  onPhotoChange={(url) => setAvatar(url || '')}
+                  aspectRatio="square"
+                  placeholder={t('profile.changePhoto')}
+                  className="rounded-full overflow-hidden"
                 />
               </div>
-              <button
-                type="button"
-                onClick={() => setShowAvatarPicker(!showAvatarPicker)}
-                className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-md hover:bg-primary/90 transition-colors"
-              >
-                <Camera size={16} />
-              </button>
-            </div>
-            
-            {showAvatarPicker && (
-              <div className="mt-4 flex gap-2 flex-wrap justify-center">
-                {DEMO_AVATARS.map((avatarUrl, index) => (
-                  <button
-                    key={index}
-                    type="button"
-                    onClick={() => handleAvatarSelect(avatarUrl)}
-                    className={`w-12 h-12 rounded-full overflow-hidden border-2 transition-all ${
-                      avatar === avatarUrl ? 'border-primary scale-110' : 'border-transparent hover:border-muted-foreground/50'
-                    }`}
-                  >
-                    <img src={avatarUrl} className="w-full h-full object-cover" alt={`Avatar ${index + 1}`} />
-                  </button>
-                ))}
+            ) : (
+              <div className="w-24 h-24 rounded-full border-4 border-primary/20 shadow-lg overflow-hidden bg-muted flex items-center justify-center">
+                <User size={32} className="text-muted-foreground" />
               </div>
             )}
-            
             <p className="text-xs text-muted-foreground mt-2">{t('profile.changePhoto')}</p>
           </div>
 
@@ -154,6 +138,7 @@ export const EditProfileModal = ({ isOpen, onClose, userProfile, onUpdateProfile
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder={t('profile.email')}
                 className={errors.email ? 'border-destructive' : ''}
+                disabled // Email comes from auth
               />
               {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
             </div>
