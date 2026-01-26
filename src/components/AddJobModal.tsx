@@ -43,6 +43,11 @@ export const AddJobModal = ({ open, onOpenChange, properties, employees = [], on
   const handleSubmit = () => {
     if (!formData.selectedDate || !formData.propertyId) return;
 
+    // Use property's custom checklist if available, otherwise use default
+    const checklistTemplate = selectedProperty?.checklistTemplate && selectedProperty.checklistTemplate.length > 0
+      ? JSON.parse(JSON.stringify(selectedProperty.checklistTemplate))
+      : JSON.parse(JSON.stringify(STANDARD_CHECKLIST_TEMPLATE));
+
     const newJob: Job = {
       id: `job-${Date.now()}`,
       propertyId: formData.propertyId,
@@ -54,7 +59,7 @@ export const AddJobModal = ({ open, onOpenChange, properties, employees = [], on
       type: formData.jobType,
       price: formData.price ? parseFloat(formData.price) : selectedProperty?.basePrice,
       assignedTo: formData.assignedTo || undefined,
-      checklist: JSON.parse(JSON.stringify(STANDARD_CHECKLIST_TEMPLATE)),
+      checklist: checklistTemplate,
       photosBefore: [],
       photosAfter: [],
       damages: [],
