@@ -1,7 +1,6 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Job, Property, UserProfile, ViewState, JobStatus, Employee, InventoryItem } from '@/types';
-import { INITIAL_JOBS, INITIAL_PROPERTIES, INITIAL_PROFILE, INITIAL_EMPLOYEES, INITIAL_INVENTORY } from '@/data/initialData';
 import { BottomNav } from '@/components/BottomNav';
 import { DashboardView } from '@/views/DashboardView';
 import { AgendaView } from '@/views/AgendaView';
@@ -12,61 +11,91 @@ import { PropertyDetailsView } from '@/views/PropertyDetailsView';
 import { JobDetailsView } from '@/views/JobDetailsView';
 import { ExecutionView } from '@/views/ExecutionView';
 import { FinanceView } from '@/views/FinanceView';
+import { useAuth } from '@/hooks/useAuth';
+import { useProfile } from '@/hooks/useProfile';
+import { useProperties } from '@/hooks/useProperties';
+import { useJobs } from '@/hooks/useJobs';
+import { useEmployees } from '@/hooks/useEmployees';
+import { useInventory } from '@/hooks/useInventory';
 
 const Index = () => {
   // Auth State
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [authLoading, setAuthLoading] = useState(false);
+  const { user, loading: authLoading, signIn, signUp, signOut } = useAuth();
   const [authError, setAuthError] = useState('');
+  const [isAuthenticating, setIsAuthenticating] = useState(false);
+  
+  // Data from Supabase
+  const { profile, updateProfile, isLoading: profileLoading } = useProfile(user?.id);
+  const { properties, addProperty, updateProperty, deleteProperty, isLoading: propertiesLoading } = useProperties(user?.id);
+  const { jobs, addJob, updateJob, deleteJob, isLoading: jobsLoading } = useJobs(user?.id);
+  const { employees, addEmployee, deleteEmployee, isLoading: employeesLoading } = useEmployees(user?.id);
+  const { inventory, isLoading: inventoryLoading } = useInventory(user?.id);
   
   // App State
   const [view, setView] = useState<ViewState>('DASHBOARD');
-  const [jobs, setJobs] = useState<Job[]>(INITIAL_JOBS);
-  const [properties, setProperties] = useState<Property[]>(INITIAL_PROPERTIES);
-  const [userProfile, setUserProfile] = useState<UserProfile>(INITIAL_PROFILE);
-  const [employees, setEmployees] = useState<Employee[]>(INITIAL_EMPLOYEES);
-  const [inventory, setInventory] = useState<InventoryItem[]>(INITIAL_INVENTORY);
   const [activeJobId, setActiveJobId] = useState<string | null>(null);
   const [activePropertyId, setActivePropertyId] = useState<string | null>(null);
 
+  // Convert inventory items to the expected format
+  const inventoryItems: InventoryItem[] = inventory;
+
+  // Create default user profile if not loaded
+  const userProfile: UserProfile = profile || {
+    name: user?.email?.split('@')[0] || 'User',
+    email: user?.email || '',
+    phone: '',
+    avatar: '',
+    role: 'Cleaner',
+  };
+
   // Auth Handlers
-  const handleLogin = (email: string, password: string) => {
-    setAuthLoading(true);
+  const handleSignIn = useCallback(async (email: string, password: string) => {
+    setIsAuthenticating(true);
     setAuthError('');
     
-    // Simulated login - in production this would call Supabase
-    setTimeout(() => {
-      if (email && password) {
-        setIsAuthenticated(true);
-        setUserProfile({
-          ...INITIAL_PROFILE,
-          email
-        });
-      } else {
-        setAuthError('Please enter valid credentials');
-      }
-      setAuthLoading(false);
-    }, 1000);
-  };
+    const { error } = await signIn(email, password);
+    
+    if (error) {
+      setAuthError(error.message);
+    }
+    setIsAuthenticating(false);
+  }, [signIn]);
 
-  const handleLogout = () => {
-    setIsAuthenticated(false);
+  const handleSignUp = useCallback(async (email: string, password: string) => {
+    setIsAuthenticating(true);
+    setAuthError('');
+    
+    const { error } = await signUp(email, password);
+    
+    if (error) {
+      setAuthError(error.message);
+    } else {
+      setAuthError('Check your email to confirm your account!');
+    }
+    setIsAuthenticating(false);
+  }, [signUp]);
+
+  const handleLogout = useCallback(async () => {
+    await signOut();
     setView('DASHBOARD');
-  };
+  }, [signOut]);
 
   // Job Handlers
-  const startJob = (jobId: string) => {
-    setJobs(prev => prev.map(j => j.id === jobId ? {
-      ...j, 
-      status: JobStatus.IN_PROGRESS, 
-      startTime: Date.now(),
-      currentStep: 'BEFORE_PHOTOS' 
-    } : j));
-    setActiveJobId(jobId);
-    setView('EXECUTION');
-  };
+  const startJob = useCallback((jobId: string) => {
+    const job = jobs.find(j => j.id === jobId);
+    if (job) {
+      updateJob({
+        ...job,
+        status: JobStatus.IN_PROGRESS,
+        startTime: Date.now(),
+        currentStep: 'BEFORE_PHOTOS'
+      });
+      setActiveJobId(jobId);
+      setView('EXECUTION');
+    }
+  }, [jobs, updateJob]);
 
-  const viewJob = (jobId: string) => {
+  const viewJob = useCallback((jobId: string) => {
     setActiveJobId(jobId);
     const job = jobs.find(j => j.id === jobId);
     if (job?.status === JobStatus.IN_PROGRESS) {
@@ -74,104 +103,118 @@ const Index = () => {
     } else {
       setView('JOB_DETAILS');
     }
-  };
+  }, [jobs]);
 
-  const updateJob = (updatedJob: Job) => {
-    setJobs(prev => prev.map(j => j.id === updatedJob.id ? updatedJob : j));
-  };
+  const handleUpdateJob = useCallback((updatedJob: Job) => {
+    updateJob(updatedJob);
+  }, [updateJob]);
 
-  const rescheduleJob = (jobId: string, newDate: string, newTime?: string) => {
-    setJobs(prev => prev.map(j => {
-      if (j.id === jobId) {
-        return {
-          ...j,
-          date: newDate,
-          time: newTime || j.time
-        };
-      }
-      return j;
-    }));
-  };
+  const rescheduleJob = useCallback((jobId: string, newDate: string, newTime?: string) => {
+    const job = jobs.find(j => j.id === jobId);
+    if (job) {
+      updateJob({
+        ...job,
+        date: newDate,
+        time: newTime || job.time
+      });
+    }
+  }, [jobs, updateJob]);
 
-  const completeJob = (completedJob: Job) => {
-    setJobs(prev => prev.map(j => j.id === completedJob.id ? {
+  const completeJob = useCallback((completedJob: Job) => {
+    updateJob({
       ...completedJob,
-      status: JobStatus.COMPLETED
-    } : j));
+      status: JobStatus.COMPLETED,
+      endTime: Date.now()
+    });
     setActiveJobId(null);
     setView('DASHBOARD');
-  };
+  }, [updateJob]);
 
-  const cancelExecution = () => {
+  const cancelExecution = useCallback(() => {
     setActiveJobId(null);
     setView('DASHBOARD');
-  };
+  }, []);
 
   // Property Handlers
-  const viewProperty = (propertyId: string) => {
+  const viewProperty = useCallback((propertyId: string) => {
     setActivePropertyId(propertyId);
     setView('PROPERTY_DETAILS');
-  };
+  }, []);
 
-  const updateProperty = (updatedProperty: Property) => {
-    setProperties(prev => prev.map(p => 
-      p.id === updatedProperty.id ? updatedProperty : p
-    ));
-  };
+  const handleUpdateProperty = useCallback((updatedProperty: Property) => {
+    updateProperty(updatedProperty);
+  }, [updateProperty]);
 
-  const addProperty = (newProperty: Property) => {
-    setProperties(prev => [...prev, newProperty]);
-  };
+  const handleAddProperty = useCallback((newProperty: Property) => {
+    addProperty(newProperty);
+  }, [addProperty]);
 
-  const addJob = (newJob: Job) => {
-    setJobs(prev => [...prev, newJob]);
-  };
+  const handleAddJob = useCallback((newJob: Job) => {
+    addJob(newJob);
+  }, [addJob]);
 
-  const deleteJob = (jobId: string) => {
-    setJobs(prev => prev.filter(j => j.id !== jobId));
+  const handleDeleteJob = useCallback((jobId: string) => {
+    deleteJob(jobId);
     setActiveJobId(null);
     setView('AGENDA');
-  };
+  }, [deleteJob]);
 
-  const deleteProperty = (propertyId: string) => {
-    setProperties(prev => prev.filter(p => p.id !== propertyId));
+  const handleDeleteProperty = useCallback((propertyId: string) => {
+    deleteProperty(propertyId);
     setActivePropertyId(null);
     setView('PROPERTIES');
-  };
+  }, [deleteProperty]);
 
   // Employee Handlers
-  const addEmployee = (employee: Employee) => {
-    setEmployees(prev => [...prev, employee]);
-  };
+  const handleAddEmployee = useCallback((employee: Employee) => {
+    addEmployee(employee);
+  }, [addEmployee]);
 
-  const deleteEmployee = (employeeId: string) => {
-    setEmployees(prev => prev.filter(e => e.id !== employeeId));
-    // Unassign from any jobs
-    setJobs(prev => prev.map(j => j.assignedTo === employeeId ? { ...j, assignedTo: undefined } : j));
-  };
+  const handleDeleteEmployee = useCallback((employeeId: string) => {
+    deleteEmployee(employeeId);
+    // Unassign from any jobs - this should be handled by update mutation
+    jobs.forEach(job => {
+      if (job.assignedTo === employeeId) {
+        updateJob({ ...job, assignedTo: undefined });
+      }
+    });
+  }, [deleteEmployee, jobs, updateJob]);
 
   // Profile Handler
-  const handleUpdateProfile = (updatedProfile: UserProfile) => {
-    setUserProfile(updatedProfile);
-  };
+  const handleUpdateProfile = useCallback((updatedProfile: UserProfile) => {
+    updateProfile(updatedProfile);
+  }, [updateProfile]);
 
   // Navigation Handler
-  const handleNavigate = (newView: ViewState) => {
+  const handleNavigate = useCallback((newView: ViewState) => {
     setView(newView);
-  };
+  }, []);
 
   const activeProperty = properties.find(p => p.id === activePropertyId);
   const activeJob = jobs.find(j => j.id === activeJobId);
 
+  // Show loading state
+  if (authLoading) {
+    return (
+      <>
+        <div className="bg-florida-sky-fixed" />
+        <div className="min-h-screen relative z-10 flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        </div>
+      </>
+    );
+  }
+
   // Render Login if not authenticated
-  if (!isAuthenticated) {
+  if (!user) {
     return (
       <>
         <div className="bg-florida-sky-fixed" />
         <div className="min-h-screen relative z-10 md:flex md:items-center md:justify-center">
           <LoginView 
-            onLogin={handleLogin}
-            isLoading={authLoading}
+            onSignIn={handleSignIn}
+            onSignUp={handleSignUp}
+            isLoading={isAuthenticating}
             error={authError}
           />
         </div>
@@ -179,12 +222,21 @@ const Index = () => {
     );
   }
 
+  // Show loading state while fetching data
+  const isDataLoading = profileLoading || propertiesLoading || jobsLoading || employeesLoading || inventoryLoading;
+
   // Main App View
   return (
     <>
       <div className="bg-florida-sky-fixed" />
       <div className="min-h-screen relative z-10 md:flex md:items-center md:justify-center">
       <div className="mobile-frame">
+        {isDataLoading && (
+          <div className="absolute inset-0 z-50 flex items-center justify-center bg-background/50">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        )}
+        
         <AnimatePresence mode="wait">
           {view === 'DASHBOARD' && (
             <motion.div
@@ -218,7 +270,7 @@ const Index = () => {
                 onStartJob={startJob}
                 onViewJob={viewJob}
                 onRescheduleJob={rescheduleJob}
-                onAddJob={addJob}
+                onAddJob={handleAddJob}
               />
             </motion.div>
           )}
@@ -234,7 +286,7 @@ const Index = () => {
               <PropertiesView 
                 properties={properties}
                 onViewProperty={viewProperty}
-                onAddProperty={addProperty}
+                onAddProperty={handleAddProperty}
               />
             </motion.div>
           )}
@@ -250,8 +302,8 @@ const Index = () => {
               <PropertyDetailsView 
                 property={activeProperty}
                 onBack={() => setView('PROPERTIES')}
-                onUpdate={updateProperty}
-                onDelete={deleteProperty}
+                onUpdate={handleUpdateProperty}
+                onDelete={handleDeleteProperty}
               />
             </motion.div>
           )}
@@ -270,8 +322,8 @@ const Index = () => {
                 employees={employees}
                 onBack={() => setView('AGENDA')}
                 onStartJob={startJob}
-                onUpdateJob={updateJob}
-                onDeleteJob={deleteJob}
+                onUpdateJob={handleUpdateJob}
+                onDeleteJob={handleDeleteJob}
               />
             </motion.div>
           )}
@@ -286,8 +338,8 @@ const Index = () => {
             >
               <ExecutionView
                 job={activeJob}
-                inventory={inventory}
-                onUpdateJob={updateJob}
+                inventory={inventoryItems}
+                onUpdateJob={handleUpdateJob}
                 onComplete={completeJob}
                 onCancel={cancelExecution}
               />
@@ -307,8 +359,8 @@ const Index = () => {
                 employees={employees}
                 onLogout={handleLogout}
                 onViewFinance={() => setView('FINANCE')}
-                onAddEmployee={addEmployee}
-                onDeleteEmployee={deleteEmployee}
+                onAddEmployee={handleAddEmployee}
+                onDeleteEmployee={handleDeleteEmployee}
                 onUpdateProfile={handleUpdateProfile}
               />
             </motion.div>
