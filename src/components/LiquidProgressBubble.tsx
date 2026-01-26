@@ -5,12 +5,14 @@ interface LiquidProgressBubbleProps {
   percentage: number;
   label?: string;
   size?: number;
+  animated?: boolean; // Enable "alive" shaking effect
 }
 
 export const LiquidProgressBubble = ({ 
   percentage, 
   label,
-  size = 180 
+  size = 180,
+  animated = false
 }: LiquidProgressBubbleProps) => {
   const { t } = useLanguage();
   const displayLabel = label || t('dashboard.purification');
@@ -32,9 +34,17 @@ export const LiquidProgressBubble = ({
       </span>
       
       {/* Bubble Container */}
-      <div 
+      <motion.div 
         className="relative"
         style={{ width: size, height: size }}
+        animate={animated ? {
+          rotate: [0, 1, -1, 0.5, -0.5, 0],
+        } : undefined}
+        transition={animated ? {
+          duration: 2,
+          repeat: Infinity,
+          ease: "easeInOut"
+        } : undefined}
       >
         {/* Outer glow */}
         <div 
@@ -65,15 +75,21 @@ export const LiquidProgressBubble = ({
             <motion.div
               className="absolute bottom-0 left-0 right-0"
               initial={{ height: 0 }}
-              animate={{ height: fillHeight }}
-              transition={{ duration: 0.8, ease: 'easeOut' }}
+              animate={{ 
+                height: fillHeight,
+                y: animated ? [0, -2, 1, -1, 2, 0] : 0
+              }}
+              transition={{ 
+                height: { duration: 0.8, ease: 'easeOut' },
+                y: animated ? { duration: 1.5, repeat: Infinity, ease: "easeInOut" } : undefined
+              }}
               style={{
                 background: 'linear-gradient(180deg, hsl(var(--primary)) 0%, hsl(186 100% 40%) 100%)',
               }}
             >
-              {/* Wave SVG */}
+              {/* Wave SVG - Multiple layers for more dynamic effect */}
               <svg
-                className="absolute -top-2 left-0 w-[200%] animate-wave"
+                className={`absolute -top-2 left-0 w-[200%] ${animated ? 'animate-wave-fast' : 'animate-wave'}`}
                 style={{ height: waveAmplitude * 3 }}
                 viewBox="0 0 1200 60"
                 preserveAspectRatio="none"
@@ -96,6 +112,57 @@ export const LiquidProgressBubble = ({
                   opacity="0.6"
                 />
               </svg>
+              
+              {/* Secondary wave for more organic movement (only when animated) */}
+              {animated && (
+                <svg
+                  className="absolute -top-1 left-0 w-[200%] animate-wave-reverse"
+                  style={{ height: waveAmplitude * 2 }}
+                  viewBox="0 0 1200 40"
+                  preserveAspectRatio="none"
+                >
+                  <path
+                    d={`M0,${20} 
+                        C100,${20 - waveAmplitude * 0.5} 200,${20 + waveAmplitude * 0.5} 300,${20}
+                        C400,${20 - waveAmplitude * 0.5} 500,${20 + waveAmplitude * 0.5} 600,${20}
+                        C700,${20 - waveAmplitude * 0.5} 800,${20 + waveAmplitude * 0.5} 900,${20}
+                        C1000,${20 - waveAmplitude * 0.5} 1100,${20 + waveAmplitude * 0.5} 1200,${20}
+                        L1200,40 L0,40 Z`}
+                    fill="hsl(var(--primary))"
+                    opacity="0.4"
+                  />
+                </svg>
+              )}
+              
+              {/* Bubble particles effect (only when animated) */}
+              {animated && (
+                <div className="absolute inset-0 overflow-hidden">
+                  <motion.div
+                    className="absolute w-2 h-2 rounded-full bg-white/40"
+                    style={{ left: '20%', bottom: '10%' }}
+                    animate={{ y: [-fillHeight * 0.8, 0], opacity: [0.6, 0] }}
+                    transition={{ duration: 2, repeat: Infinity, delay: 0 }}
+                  />
+                  <motion.div
+                    className="absolute w-1.5 h-1.5 rounded-full bg-white/30"
+                    style={{ left: '50%', bottom: '15%' }}
+                    animate={{ y: [-fillHeight * 0.6, 0], opacity: [0.5, 0] }}
+                    transition={{ duration: 1.8, repeat: Infinity, delay: 0.5 }}
+                  />
+                  <motion.div
+                    className="absolute w-1 h-1 rounded-full bg-white/50"
+                    style={{ left: '70%', bottom: '5%' }}
+                    animate={{ y: [-fillHeight * 0.7, 0], opacity: [0.7, 0] }}
+                    transition={{ duration: 2.2, repeat: Infinity, delay: 1 }}
+                  />
+                  <motion.div
+                    className="absolute w-1.5 h-1.5 rounded-full bg-white/35"
+                    style={{ left: '35%', bottom: '20%' }}
+                    animate={{ y: [-fillHeight * 0.5, 0], opacity: [0.6, 0] }}
+                    transition={{ duration: 1.6, repeat: Infinity, delay: 0.8 }}
+                  />
+                </div>
+              )}
             </motion.div>
           </div>
           
@@ -120,7 +187,7 @@ export const LiquidProgressBubble = ({
             <span className="text-xl">%</span>
           </motion.span>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 };

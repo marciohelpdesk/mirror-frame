@@ -262,8 +262,29 @@
   100% { transform: translateX(-50%); }
 }
 
+@keyframes wave-fast {
+  0% { transform: translateX(0) scaleY(1); }
+  25% { transform: translateX(-12.5%) scaleY(1.1); }
+  50% { transform: translateX(-25%) scaleY(0.9); }
+  75% { transform: translateX(-37.5%) scaleY(1.05); }
+  100% { transform: translateX(-50%) scaleY(1); }
+}
+
+@keyframes wave-reverse {
+  0% { transform: translateX(-50%); }
+  100% { transform: translateX(0); }
+}
+
 .animate-wave {
   animation: wave 4s linear infinite;
+}
+
+.animate-wave-fast {
+  animation: wave-fast 2s ease-in-out infinite;
+}
+
+.animate-wave-reverse {
+  animation: wave-reverse 3s linear infinite;
 }
 
 @keyframes pulse-glow {

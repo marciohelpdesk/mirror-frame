@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, AlertTriangle } from 'lucide-react';
 import { Job, ExecutionStep, ChecklistSection, InventoryItem, DamageReport, InventoryUsage, LostAndFoundItem } from '@/types';
@@ -9,6 +9,7 @@ import { DamageReportStep } from '@/components/execution/DamageReportStep';
 import { LostAndFoundStep } from '@/components/execution/LostAndFoundStep';
 import { InventoryCheckStep } from '@/components/execution/InventoryCheckStep';
 import { SummaryStep } from '@/components/execution/SummaryStep';
+import { LiquidProgressBubble } from '@/components/LiquidProgressBubble';
 import { useLanguage } from '@/contexts/LanguageContext';
 import {
   AlertDialog,
@@ -38,6 +39,21 @@ export const ExecutionView = ({ job, inventory, onUpdateJob, onComplete, onCance
   const [showExitDialog, setShowExitDialog] = useState(false);
 
   const currentStepIndex = STEP_ORDER.indexOf(currentStep);
+
+  // Calculate checklist progress for the bubble
+  const checklistProgress = useMemo(() => {
+    let totalItems = 0;
+    let completedItems = 0;
+    
+    job.checklist.forEach(section => {
+      section.items.forEach(item => {
+        totalItems++;
+        if (item.completed) completedItems++;
+      });
+    });
+    
+    return totalItems > 0 ? (completedItems / totalItems) * 100 : 0;
+  }, [job.checklist]);
 
   const goToNextStep = () => {
     const nextIndex = currentStepIndex + 1;
@@ -114,8 +130,23 @@ export const ExecutionView = ({ job, inventory, onUpdateJob, onComplete, onCance
           </button>
         </div>
 
-        {/* Stepper */}
-        <ExecutionStepper currentStep={currentStep} completedSteps={completedSteps} />
+        {/* Progress Bubble + Stepper Row */}
+        <div className="flex items-center gap-4">
+          {/* Mini Liquid Bubble */}
+          <div className="flex-shrink-0">
+            <LiquidProgressBubble 
+              percentage={checklistProgress} 
+              label=""
+              size={60}
+              animated={true}
+            />
+          </div>
+          
+          {/* Stepper */}
+          <div className="flex-1">
+            <ExecutionStepper currentStep={currentStep} completedSteps={completedSteps} />
+          </div>
+        </div>
       </div>
 
       {/* Step Content */}
