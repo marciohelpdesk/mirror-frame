@@ -139,6 +139,7 @@ export const ExecutionView = ({ job, inventory, onUpdateJob, onComplete, onCance
               label=""
               size={60}
               animated={true}
+              showPercentage={false}
             />
           </div>
           

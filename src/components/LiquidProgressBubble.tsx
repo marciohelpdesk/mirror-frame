@@ -5,14 +5,16 @@ interface LiquidProgressBubbleProps {
   percentage: number;
   label?: string;
   size?: number;
-  animated?: boolean; // Enable "alive" shaking effect
+  animated?: boolean;
+  showPercentage?: boolean;
 }
 
 export const LiquidProgressBubble = ({ 
   percentage, 
   label,
   size = 180,
-  animated = false
+  animated = false,
+  showPercentage = true
 }: LiquidProgressBubbleProps) => {
   const { t } = useLanguage();
   const displayLabel = label || t('dashboard.purification');
@@ -176,17 +178,19 @@ export const LiquidProgressBubble = ({
         </div>
         
         {/* Percentage text */}
-        <div className="absolute inset-0 flex items-center justify-center">
-          <motion.span
-            key={clampedPercentage}
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            className="text-4xl font-extralight text-foreground drop-shadow-sm"
-          >
-            {Math.round(clampedPercentage)}
-            <span className="text-xl">%</span>
-          </motion.span>
-        </div>
+        {showPercentage && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <motion.span
+              key={clampedPercentage}
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              className="text-4xl font-extralight text-foreground drop-shadow-sm"
+            >
+              {Math.round(clampedPercentage)}
+              <span className="text-xl">%</span>
+            </motion.span>
+          </div>
+        )}
       </motion.div>
     </div>
   );
