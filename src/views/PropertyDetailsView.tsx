@@ -21,8 +21,10 @@ import {
   EyeOff,
   Trash2,
   AlertTriangle,
-  Mail
+  Mail,
+  DollarSign
 } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Property } from '@/types';
 import { BackgroundEffects } from '@/components/BackgroundEffects';
 import {
@@ -44,6 +46,7 @@ interface PropertyDetailsViewProps {
 }
 
 export const PropertyDetailsView = ({ property, onBack, onUpdate, onDelete }: PropertyDetailsViewProps) => {
+  const { t } = useLanguage();
   const [isEditing, setIsEditing] = useState(false);
   const [editedProperty, setEditedProperty] = useState<Property>(property);
   const [showAccessCode, setShowAccessCode] = useState(false);
@@ -183,36 +186,132 @@ export const PropertyDetailsView = ({ property, onBack, onUpdate, onDelete }: Pr
             </div>
             
             <div className="flex items-center gap-3 flex-wrap">
-              <span className={`px-3 py-1 rounded-full text-xs font-medium border ${statusColors[property.status]}`}>
-                {statusLabels[property.status]}
-              </span>
-              <span className="px-3 py-1 rounded-full text-xs font-medium bg-secondary/20 text-secondary border border-secondary/30">
-                {property.type}
-              </span>
-              <span className="px-3 py-1 rounded-full text-xs font-medium bg-accent/20 text-accent border border-accent/30">
-                {property.serviceType}
-              </span>
+              {isEditing ? (
+                <div className="w-full space-y-3">
+                  {/* Status Select */}
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs text-muted-foreground">{t('propertyDetails.status')}</label>
+                    <select
+                      value={editedProperty.status}
+                      onChange={(e) => setEditedProperty({...editedProperty, status: e.target.value as Property['status']})}
+                      className="bg-background/80 rounded-lg px-3 py-2 text-sm border border-white/20 focus:outline-none focus:border-secondary text-foreground"
+                    >
+                      <option value="READY">{t('propertyDetails.statusReady')}</option>
+                      <option value="NEEDS_CLEANING">{t('propertyDetails.statusNeedsCleaning')}</option>
+                      <option value="OCCUPIED">{t('propertyDetails.statusOccupied')}</option>
+                    </select>
+                  </div>
+                  {/* Property Type Select */}
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs text-muted-foreground">{t('propertyDetails.propertyType')}</label>
+                    <select
+                      value={editedProperty.type}
+                      onChange={(e) => setEditedProperty({...editedProperty, type: e.target.value as Property['type']})}
+                      className="bg-background/80 rounded-lg px-3 py-2 text-sm border border-white/20 focus:outline-none focus:border-secondary text-foreground"
+                    >
+                      <option value="Apartment">{t('propertyDetails.typeApartment')}</option>
+                      <option value="House">{t('propertyDetails.typeHouse')}</option>
+                      <option value="Villa">{t('propertyDetails.typeVilla')}</option>
+                      <option value="Loft">{t('propertyDetails.typeLoft')}</option>
+                      <option value="Studio">{t('propertyDetails.typeStudio')}</option>
+                    </select>
+                  </div>
+                  {/* Service Type Select */}
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs text-muted-foreground">{t('propertyDetails.serviceType')}</label>
+                    <select
+                      value={editedProperty.serviceType}
+                      onChange={(e) => setEditedProperty({...editedProperty, serviceType: e.target.value as Property['serviceType']})}
+                      className="bg-background/80 rounded-lg px-3 py-2 text-sm border border-white/20 focus:outline-none focus:border-secondary text-foreground"
+                    >
+                      <option value="House Cleaning">{t('propertyDetails.serviceHouseCleaning')}</option>
+                      <option value="Deep Cleaning">{t('propertyDetails.serviceDeepCleaning')}</option>
+                      <option value="Airbnb Cleaning">{t('propertyDetails.serviceAirbnbCleaning')}</option>
+                      <option value="Move in/Out">{t('propertyDetails.serviceMoveInOut')}</option>
+                      <option value="Recurring Cleaning">{t('propertyDetails.serviceRecurringCleaning')}</option>
+                      <option value="Commercial Cleaning">{t('propertyDetails.serviceCommercialCleaning')}</option>
+                      <option value="Office Cleaning">{t('propertyDetails.serviceOfficeCleaning')}</option>
+                      <option value="Post Construction">{t('propertyDetails.servicePostConstruction')}</option>
+                    </select>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <span className={`px-3 py-1 rounded-full text-xs font-medium border ${statusColors[property.status]}`}>
+                    {statusLabels[property.status]}
+                  </span>
+                  <span className="px-3 py-1 rounded-full text-xs font-medium bg-secondary/20 text-secondary border border-secondary/30">
+                    {property.type}
+                  </span>
+                  <span className="px-3 py-1 rounded-full text-xs font-medium bg-accent/20 text-accent border border-accent/30">
+                    {property.serviceType}
+                  </span>
+                </>
+              )}
             </div>
             
             {/* Property Stats */}
             <div className="flex items-center gap-4 mt-4 pt-4 border-t border-white/10">
-              {property.bedrooms !== undefined && (
-                <div className="flex items-center gap-1.5">
-                  <Bed size={16} className="text-secondary" />
-                  <span className="text-sm text-foreground">{property.bedrooms} bed</span>
+              {isEditing ? (
+                <div className="grid grid-cols-3 gap-3 w-full">
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs text-muted-foreground flex items-center gap-1">
+                      <Bed size={12} /> {t('propertyDetails.beds')}
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={editedProperty.bedrooms || ''}
+                      onChange={(e) => setEditedProperty({...editedProperty, bedrooms: parseInt(e.target.value) || undefined})}
+                      className="bg-background/80 rounded-lg px-2 py-1.5 text-sm border border-white/20 focus:outline-none focus:border-secondary text-foreground"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs text-muted-foreground flex items-center gap-1">
+                      <Bath size={12} /> {t('propertyDetails.baths')}
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={editedProperty.bathrooms || ''}
+                      onChange={(e) => setEditedProperty({...editedProperty, bathrooms: parseInt(e.target.value) || undefined})}
+                      className="bg-background/80 rounded-lg px-2 py-1.5 text-sm border border-white/20 focus:outline-none focus:border-secondary text-foreground"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs text-muted-foreground flex items-center gap-1">
+                      <Square size={12} /> {t('propertyDetails.sqft')}
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={editedProperty.sqft || ''}
+                      onChange={(e) => setEditedProperty({...editedProperty, sqft: parseInt(e.target.value) || undefined})}
+                      className="bg-background/80 rounded-lg px-2 py-1.5 text-sm border border-white/20 focus:outline-none focus:border-secondary text-foreground"
+                    />
+                  </div>
                 </div>
-              )}
-              {property.bathrooms !== undefined && (
-                <div className="flex items-center gap-1.5">
-                  <Bath size={16} className="text-secondary" />
-                  <span className="text-sm text-foreground">{property.bathrooms} bath</span>
-                </div>
-              )}
-              {property.sqft !== undefined && (
-                <div className="flex items-center gap-1.5">
-                  <Square size={16} className="text-secondary" />
-                  <span className="text-sm text-foreground">{property.sqft} sqft</span>
-                </div>
+              ) : (
+                <>
+                  {property.bedrooms !== undefined && (
+                    <div className="flex items-center gap-1.5">
+                      <Bed size={16} className="text-secondary" />
+                      <span className="text-sm text-foreground">{property.bedrooms} {t('propertyDetails.beds').toLowerCase()}</span>
+                    </div>
+                  )}
+                  {property.bathrooms !== undefined && (
+                    <div className="flex items-center gap-1.5">
+                      <Bath size={16} className="text-secondary" />
+                      <span className="text-sm text-foreground">{property.bathrooms} {t('propertyDetails.baths').toLowerCase()}</span>
+                    </div>
+                  )}
+                  {property.sqft !== undefined && (
+                    <div className="flex items-center gap-1.5">
+                      <Square size={16} className="text-secondary" />
+                      <span className="text-sm text-foreground">{property.sqft} {t('propertyDetails.sqft').toLowerCase()}</span>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </div>
@@ -449,28 +548,50 @@ export const PropertyDetailsView = ({ property, onBack, onUpdate, onDelete }: Pr
           </motion.div>
         )}
         
-        {/* Pricing Info */}
-        {property.basePrice && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.35 }}
-            className="glass-panel p-4"
-          >
+        {/* Base Price */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.35 }}
+          className="glass-panel p-4"
+        >
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 rounded-xl bg-green-500/20 flex items-center justify-center">
+              <DollarSign size={20} className="text-green-400" />
+            </div>
+            <div className="flex-1">
+              <h3 className="font-semibold text-foreground">{t('propertyDetails.basePrice')}</h3>
+              <p className="text-xs text-muted-foreground">{t('propertyDetails.standardRate')}</p>
+            </div>
+          </div>
+          
+          {isEditing ? (
+            <div className="flex items-center gap-2">
+              <span className="text-lg font-medium text-foreground">$</span>
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                value={editedProperty.basePrice || ''}
+                onChange={(e) => setEditedProperty({...editedProperty, basePrice: parseFloat(e.target.value) || undefined})}
+                placeholder="0.00"
+                className="flex-1 bg-background/80 rounded-lg px-3 py-2 text-foreground border border-white/20 focus:outline-none focus:border-secondary"
+              />
+            </div>
+          ) : property.basePrice ? (
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Base Price</p>
-                <p className="text-2xl font-bold text-secondary">${property.basePrice}</p>
-              </div>
+              <p className="text-2xl font-bold text-green-400">${property.basePrice.toFixed(2)}</p>
               {property.lastCleaned && (
                 <div className="text-right">
-                  <p className="text-sm text-muted-foreground">Last Cleaned</p>
+                  <p className="text-sm text-muted-foreground">{t('propertyDetails.lastCleaned')}</p>
                   <p className="text-sm font-medium text-foreground">{property.lastCleaned}</p>
                 </div>
               )}
             </div>
-          </motion.div>
-        )}
+          ) : (
+            <p className="text-sm text-muted-foreground italic">{t('propertyDetails.noPrice')}</p>
+          )}
+        </motion.div>
 
         {/* Delete Property Button */}
         <motion.div
