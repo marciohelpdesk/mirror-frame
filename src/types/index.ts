@@ -76,6 +76,16 @@ export interface Job {
   inventoryUsed: InventoryUsage[];
 }
 
+export type RoomType = 'bedroom' | 'bathroom' | 'kitchen' | 'living_room' | 'dining_room' | 'office' | 'laundry' | 'garage' | 'other';
+
+export interface Room {
+  id: string;
+  type: RoomType;
+  name: string;
+  size?: number;
+  notes?: string;
+}
+
 export interface Property {
   id: string;
   name: string;
@@ -96,6 +106,7 @@ export interface Property {
   bedrooms?: number;
   bathrooms?: number;
   sqft?: number;
+  rooms?: Room[];
 }
 
 export interface Employee {

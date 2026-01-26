@@ -81,7 +81,7 @@ const translations: Record<Language, Record<string, string>> = {
     'login.noAccount': "Don't have an account? Sign Up",
     'login.hasAccount': 'Already have an account? Sign In',
     
-    // Execution
+    // Execution - General
     'execution.beforePhotos': 'Before Photos',
     'execution.checklist': 'Checklist',
     'execution.inventory': 'Inventory Check',
@@ -94,6 +94,85 @@ const translations: Record<Language, Record<string, string>> = {
     'execution.back': 'Back',
     'execution.takePhoto': 'Take Photo',
     'execution.uploadPhoto': 'Upload Photo',
+    
+    // Execution - Header
+    'exec.cleaningNow': 'Cleaning Now',
+    'exec.exitJob': 'Exit Job?',
+    'exec.exitDescription': 'Your progress will be saved, but the job will not be marked as completed. You can resume later.',
+    'exec.keepWorking': 'Keep Working',
+    'exec.exit': 'Exit',
+    
+    // Execution - Stepper
+    'exec.step.beforePhotos': 'Before',
+    'exec.step.checklist': 'Tasks',
+    'exec.step.damages': 'Damages',
+    'exec.step.inventory': 'Inventory',
+    'exec.step.afterPhotos': 'After',
+    'exec.step.summary': 'Summary',
+    
+    // Execution - Photo Capture
+    'exec.photo.beforeTitle': 'Before Photos',
+    'exec.photo.afterTitle': 'After Photos',
+    'exec.photo.beforeDesc': 'Capture the current state before cleaning',
+    'exec.photo.afterDesc': 'Document your completed work',
+    'exec.photo.addPhoto': 'Add Photo',
+    'exec.photo.photosCaptured': 'photo(s) captured',
+    'exec.photo.minimum': 'minimum',
+    'exec.photo.continue': 'Continue',
+    
+    // Execution - Checklist
+    'exec.checklist.title': 'Cleaning Checklist',
+    'exec.checklist.tasks': 'tasks',
+    'exec.checklist.of': 'of',
+    'exec.checklist.remaining': 'remaining',
+    
+    // Execution - Damage Report
+    'exec.damage.title': 'Damage Report',
+    'exec.damage.subtitle': 'Record any issues found during cleaning',
+    'exec.damage.newRecord': 'New Record',
+    'exec.damage.problemType': 'Problem Type',
+    'exec.damage.severity': 'Severity',
+    'exec.damage.description': 'Description',
+    'exec.damage.descPlaceholder': 'Describe the problem found...',
+    'exec.damage.photo': 'Photo (optional)',
+    'exec.damage.add': 'Add',
+    'exec.damage.cancel': 'Cancel',
+    'exec.damage.register': 'Register Issue',
+    'exec.damage.noDamages': 'No damages recorded. If there are no issues, continue to the next step.',
+    'exec.damage.typeFurniture': 'Damaged Furniture',
+    'exec.damage.typeElectronics': 'Defective Electronics',
+    'exec.damage.typeStain': 'Persistent Stain',
+    'exec.damage.typeOther': 'Other',
+    'exec.damage.severityLow': 'Low',
+    'exec.damage.severityMedium': 'Medium',
+    'exec.damage.severityHigh': 'High',
+    
+    // Execution - Inventory
+    'exec.inventory.title': 'Inventory',
+    'exec.inventory.subtitle': 'Record items used during cleaning',
+    'exec.inventory.lowStock': 'Low Stock',
+    'exec.inventory.available': 'Available',
+    'exec.inventory.used': 'used',
+    'exec.inventory.noItems': 'No inventory items registered',
+    
+    // Execution - Summary
+    'exec.summary.greatJob': 'Great Job!',
+    'exec.summary.reviewSummary': 'Review the cleaning summary',
+    'exec.summary.duration': 'Duration',
+    'exec.summary.tasks': 'Tasks',
+    'exec.summary.before': 'Before',
+    'exec.summary.after': 'After',
+    'exec.summary.photos': 'photos',
+    'exec.summary.damagesRecorded': 'Damages Recorded',
+    'exec.summary.lowStock': 'Low Stock',
+    'exec.summary.photoDocumentation': 'Photo Documentation',
+    'exec.summary.addNote': 'Add Note (optional)',
+    'exec.summary.notePlaceholder': 'Issues, special notes or feedback...',
+    'exec.summary.serviceValue': 'Service Value',
+    'exec.summary.downloadPdf': 'Download PDF Report',
+    'exec.summary.generatingPdf': 'Generating PDF...',
+    'exec.summary.complete': 'Complete',
+    'exec.summary.more': 'more',
     
     // Job Status
     'status.scheduled': 'Scheduled',
@@ -110,6 +189,7 @@ const translations: Record<Language, Record<string, string>> = {
     'common.filter': 'Filter',
     'common.all': 'All',
     'common.back': 'Back',
+    'common.continue': 'Continue',
     
     // Finance
     'finance.title': 'Earnings',
@@ -157,6 +237,7 @@ const translations: Record<Language, Record<string, string>> = {
     'propertyModal.addedDescription': '{name} has been added successfully.',
     
     // Property Details View
+    'propertyDetails.title': 'Property Details',
     'propertyDetails.beds': 'Beds',
     'propertyDetails.baths': 'Baths',
     'propertyDetails.sqft': 'Sqft',
@@ -183,6 +264,24 @@ const translations: Record<Language, Record<string, string>> = {
     'propertyDetails.serviceCommercialCleaning': 'Commercial Cleaning',
     'propertyDetails.serviceOfficeCleaning': 'Office Cleaning',
     'propertyDetails.servicePostConstruction': 'Post Construction',
+    
+    // Room Management
+    'rooms.title': 'Rooms',
+    'rooms.subtitle': 'Property rooms and spaces',
+    'rooms.add': 'Add Room',
+    'rooms.empty': 'No rooms added yet',
+    'rooms.name': 'Room Name',
+    'rooms.size': 'Size (sqft)',
+    'rooms.notes': 'Notes',
+    'rooms.type.bedroom': 'Bedroom',
+    'rooms.type.bathroom': 'Bathroom',
+    'rooms.type.kitchen': 'Kitchen',
+    'rooms.type.living_room': 'Living Room',
+    'rooms.type.dining_room': 'Dining Room',
+    'rooms.type.office': 'Office',
+    'rooms.type.laundry': 'Laundry',
+    'rooms.type.garage': 'Garage',
+    'rooms.type.other': 'Other',
   },
   pt: {
     // Navigation
@@ -256,7 +355,7 @@ const translations: Record<Language, Record<string, string>> = {
     'login.noAccount': 'Não tem uma conta? Cadastre-se',
     'login.hasAccount': 'Já tem uma conta? Entre',
     
-    // Execution
+    // Execution - General
     'execution.beforePhotos': 'Fotos Antes',
     'execution.checklist': 'Lista de Verificação',
     'execution.inventory': 'Verificar Inventário',
@@ -269,6 +368,85 @@ const translations: Record<Language, Record<string, string>> = {
     'execution.back': 'Voltar',
     'execution.takePhoto': 'Tirar Foto',
     'execution.uploadPhoto': 'Enviar Foto',
+    
+    // Execution - Header
+    'exec.cleaningNow': 'Limpando Agora',
+    'exec.exitJob': 'Sair do Trabalho?',
+    'exec.exitDescription': 'Seu progresso será salvo, mas o trabalho não será marcado como concluído. Você pode retomar depois.',
+    'exec.keepWorking': 'Continuar Trabalhando',
+    'exec.exit': 'Sair',
+    
+    // Execution - Stepper
+    'exec.step.beforePhotos': 'Antes',
+    'exec.step.checklist': 'Tarefas',
+    'exec.step.damages': 'Danos',
+    'exec.step.inventory': 'Estoque',
+    'exec.step.afterPhotos': 'Depois',
+    'exec.step.summary': 'Resumo',
+    
+    // Execution - Photo Capture
+    'exec.photo.beforeTitle': 'Fotos Antes',
+    'exec.photo.afterTitle': 'Fotos Depois',
+    'exec.photo.beforeDesc': 'Capture o estado atual antes da limpeza',
+    'exec.photo.afterDesc': 'Documente seu trabalho concluído',
+    'exec.photo.addPhoto': 'Adicionar Foto',
+    'exec.photo.photosCaptured': 'foto(s) capturada(s)',
+    'exec.photo.minimum': 'mínimo',
+    'exec.photo.continue': 'Continuar',
+    
+    // Execution - Checklist
+    'exec.checklist.title': 'Lista de Tarefas',
+    'exec.checklist.tasks': 'tarefas',
+    'exec.checklist.of': 'de',
+    'exec.checklist.remaining': 'restante(s)',
+    
+    // Execution - Damage Report
+    'exec.damage.title': 'Registro de Danos',
+    'exec.damage.subtitle': 'Registre problemas encontrados durante a limpeza',
+    'exec.damage.newRecord': 'Novo Registro',
+    'exec.damage.problemType': 'Tipo de Problema',
+    'exec.damage.severity': 'Severidade',
+    'exec.damage.description': 'Descrição',
+    'exec.damage.descPlaceholder': 'Descreva o problema encontrado...',
+    'exec.damage.photo': 'Foto (opcional)',
+    'exec.damage.add': 'Adicionar',
+    'exec.damage.cancel': 'Cancelar',
+    'exec.damage.register': 'Registrar Problema',
+    'exec.damage.noDamages': 'Nenhum dano registrado. Se não houver problemas, continue para a próxima etapa.',
+    'exec.damage.typeFurniture': 'Móvel Danificado',
+    'exec.damage.typeElectronics': 'Eletrônico com Defeito',
+    'exec.damage.typeStain': 'Mancha Persistente',
+    'exec.damage.typeOther': 'Outro',
+    'exec.damage.severityLow': 'Baixa',
+    'exec.damage.severityMedium': 'Média',
+    'exec.damage.severityHigh': 'Alta',
+    
+    // Execution - Inventory
+    'exec.inventory.title': 'Inventário',
+    'exec.inventory.subtitle': 'Registre os itens utilizados na limpeza',
+    'exec.inventory.lowStock': 'Estoque Baixo',
+    'exec.inventory.available': 'Disponível',
+    'exec.inventory.used': 'usado',
+    'exec.inventory.noItems': 'Nenhum item de inventário cadastrado',
+    
+    // Execution - Summary
+    'exec.summary.greatJob': 'Excelente Trabalho!',
+    'exec.summary.reviewSummary': 'Revise o resumo da limpeza',
+    'exec.summary.duration': 'Duração',
+    'exec.summary.tasks': 'Tarefas',
+    'exec.summary.before': 'Antes',
+    'exec.summary.after': 'Depois',
+    'exec.summary.photos': 'fotos',
+    'exec.summary.damagesRecorded': 'Danos Registrados',
+    'exec.summary.lowStock': 'Estoque Baixo',
+    'exec.summary.photoDocumentation': 'Documentação Fotográfica',
+    'exec.summary.addNote': 'Adicionar Observação (opcional)',
+    'exec.summary.notePlaceholder': 'Problemas, notas especiais ou feedback...',
+    'exec.summary.serviceValue': 'Valor do Serviço',
+    'exec.summary.downloadPdf': 'Baixar Relatório PDF',
+    'exec.summary.generatingPdf': 'Gerando PDF...',
+    'exec.summary.complete': 'Concluir',
+    'exec.summary.more': 'mais',
     
     // Job Status
     'status.scheduled': 'Agendado',
@@ -285,6 +463,7 @@ const translations: Record<Language, Record<string, string>> = {
     'common.filter': 'Filtrar',
     'common.all': 'Todos',
     'common.back': 'Voltar',
+    'common.continue': 'Continuar',
     
     // Finance
     'finance.title': 'Ganhos',
@@ -332,6 +511,7 @@ const translations: Record<Language, Record<string, string>> = {
     'propertyModal.addedDescription': '{name} foi adicionada com sucesso.',
     
     // Property Details View
+    'propertyDetails.title': 'Detalhes da Propriedade',
     'propertyDetails.beds': 'Quartos',
     'propertyDetails.baths': 'Banheiros',
     'propertyDetails.sqft': 'M²',
@@ -358,6 +538,24 @@ const translations: Record<Language, Record<string, string>> = {
     'propertyDetails.serviceCommercialCleaning': 'Limpeza Comercial',
     'propertyDetails.serviceOfficeCleaning': 'Limpeza de Escritório',
     'propertyDetails.servicePostConstruction': 'Pós Construção',
+    
+    // Room Management
+    'rooms.title': 'Cômodos',
+    'rooms.subtitle': 'Cômodos e espaços da propriedade',
+    'rooms.add': 'Adicionar Cômodo',
+    'rooms.empty': 'Nenhum cômodo adicionado ainda',
+    'rooms.name': 'Nome do Cômodo',
+    'rooms.size': 'Tamanho (m²)',
+    'rooms.notes': 'Observações',
+    'rooms.type.bedroom': 'Quarto',
+    'rooms.type.bathroom': 'Banheiro',
+    'rooms.type.kitchen': 'Cozinha',
+    'rooms.type.living_room': 'Sala de Estar',
+    'rooms.type.dining_room': 'Sala de Jantar',
+    'rooms.type.office': 'Escritório',
+    'rooms.type.laundry': 'Lavanderia',
+    'rooms.type.garage': 'Garagem',
+    'rooms.type.other': 'Outro',
   },
 };
 

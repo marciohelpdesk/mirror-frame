@@ -25,8 +25,9 @@ import {
   DollarSign
 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { Property } from '@/types';
+import { Property, Room } from '@/types';
 import { BackgroundEffects } from '@/components/BackgroundEffects';
+import { RoomManagement } from '@/components/RoomManagement';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -443,6 +444,19 @@ export const PropertyDetailsView = ({ property, onBack, onUpdate, onDelete }: Pr
           ) : (
             <p className="text-sm text-muted-foreground italic">No location specified</p>
           )}
+        </motion.div>
+        
+        {/* Room Management */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.22 }}
+        >
+          <RoomManagement
+            rooms={isEditing ? (editedProperty.rooms || []) : (property.rooms || [])}
+            onRoomsChange={(rooms: Room[]) => setEditedProperty({...editedProperty, rooms})}
+            isEditing={isEditing}
+          />
         </motion.div>
         
         {/* Cleaning Notes */}

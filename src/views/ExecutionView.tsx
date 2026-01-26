@@ -8,6 +8,7 @@ import { ChecklistStep } from '@/components/execution/ChecklistStep';
 import { DamageReportStep } from '@/components/execution/DamageReportStep';
 import { InventoryCheckStep } from '@/components/execution/InventoryCheckStep';
 import { SummaryStep } from '@/components/execution/SummaryStep';
+import { useLanguage } from '@/contexts/LanguageContext';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,6 +31,7 @@ interface ExecutionViewProps {
 const STEP_ORDER: ExecutionStep[] = ['BEFORE_PHOTOS', 'CHECKLIST', 'DAMAGE_REPORT', 'INVENTORY_CHECK', 'AFTER_PHOTOS', 'SUMMARY'];
 
 export const ExecutionView = ({ job, inventory, onUpdateJob, onComplete, onCancel }: ExecutionViewProps) => {
+  const { t } = useLanguage();
   const [currentStep, setCurrentStep] = useState<ExecutionStep>(job.currentStep || 'BEFORE_PHOTOS');
   const [completedSteps, setCompletedSteps] = useState<ExecutionStep[]>([]);
   const [showExitDialog, setShowExitDialog] = useState(false);
@@ -96,7 +98,7 @@ export const ExecutionView = ({ job, inventory, onUpdateJob, onComplete, onCance
       <div className="px-4 pt-4 pb-2">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <p className="text-xs text-muted-foreground uppercase tracking-wide">Limpando Agora</p>
+            <p className="text-xs text-muted-foreground uppercase tracking-wide">{t('exec.cleaningNow')}</p>
             <h1 className="text-lg font-semibold text-foreground truncate">{job.clientName}</h1>
           </div>
           <button
@@ -188,19 +190,19 @@ export const ExecutionView = ({ job, inventory, onUpdateJob, onComplete, onCance
               <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center">
                 <AlertTriangle className="w-5 h-5 text-amber-600" />
               </div>
-              <AlertDialogTitle>Sair do Trabalho?</AlertDialogTitle>
+              <AlertDialogTitle>{t('exec.exitJob')}</AlertDialogTitle>
             </div>
             <AlertDialogDescription>
-              Seu progresso será salvo, mas o trabalho não será marcado como concluído. Você pode retomar depois.
+              {t('exec.exitDescription')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="gap-2">
-            <AlertDialogCancel className="flex-1 rounded-xl">Continuar Trabalhando</AlertDialogCancel>
+            <AlertDialogCancel className="flex-1 rounded-xl">{t('exec.keepWorking')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={onCancel}
               className="flex-1 rounded-xl bg-destructive hover:bg-destructive/90"
             >
-              Sair
+              {t('exec.exit')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

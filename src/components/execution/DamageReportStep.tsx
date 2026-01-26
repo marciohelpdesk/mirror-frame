@@ -2,9 +2,9 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AlertTriangle, Plus, Trash2, Camera, Sofa, Tv, Droplet, HelpCircle, ArrowRight, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { DamageReport } from '@/types';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface DamageReportStepProps {
   damages: DamageReport[];
@@ -13,20 +13,21 @@ interface DamageReportStepProps {
   onBack: () => void;
 }
 
-const DAMAGE_TYPES = [
-  { value: 'furniture' as const, label: 'Móvel Danificado', icon: Sofa },
-  { value: 'electronics' as const, label: 'Eletrônico com Defeito', icon: Tv },
-  { value: 'stain' as const, label: 'Mancha/Sujeira Persistente', icon: Droplet },
-  { value: 'other' as const, label: 'Outro', icon: HelpCircle },
+const DAMAGE_TYPE_CONFIGS = [
+  { value: 'furniture' as const, labelKey: 'exec.damage.typeFurniture', icon: Sofa },
+  { value: 'electronics' as const, labelKey: 'exec.damage.typeElectronics', icon: Tv },
+  { value: 'stain' as const, labelKey: 'exec.damage.typeStain', icon: Droplet },
+  { value: 'other' as const, labelKey: 'exec.damage.typeOther', icon: HelpCircle },
 ];
 
-const SEVERITY_OPTIONS = [
-  { value: 'low' as const, label: 'Baixa', color: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' },
-  { value: 'medium' as const, label: 'Média', color: 'bg-amber-500/20 text-amber-400 border-amber-500/30' },
-  { value: 'high' as const, label: 'Alta', color: 'bg-rose-500/20 text-rose-400 border-rose-500/30' },
+const SEVERITY_CONFIGS = [
+  { value: 'low' as const, labelKey: 'exec.damage.severityLow', color: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' },
+  { value: 'medium' as const, labelKey: 'exec.damage.severityMedium', color: 'bg-amber-500/20 text-amber-400 border-amber-500/30' },
+  { value: 'high' as const, labelKey: 'exec.damage.severityHigh', color: 'bg-rose-500/20 text-rose-400 border-rose-500/30' },
 ];
 
 export const DamageReportStep = ({ damages, onDamagesChange, onNext, onBack }: DamageReportStepProps) => {
+  const { t } = useLanguage();
   const [isAdding, setIsAdding] = useState(false);
   const [newDamage, setNewDamage] = useState<Partial<DamageReport>>({
     type: 'furniture',
@@ -61,17 +62,17 @@ export const DamageReportStep = ({ damages, onDamagesChange, onNext, onBack }: D
   };
 
   const getTypeIcon = (type: DamageReport['type']) => {
-    const typeConfig = DAMAGE_TYPES.find(t => t.value === type);
+    const typeConfig = DAMAGE_TYPE_CONFIGS.find(t => t.value === type);
     return typeConfig?.icon || HelpCircle;
   };
 
   const getTypeLabel = (type: DamageReport['type']) => {
-    const typeConfig = DAMAGE_TYPES.find(t => t.value === type);
-    return typeConfig?.label || 'Outro';
+    const typeConfig = DAMAGE_TYPE_CONFIGS.find(t => t.value === type);
+    return typeConfig ? t(typeConfig.labelKey) : t('exec.damage.typeOther');
   };
 
   const getSeverityConfig = (severity: DamageReport['severity']) => {
-    return SEVERITY_OPTIONS.find(s => s.value === severity) || SEVERITY_OPTIONS[1];
+    return SEVERITY_CONFIGS.find(s => s.value === severity) || SEVERITY_CONFIGS[1];
   };
 
   return (
@@ -88,9 +89,9 @@ export const DamageReportStep = ({ damages, onDamagesChange, onNext, onBack }: D
             <AlertTriangle className="w-5 h-5 text-amber-400" />
           </div>
           <div>
-            <h2 className="text-lg font-semibold text-foreground">Registro de Danos</h2>
+            <h2 className="text-lg font-semibold text-foreground">{t('exec.damage.title')}</h2>
             <p className="text-xs text-muted-foreground">
-              Registre problemas encontrados durante a limpeza
+              {t('exec.damage.subtitle')}
             </p>
           </div>
         </div>
@@ -130,7 +131,7 @@ export const DamageReportStep = ({ damages, onDamagesChange, onNext, onBack }: D
                         {getTypeLabel(damage.type)}
                       </span>
                       <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium border ${severityConfig.color}`}>
-                        {severityConfig.label}
+                        {t(severityConfig.labelKey)}
                       </span>
                     </div>
                     <p className="text-sm text-foreground line-clamp-2">{damage.description}</p>
@@ -157,13 +158,13 @@ export const DamageReportStep = ({ damages, onDamagesChange, onNext, onBack }: D
               exit={{ opacity: 0, y: -10 }}
               className="glass-panel p-4 mb-3"
             >
-              <h3 className="text-sm font-semibold text-foreground mb-3">Novo Registro</h3>
+              <h3 className="text-sm font-semibold text-foreground mb-3">{t('exec.damage.newRecord')}</h3>
               
               {/* Type Selection */}
               <div className="mb-3">
-                <p className="text-xs text-muted-foreground mb-2">Tipo de Problema</p>
+                <p className="text-xs text-muted-foreground mb-2">{t('exec.damage.problemType')}</p>
                 <div className="grid grid-cols-2 gap-2">
-                  {DAMAGE_TYPES.map(type => {
+                  {DAMAGE_TYPE_CONFIGS.map(type => {
                     const Icon = type.icon;
                     const isSelected = newDamage.type === type.value;
                     return (
@@ -177,7 +178,7 @@ export const DamageReportStep = ({ damages, onDamagesChange, onNext, onBack }: D
                         }`}
                       >
                         <Icon className="w-4 h-4" />
-                        {type.label}
+                        {t(type.labelKey)}
                       </button>
                     );
                   })}
@@ -186,9 +187,9 @@ export const DamageReportStep = ({ damages, onDamagesChange, onNext, onBack }: D
 
               {/* Severity Selection */}
               <div className="mb-3">
-                <p className="text-xs text-muted-foreground mb-2">Severidade</p>
+                <p className="text-xs text-muted-foreground mb-2">{t('exec.damage.severity')}</p>
                 <div className="flex gap-2">
-                  {SEVERITY_OPTIONS.map(sev => (
+                  {SEVERITY_CONFIGS.map(sev => (
                     <button
                       key={sev.value}
                       onClick={() => setNewDamage(prev => ({ ...prev, severity: sev.value }))}
@@ -196,7 +197,7 @@ export const DamageReportStep = ({ damages, onDamagesChange, onNext, onBack }: D
                         newDamage.severity === sev.value ? sev.color : 'border-muted bg-muted/50 text-muted-foreground'
                       }`}
                     >
-                      {sev.label}
+                      {t(sev.labelKey)}
                     </button>
                   ))}
                 </div>
@@ -204,18 +205,18 @@ export const DamageReportStep = ({ damages, onDamagesChange, onNext, onBack }: D
 
               {/* Description */}
               <div className="mb-3">
-                <p className="text-xs text-muted-foreground mb-2">Descrição</p>
+                <p className="text-xs text-muted-foreground mb-2">{t('exec.damage.description')}</p>
                 <Textarea
                   value={newDamage.description || ''}
                   onChange={(e) => setNewDamage(prev => ({ ...prev, description: e.target.value }))}
-                  placeholder="Descreva o problema encontrado..."
+                  placeholder={t('exec.damage.descPlaceholder')}
                   className="min-h-[80px] resize-none bg-card/50 border-muted"
                 />
               </div>
 
               {/* Photo */}
               <div className="mb-4">
-                <p className="text-xs text-muted-foreground mb-2">Foto (opcional)</p>
+                <p className="text-xs text-muted-foreground mb-2">{t('exec.damage.photo')}</p>
                 {newDamage.photoUrl ? (
                   <div className="relative w-24 h-24 rounded-lg overflow-hidden">
                     <img src={newDamage.photoUrl} alt="" className="w-full h-full object-cover" />
@@ -232,7 +233,7 @@ export const DamageReportStep = ({ damages, onDamagesChange, onNext, onBack }: D
                     className="w-24 h-24 rounded-lg border-2 border-dashed border-muted flex flex-col items-center justify-center gap-1 hover:border-secondary transition-colors"
                   >
                     <Camera className="w-5 h-5 text-muted-foreground" />
-                    <span className="text-[10px] text-muted-foreground">Adicionar</span>
+                    <span className="text-[10px] text-muted-foreground">{t('common.add')}</span>
                   </button>
                 )}
               </div>
@@ -244,14 +245,14 @@ export const DamageReportStep = ({ damages, onDamagesChange, onNext, onBack }: D
                   onClick={() => setIsAdding(false)}
                   className="flex-1"
                 >
-                  Cancelar
+                  {t('common.cancel')}
                 </Button>
                 <Button
                   onClick={handleAddDamage}
                   disabled={!newDamage.description?.trim()}
                   className="flex-1 bg-secondary text-secondary-foreground"
                 >
-                  Adicionar
+                  {t('common.add')}
                 </Button>
               </div>
             </motion.div>
@@ -264,14 +265,14 @@ export const DamageReportStep = ({ damages, onDamagesChange, onNext, onBack }: D
               className="w-full p-4 rounded-xl border-2 border-dashed border-muted flex items-center justify-center gap-2 text-muted-foreground hover:border-secondary hover:text-secondary transition-colors"
             >
               <Plus className="w-5 h-5" />
-              <span className="text-sm font-medium">Registrar Problema</span>
+              <span className="text-sm font-medium">{t('exec.damage.register')}</span>
             </motion.button>
           )}
         </AnimatePresence>
 
         {damages.length === 0 && !isAdding && (
           <p className="text-center text-xs text-muted-foreground mt-4">
-            Nenhum dano registrado. Se não houver problemas, continue para a próxima etapa.
+            {t('exec.damage.noDamages')}
           </p>
         )}
       </div>
@@ -284,17 +285,16 @@ export const DamageReportStep = ({ damages, onDamagesChange, onNext, onBack }: D
           className="flex-1 h-12 rounded-xl gap-2"
         >
           <ArrowLeft className="w-4 h-4" />
-          Voltar
+          {t('common.back')}
         </Button>
         <Button
           onClick={onNext}
           className="flex-1 h-12 rounded-xl bg-primary text-primary-foreground gap-2"
         >
-          Continuar
+          {t('common.continue')}
           <ArrowRight className="w-4 h-4" />
         </Button>
       </div>
     </motion.div>
   );
 };
-

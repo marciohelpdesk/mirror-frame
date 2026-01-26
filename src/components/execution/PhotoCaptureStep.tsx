@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Camera, Plus, X, Image as ImageIcon, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface PhotoCaptureStepProps {
   type: 'before' | 'after';
@@ -27,6 +28,7 @@ export const PhotoCaptureStep = ({
   onBack,
   minPhotos = 1,
 }: PhotoCaptureStepProps) => {
+  const { t } = useLanguage();
   const [isCapturing, setIsCapturing] = useState(false);
 
   const handleCapture = () => {
@@ -55,12 +57,10 @@ export const PhotoCaptureStep = ({
       {/* Header */}
       <div className="px-4 py-3">
         <h2 className="text-xl font-semibold text-foreground">
-          {type === 'before' ? 'Before Photos' : 'After Photos'}
+          {type === 'before' ? t('exec.photo.beforeTitle') : t('exec.photo.afterTitle')}
         </h2>
         <p className="text-sm text-muted-foreground mt-1">
-          {type === 'before'
-            ? 'Capture the current state before cleaning'
-            : 'Document your completed work'}
+          {type === 'before' ? t('exec.photo.beforeDesc') : t('exec.photo.afterDesc')}
         </p>
       </div>
 
@@ -105,7 +105,7 @@ export const PhotoCaptureStep = ({
             ) : (
               <>
                 <Plus className="w-8 h-8" />
-                <span className="text-xs font-medium">Add Photo</span>
+                <span className="text-xs font-medium">{t('exec.photo.addPhoto')}</span>
               </>
             )}
           </motion.button>
@@ -115,8 +115,8 @@ export const PhotoCaptureStep = ({
         <div className="flex items-center justify-center gap-2 mt-4 py-2">
           <ImageIcon className="w-4 h-4 text-muted-foreground" />
           <span className="text-sm text-muted-foreground">
-            {photos.length} photo{photos.length !== 1 ? 's' : ''} captured
-            {!canProceed && ` (minimum ${minPhotos})`}
+            {photos.length} {t('exec.photo.photosCaptured')}
+            {!canProceed && ` (${t('exec.photo.minimum')} ${minPhotos})`}
           </span>
         </div>
       </div>
@@ -129,7 +129,7 @@ export const PhotoCaptureStep = ({
             onClick={onBack}
             className="flex-1 h-12 rounded-xl"
           >
-            Back
+            {t('common.back')}
           </Button>
         )}
         <Button
@@ -137,7 +137,7 @@ export const PhotoCaptureStep = ({
           disabled={!canProceed}
           className="flex-1 h-12 rounded-xl bg-primary text-primary-foreground gap-2"
         >
-          Continue
+          {t('common.continue')}
           <ArrowRight className="w-4 h-4" />
         </Button>
       </div>
