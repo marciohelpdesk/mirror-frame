@@ -130,6 +130,14 @@
     background: linear-gradient(180deg, hsl(var(--sky-pink)) 0%, hsl(var(--sky-blue)) 100%);
   }
   
+  /* Florida Sky Fixed - Covers entire viewport */
+  .bg-florida-sky-fixed {
+    position: fixed;
+    inset: 0;
+    background: linear-gradient(180deg, hsl(var(--sky-pink)) 0%, hsl(var(--sky-blue)) 100%);
+    z-index: 0;
+  }
+  
   /* Glass Panel Effect - High Density Milk Glass */
   .glass-panel {
     background: linear-gradient(160deg, rgba(255, 255, 255, 0.98) 0%, rgba(255, 255, 255, 0.92) 100%);
@@ -174,9 +182,11 @@
   
   /* Mobile Frame */
   .mobile-frame {
-    @apply relative overflow-hidden flex flex-col w-full h-full;
+    @apply relative flex flex-col w-full h-full;
     background: rgba(255, 255, 255, 0.45);
     backdrop-filter: blur(40px);
+    overflow-y: auto;
+    overflow-x: hidden;
   }
   
   @media (min-width: 769px) {
