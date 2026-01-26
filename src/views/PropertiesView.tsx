@@ -6,6 +6,7 @@ import { PageHeader } from '@/components/PageHeader';
 import { PropertyCard } from '@/components/PropertyCard';
 import { BackgroundEffects } from '@/components/BackgroundEffects';
 import { AddPropertyModal } from '@/components/AddPropertyModal';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface PropertiesViewProps {
   properties: Property[];
@@ -14,6 +15,7 @@ interface PropertiesViewProps {
 }
 
 export const PropertiesView = ({ properties, onViewProperty, onAddProperty }: PropertiesViewProps) => {
+  const { t } = useLanguage();
   const [searchQuery, setSearchQuery] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
 
@@ -27,8 +29,8 @@ export const PropertiesView = ({ properties, onViewProperty, onAddProperty }: Pr
       <BackgroundEffects />
       
       <PageHeader 
-        title="Properties"
-        subtitle="Manage Locations"
+        title={t('properties.title')}
+        subtitle={t('properties.subtitle')}
       />
       
       <div className="px-6 relative z-10">
@@ -37,7 +39,7 @@ export const PropertiesView = ({ properties, onViewProperty, onAddProperty }: Pr
           <Search size={18} className="text-muted-foreground" />
           <input 
             type="text"
-            placeholder="Search properties..."
+            placeholder={t('properties.searchPlaceholder')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="flex-1 bg-transparent border-none outline-none text-foreground placeholder:text-muted-foreground"
@@ -62,7 +64,7 @@ export const PropertiesView = ({ properties, onViewProperty, onAddProperty }: Pr
               animate={{ opacity: 1 }}
               className="glass-panel p-8 text-center"
             >
-              <p className="text-muted-foreground">No properties found</p>
+              <p className="text-muted-foreground">{t('properties.noProperties')}</p>
             </motion.div>
           )}
         </div>

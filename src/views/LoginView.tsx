@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Eye, EyeOff, Droplets } from 'lucide-react';
+import { Eye, EyeOff } from 'lucide-react';
 import { BackgroundEffects } from '@/components/BackgroundEffects';
+import { useLanguage } from '@/contexts/LanguageContext';
 import purLogo from '@/assets/pur-logo.png';
 
 interface LoginViewProps {
@@ -11,6 +12,7 @@ interface LoginViewProps {
 }
 
 export const LoginView = ({ onLogin, isLoading, error }: LoginViewProps) => {
+  const { t } = useLanguage();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -50,15 +52,15 @@ export const LoginView = ({ onLogin, isLoading, error }: LoginViewProps) => {
           className="glass-panel w-full max-w-[320px] p-8"
         >
           <h2 className="text-3xl font-light text-foreground mb-2 text-center tracking-tight">
-            {authMode === 'SIGN_IN' ? 'Welcome' : 'Join'}
+            {authMode === 'SIGN_IN' ? t('login.welcome') : t('login.join')}
           </h2>
           <p className="text-center text-muted-foreground text-xs mb-8 uppercase tracking-widest font-bold">
-            {authMode === 'SIGN_IN' ? 'Sign in to continue' : 'Create your workspace'}
+            {authMode === 'SIGN_IN' ? t('login.signIn') : t('login.createWorkspace')}
           </p>
           
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="field-label">Email</label>
+              <label className="field-label">{t('login.email')}</label>
               <input 
                 type="email"
                 value={email}
@@ -70,7 +72,7 @@ export const LoginView = ({ onLogin, isLoading, error }: LoginViewProps) => {
             </div>
             
             <div>
-              <label className="field-label">Password</label>
+              <label className="field-label">{t('login.password')}</label>
               <div className="relative">
                 <input 
                   type={showPassword ? 'text' : 'password'}
@@ -99,7 +101,7 @@ export const LoginView = ({ onLogin, isLoading, error }: LoginViewProps) => {
               disabled={isLoading}
               className="w-full py-4 bg-primary text-primary-foreground rounded-xl font-bold uppercase tracking-widest text-sm transition-all hover:opacity-90 active:scale-95 disabled:opacity-50"
             >
-              {isLoading ? 'Loading...' : authMode === 'SIGN_IN' ? 'Sign In' : 'Create Account'}
+              {isLoading ? t('login.loading') : authMode === 'SIGN_IN' ? t('login.submit') : t('login.createAccount')}
             </button>
           </form>
           
@@ -108,7 +110,7 @@ export const LoginView = ({ onLogin, isLoading, error }: LoginViewProps) => {
               onClick={() => setAuthMode(authMode === 'SIGN_IN' ? 'SIGN_UP' : 'SIGN_IN')}
               className="text-sm text-muted-foreground hover:text-primary transition-colors"
             >
-              {authMode === 'SIGN_IN' ? "Don't have an account? Sign Up" : "Already have an account? Sign In"}
+              {authMode === 'SIGN_IN' ? t('login.noAccount') : t('login.hasAccount')}
             </button>
           </div>
         </motion.div>

@@ -25,6 +25,12 @@ const translations: Record<Language, Record<string, string>> = {
     'dashboard.greeting': 'Hello',
     'dashboard.startJob': 'Start',
     'dashboard.viewJob': 'View',
+    'dashboard.goodMorning': 'Good Morning',
+    'dashboard.goodAfternoon': 'Good Afternoon',
+    'dashboard.goodEvening': 'Good Evening',
+    'dashboard.active': 'Active',
+    'dashboard.scheduled': 'Scheduled',
+    'dashboard.done': 'Done',
     
     // Agenda
     'agenda.title': 'Agenda',
@@ -38,11 +44,12 @@ const translations: Record<Language, Record<string, string>> = {
     
     // Properties
     'properties.title': 'Properties',
-    'properties.subtitle': 'Manage',
+    'properties.subtitle': 'Manage Locations',
     'properties.addProperty': 'Add Property',
-    'properties.noProperties': 'No properties yet',
+    'properties.noProperties': 'No properties found',
     'properties.bedrooms': 'Bedrooms',
     'properties.bathrooms': 'Bathrooms',
+    'properties.searchPlaceholder': 'Search properties...',
     
     // Settings
     'settings.title': 'Settings',
@@ -63,11 +70,16 @@ const translations: Record<Language, Record<string, string>> = {
     
     // Login
     'login.welcome': 'Welcome',
+    'login.join': 'Join',
     'login.signIn': 'Sign in to continue',
+    'login.createWorkspace': 'Create your workspace',
     'login.email': 'Email',
     'login.password': 'Password',
     'login.submit': 'Sign In',
-    'login.loading': 'Signing in...',
+    'login.createAccount': 'Create Account',
+    'login.loading': 'Loading...',
+    'login.noAccount': "Don't have an account? Sign Up",
+    'login.hasAccount': 'Already have an account? Sign In',
     
     // Execution
     'execution.beforePhotos': 'Before Photos',
@@ -130,6 +142,12 @@ const translations: Record<Language, Record<string, string>> = {
     'dashboard.greeting': 'Olá',
     'dashboard.startJob': 'Iniciar',
     'dashboard.viewJob': 'Ver',
+    'dashboard.goodMorning': 'Bom Dia',
+    'dashboard.goodAfternoon': 'Boa Tarde',
+    'dashboard.goodEvening': 'Boa Noite',
+    'dashboard.active': 'Ativos',
+    'dashboard.scheduled': 'Agendados',
+    'dashboard.done': 'Concluídos',
     
     // Agenda
     'agenda.title': 'Agenda',
@@ -143,11 +161,12 @@ const translations: Record<Language, Record<string, string>> = {
     
     // Properties
     'properties.title': 'Propriedades',
-    'properties.subtitle': 'Gerenciar',
+    'properties.subtitle': 'Gerenciar Locais',
     'properties.addProperty': 'Adicionar Propriedade',
-    'properties.noProperties': 'Nenhuma propriedade ainda',
+    'properties.noProperties': 'Nenhuma propriedade encontrada',
     'properties.bedrooms': 'Quartos',
     'properties.bathrooms': 'Banheiros',
+    'properties.searchPlaceholder': 'Buscar propriedades...',
     
     // Settings
     'settings.title': 'Configurações',
@@ -168,11 +187,16 @@ const translations: Record<Language, Record<string, string>> = {
     
     // Login
     'login.welcome': 'Bem-vindo',
+    'login.join': 'Cadastrar',
     'login.signIn': 'Entre para continuar',
+    'login.createWorkspace': 'Crie seu espaço de trabalho',
     'login.email': 'E-mail',
     'login.password': 'Senha',
     'login.submit': 'Entrar',
-    'login.loading': 'Entrando...',
+    'login.createAccount': 'Criar Conta',
+    'login.loading': 'Carregando...',
+    'login.noAccount': 'Não tem uma conta? Cadastre-se',
+    'login.hasAccount': 'Já tem uma conta? Entre',
     
     // Execution
     'execution.beforePhotos': 'Fotos Antes',
