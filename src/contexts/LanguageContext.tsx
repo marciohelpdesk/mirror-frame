@@ -174,6 +174,11 @@ const translations: Record<Language, Record<string, string>> = {
     'exec.summary.complete': 'Complete',
     'exec.summary.more': 'more',
     'exec.summary.lostFoundRecorded': 'Lost & Found Items',
+    'exec.summary.pdfPreview': 'Report Preview',
+    'exec.summary.generatingPreview': 'Generating preview...',
+    'exec.summary.noPdfAvailable': 'No PDF available',
+    'exec.summary.previewNote': 'Review the report before downloading',
+    'exec.summary.previewPdf': 'Preview PDF',
     
     // Execution - Lost and Found
     'exec.step.lostFound': 'Found',
@@ -497,6 +502,11 @@ const translations: Record<Language, Record<string, string>> = {
     'exec.summary.complete': 'Concluir',
     'exec.summary.more': 'mais',
     'exec.summary.lostFoundRecorded': 'Achados e Perdidos',
+    'exec.summary.pdfPreview': 'Pré-visualização do Relatório',
+    'exec.summary.generatingPreview': 'Gerando pré-visualização...',
+    'exec.summary.noPdfAvailable': 'PDF não disponível',
+    'exec.summary.previewNote': 'Revise o relatório antes de baixar',
+    'exec.summary.previewPdf': 'Visualizar PDF',
     
     // Execution - Lost and Found
     'exec.step.lostFound': 'Achados',
