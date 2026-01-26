@@ -88,7 +88,8 @@ export const INITIAL_JOBS: Job[] = [
     photosAfter: [],
     price: 150,
     damages: [],
-    inventoryUsed: []
+    inventoryUsed: [],
+    lostAndFound: []
   },
   {
     id: 'j2',
@@ -104,7 +105,8 @@ export const INITIAL_JOBS: Job[] = [
     photosAfter: [],
     price: 85,
     damages: [],
-    inventoryUsed: []
+    inventoryUsed: [],
+    lostAndFound: []
   },
   {
     id: 'j3',
@@ -120,7 +122,8 @@ export const INITIAL_JOBS: Job[] = [
     photosAfter: [],
     price: 275,
     damages: [],
-    inventoryUsed: []
+    inventoryUsed: [],
+    lostAndFound: []
   }
 ];
 

@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Check, Clock, Camera, ClipboardCheck, Star, MessageSquare, FileDown, AlertTriangle, Package } from 'lucide-react';
+import { Check, Clock, Camera, ClipboardCheck, Star, MessageSquare, FileDown, AlertTriangle, Package, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Job, InventoryItem } from '@/types';
@@ -52,6 +52,7 @@ export const SummaryStep = ({ job, inventory, onComplete, onBack }: SummaryStepP
         job: { ...job, reportNote: note, endTime: Date.now() },
         inventory,
         responsibleName: 'Maria Santos', // TODO: Get from user profile
+        lostAndFound: job.lostAndFound || [],
       });
       
       const filename = `relatorio-${job.clientName.replace(/\s+/g, '-').toLowerCase()}-${new Date().toISOString().split('T')[0]}.pdf`;
@@ -144,6 +145,31 @@ export const SummaryStep = ({ job, inventory, onComplete, onBack }: SummaryStepP
               ))}
               {job.damages.length > 2 && (
                 <p className="text-xs text-muted-foreground">+{job.damages.length - 2} {t('exec.summary.more')}</p>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Lost and Found Preview */}
+        {job.lostAndFound && job.lostAndFound.length > 0 && (
+          <div className="glass-panel p-4 mb-4 border-l-4 border-l-accent">
+            <div className="flex items-center gap-2 mb-3">
+              <Search className="w-4 h-4 text-accent" />
+              <h3 className="text-sm font-semibold text-foreground">{t('exec.summary.lostFoundRecorded')} ({job.lostAndFound.length})</h3>
+            </div>
+            <div className="space-y-2">
+              {job.lostAndFound.slice(0, 2).map(item => (
+                <div key={item.id} className="text-xs text-muted-foreground flex items-center gap-2">
+                  {item.photoUrl && (
+                    <div className="w-8 h-8 rounded overflow-hidden shrink-0">
+                      <img src={item.photoUrl} alt="" className="w-full h-full object-cover" />
+                    </div>
+                  )}
+                  <span>• {item.description.substring(0, 40)}{item.description.length > 40 ? '...' : ''}</span>
+                </div>
+              ))}
+              {job.lostAndFound.length > 2 && (
+                <p className="text-xs text-muted-foreground">+{job.lostAndFound.length - 2} {t('exec.summary.more')}</p>
               )}
             </div>
           </div>

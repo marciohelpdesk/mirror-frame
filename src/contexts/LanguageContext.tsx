@@ -173,6 +173,20 @@ const translations: Record<Language, Record<string, string>> = {
     'exec.summary.generatingPdf': 'Generating PDF...',
     'exec.summary.complete': 'Complete',
     'exec.summary.more': 'more',
+    'exec.summary.lostFoundRecorded': 'Lost & Found Items',
+    
+    // Execution - Lost and Found
+    'exec.step.lostFound': 'Found',
+    'exec.lostFound.title': 'Lost & Found',
+    'exec.lostFound.subtitle': 'Document any items found during cleaning',
+    'exec.lostFound.newItem': 'New Item',
+    'exec.lostFound.description': 'Item Description',
+    'exec.lostFound.descPlaceholder': 'Describe the item found...',
+    'exec.lostFound.location': 'Location Found',
+    'exec.lostFound.locationPlaceholder': 'e.g., Under the bed, Living room sofa...',
+    'exec.lostFound.photo': 'Photo (recommended)',
+    'exec.lostFound.addItem': 'Add Found Item',
+    'exec.lostFound.noItems': 'No items found. If nothing was found, continue to the next step.',
     
     // Job Status
     'status.scheduled': 'Scheduled',
@@ -468,6 +482,20 @@ const translations: Record<Language, Record<string, string>> = {
     'exec.summary.generatingPdf': 'Gerando PDF...',
     'exec.summary.complete': 'Concluir',
     'exec.summary.more': 'mais',
+    'exec.summary.lostFoundRecorded': 'Achados e Perdidos',
+    
+    // Execution - Lost and Found
+    'exec.step.lostFound': 'Achados',
+    'exec.lostFound.title': 'Achados e Perdidos',
+    'exec.lostFound.subtitle': 'Registre itens encontrados durante a limpeza',
+    'exec.lostFound.newItem': 'Novo Item',
+    'exec.lostFound.description': 'Descrição do Item',
+    'exec.lostFound.descPlaceholder': 'Descreva o item encontrado...',
+    'exec.lostFound.location': 'Local Encontrado',
+    'exec.lostFound.locationPlaceholder': 'ex: Debaixo da cama, Sofá da sala...',
+    'exec.lostFound.photo': 'Foto (recomendado)',
+    'exec.lostFound.addItem': 'Adicionar Item Encontrado',
+    'exec.lostFound.noItems': 'Nenhum item encontrado. Se nada foi encontrado, continue para a próxima etapa.',
     
     // Job Status
     'status.scheduled': 'Agendado',
