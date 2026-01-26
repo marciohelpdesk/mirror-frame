@@ -29,6 +29,9 @@ export const LiquidProgressBubble = ({
   
   // Calculate fill height (from bottom)
   const fillHeight = (clampedPercentage / 100) * size;
+  
+  // Check if complete
+  const isComplete = clampedPercentage >= 100;
 
   return (
     <div className="flex flex-col items-center gap-3">
@@ -52,14 +55,45 @@ export const LiquidProgressBubble = ({
           ease: "easeInOut"
         } : undefined}
       >
-        {/* Outer glow */}
-        <div 
+        {/* Outer glow - pulsing when complete */}
+        <motion.div 
           className="absolute inset-0 rounded-full"
           style={{
-            background: 'radial-gradient(circle, rgba(34, 211, 238, 0.15) 0%, transparent 70%)',
+            background: isComplete 
+              ? 'radial-gradient(circle, rgba(34, 211, 238, 0.4) 0%, transparent 70%)'
+              : 'radial-gradient(circle, rgba(34, 211, 238, 0.15) 0%, transparent 70%)',
             transform: 'scale(1.2)',
           }}
+          animate={isComplete ? {
+            scale: [1.2, 1.4, 1.2],
+            opacity: [1, 0.7, 1],
+          } : undefined}
+          transition={isComplete ? {
+            duration: 1.5,
+            repeat: Infinity,
+            ease: "easeInOut"
+          } : undefined}
         />
+        
+        {/* Secondary glow ring for complete state */}
+        {isComplete && (
+          <motion.div 
+            className="absolute inset-0 rounded-full"
+            style={{
+              border: '2px solid hsl(var(--primary))',
+              boxShadow: '0 0 20px hsl(var(--primary)), 0 0 40px hsl(var(--primary) / 0.5)',
+            }}
+            animate={{
+              scale: [1, 1.1, 1],
+              opacity: [0.8, 0.4, 0.8],
+            }}
+            transition={{
+              duration: 2,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+          />
+        )}
         
         {/* Glass bubble */}
         <div 
