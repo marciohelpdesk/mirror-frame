@@ -1,9 +1,11 @@
 import { motion } from 'framer-motion';
-import { ChevronRight, LogOut, Wallet, Bell, Shield, HelpCircle } from 'lucide-react';
+import { ChevronRight, LogOut, Wallet, Bell, Shield, HelpCircle, Globe } from 'lucide-react';
 import { UserProfile, Employee } from '@/types';
 import { PageHeader } from '@/components/PageHeader';
 import { BackgroundEffects } from '@/components/BackgroundEffects';
 import { TeamManagement } from '@/components/TeamManagement';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { Switch } from '@/components/ui/switch';
 
 interface SettingsViewProps {
   userProfile: UserProfile;
@@ -14,20 +16,26 @@ interface SettingsViewProps {
   onDeleteEmployee: (employeeId: string) => void;
 }
 
-const settingsItems = [
-  { icon: Bell, label: 'Notifications', description: 'Manage alerts' },
-  { icon: Shield, label: 'Privacy & Security', description: 'Account protection' },
-  { icon: HelpCircle, label: 'Help & Support', description: 'Get assistance' },
-];
-
 export const SettingsView = ({ userProfile, employees, onLogout, onViewFinance, onAddEmployee, onDeleteEmployee }: SettingsViewProps) => {
+  const { t, language, setLanguage } = useLanguage();
+
+  const settingsItems = [
+    { icon: Bell, label: t('settings.notifications'), description: t('settings.notificationsDesc') },
+    { icon: Shield, label: t('settings.privacy'), description: t('settings.privacyDesc') },
+    { icon: HelpCircle, label: t('settings.help'), description: t('settings.helpDesc') },
+  ];
+
+  const toggleLanguage = () => {
+    setLanguage(language === 'en' ? 'pt' : 'en');
+  };
+
   return (
     <div className="flex flex-col h-full relative z-10 overflow-y-auto hide-scrollbar pb-32">
       <BackgroundEffects />
       
       <PageHeader 
-        title="Settings"
-        subtitle="Account"
+        title={t('settings.title')}
+        subtitle={t('settings.subtitle')}
       />
       
       <div className="px-6 pt-2 relative z-10">
@@ -64,8 +72,8 @@ export const SettingsView = ({ userProfile, employees, onLogout, onViewFinance, 
               <Wallet size={20} className="text-success" />
             </div>
             <div className="text-left">
-              <p className="font-medium">Earnings History</p>
-              <p className="text-xs text-muted-foreground">View your income</p>
+              <p className="font-medium">{t('settings.earnings')}</p>
+              <p className="text-xs text-muted-foreground">{t('settings.earningsDesc')}</p>
             </div>
           </div>
           <ChevronRight size={20} className="text-muted-foreground" />
@@ -83,6 +91,32 @@ export const SettingsView = ({ userProfile, employees, onLogout, onViewFinance, 
             onAddEmployee={onAddEmployee}
             onDeleteEmployee={onDeleteEmployee}
           />
+        </motion.div>
+
+        {/* Language Toggle */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.18 }}
+          className="glass-panel w-full p-4 flex items-center justify-between text-foreground mb-4"
+        >
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+              <Globe size={20} className="text-primary" />
+            </div>
+            <div className="text-left">
+              <p className="font-medium">{t('settings.language')}</p>
+              <p className="text-xs text-muted-foreground">{t('settings.languageDesc')}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className={`text-xs font-medium ${language === 'en' ? 'text-primary' : 'text-muted-foreground'}`}>EN</span>
+            <Switch
+              checked={language === 'pt'}
+              onCheckedChange={toggleLanguage}
+            />
+            <span className={`text-xs font-medium ${language === 'pt' ? 'text-primary' : 'text-muted-foreground'}`}>PT</span>
+          </div>
         </motion.div>
         
         {/* Settings Items */}
@@ -117,7 +151,7 @@ export const SettingsView = ({ userProfile, employees, onLogout, onViewFinance, 
           onClick={onLogout}
           className="w-full py-4 text-destructive font-bold text-xs uppercase tracking-widest hover:text-destructive/80 transition-colors flex items-center justify-center gap-2"
         >
-          Log Out <LogOut size={16}/>
+          {t('settings.logout')} <LogOut size={16}/>
         </motion.button>
       </div>
     </div>
