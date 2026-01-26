@@ -6,21 +6,26 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import purLogo from '@/assets/pur-logo.png';
 
 interface LoginViewProps {
-  onLogin: (email: string, password: string) => void;
+  onSignIn: (email: string, password: string) => Promise<void>;
+  onSignUp: (email: string, password: string) => Promise<void>;
   isLoading?: boolean;
   error?: string;
 }
 
-export const LoginView = ({ onLogin, isLoading, error }: LoginViewProps) => {
+export const LoginView = ({ onSignIn, onSignUp, isLoading, error }: LoginViewProps) => {
   const { t } = useLanguage();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [authMode, setAuthMode] = useState<'SIGN_IN' | 'SIGN_UP'>('SIGN_IN');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onLogin(email, password);
+    if (authMode === 'SIGN_IN') {
+      await onSignIn(email, password);
+    } else {
+      await onSignUp(email, password);
+    }
   };
 
   return (
@@ -81,6 +86,7 @@ export const LoginView = ({ onLogin, isLoading, error }: LoginViewProps) => {
                   placeholder="••••••••"
                   className="w-full p-4 bg-white/50 border border-border rounded-xl text-foreground font-medium focus:border-primary outline-none transition-colors placeholder:text-muted-foreground pr-12"
                   required
+                  minLength={6}
                 />
                 <button 
                   type="button"
