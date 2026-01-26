@@ -185,14 +185,14 @@ export const JobFormFields = ({ formData, onChange, properties, employees = [], 
             Assign To (optional)
           </Label>
           <Select 
-            value={formData.assignedTo} 
-            onValueChange={(v) => onChange({ assignedTo: v })}
+            value={formData.assignedTo || "unassigned"} 
+            onValueChange={(v) => onChange({ assignedTo: v === "unassigned" ? "" : v })}
           >
             <SelectTrigger>
               <SelectValue placeholder="Select team member" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Unassigned</SelectItem>
+              <SelectItem value="unassigned">Unassigned</SelectItem>
               {employees.map(employee => (
                 <SelectItem key={employee.id} value={employee.id}>
                   <div className="flex items-center gap-2">
