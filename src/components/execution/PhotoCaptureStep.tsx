@@ -1,8 +1,11 @@
-import { useState } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { Camera, Plus, X, Image as ImageIcon, ArrowRight } from 'lucide-react';
+import { Camera, Plus, X, Image as ImageIcon, ArrowRight, Upload, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { usePhotoUpload } from '@/hooks/usePhotoUpload';
+import { useToast } from '@/hooks/use-toast';
+import { compressForDisplay } from '@/lib/imageUtils';
 
 interface PhotoCaptureStepProps {
   type: 'before' | 'after';
@@ -11,14 +14,9 @@ interface PhotoCaptureStepProps {
   onNext: () => void;
   onBack?: () => void;
   minPhotos?: number;
+  userId: string;
+  jobId: string;
 }
-
-// Demo placeholder images
-const DEMO_PHOTOS = [
-  'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=300&fit=crop',
-  'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=400&h=300&fit=crop',
-  'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=300&fit=crop',
-];
 
 export const PhotoCaptureStep = ({
   type,
@@ -27,24 +25,98 @@ export const PhotoCaptureStep = ({
   onNext,
   onBack,
   minPhotos = 1,
+  userId,
+  jobId,
 }: PhotoCaptureStepProps) => {
   const { t } = useLanguage();
-  const [isCapturing, setIsCapturing] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const { uploadPhoto, deletePhoto, isUploading } = usePhotoUpload();
+  const { toast } = useToast();
 
-  const handleCapture = () => {
-    setIsCapturing(true);
-    // Simulate camera capture with demo photo
-    setTimeout(() => {
-      const randomPhoto = DEMO_PHOTOS[Math.floor(Math.random() * DEMO_PHOTOS.length)];
-      onPhotosChange([...photos, `${randomPhoto}&t=${Date.now()}`]);
-      setIsCapturing(false);
-    }, 500);
+  const category = type === 'before' ? 'jobs-before' : 'jobs-after';
+
+  const processAndUpload = useCallback(async (file: File) => {
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: t('common.error'),
+        description: t('exec.photo.invalidFile'),
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setIsProcessing(true);
+    let fileToUpload: File | Blob = file;
+
+    try {
+      // Compress the image
+      const compressedBlob = await compressForDisplay(file);
+      if (compressedBlob.size < file.size) {
+        fileToUpload = compressedBlob;
+      }
+    } catch (err) {
+      console.warn('Compression failed, using original:', err);
+    }
+
+    // Upload to Supabase Storage
+    const url = await uploadPhoto(fileToUpload, {
+      userId,
+      category,
+      entityId: jobId,
+    });
+
+    setIsProcessing(false);
+
+    if (url) {
+      onPhotosChange([...photos, url]);
+      toast({
+        title: t('exec.photo.uploaded'),
+        description: t('exec.photo.uploadedDesc'),
+      });
+    } else {
+      toast({
+        title: t('common.error'),
+        description: t('exec.photo.uploadFailed'),
+        variant: 'destructive',
+      });
+    }
+  }, [userId, category, jobId, photos, uploadPhoto, onPhotosChange, toast, t]);
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    // Process files one by one
+    for (const file of Array.from(files)) {
+      await processAndUpload(file);
+    }
+
+    // Reset input
+    if (e.target) {
+      e.target.value = '';
+    }
   };
 
-  const handleRemovePhoto = (index: number) => {
+  const handleRemovePhoto = async (index: number) => {
+    const photoUrl = photos[index];
+    if (photoUrl && photoUrl.includes('supabase')) {
+      await deletePhoto(photoUrl);
+    }
     onPhotosChange(photos.filter((_, i) => i !== index));
   };
 
+  const openCamera = () => {
+    cameraInputRef.current?.click();
+  };
+
+  const openFilePicker = () => {
+    fileInputRef.current?.click();
+  };
+
+  const isLoading = isUploading || isProcessing;
   const canProceed = photos.length >= minPhotos;
 
   return (
@@ -54,6 +126,26 @@ export const PhotoCaptureStep = ({
       exit={{ opacity: 0, y: -20 }}
       className="flex flex-col h-full"
     >
+      {/* Hidden inputs */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        multiple
+        onChange={handleFileSelect}
+        className="hidden"
+        disabled={isLoading}
+      />
+      <input
+        ref={cameraInputRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        onChange={handleFileSelect}
+        className="hidden"
+        disabled={isLoading}
+      />
+
       {/* Header */}
       <div className="px-4 py-3">
         <h2 className="text-xl font-semibold text-foreground">
@@ -69,7 +161,7 @@ export const PhotoCaptureStep = ({
         <div className="grid grid-cols-2 gap-3">
           {photos.map((photo, index) => (
             <motion.div
-              key={index}
+              key={`${photo}-${index}`}
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               className="relative aspect-[4/3] rounded-xl overflow-hidden glass-panel"
@@ -88,27 +180,40 @@ export const PhotoCaptureStep = ({
             </motion.div>
           ))}
 
-          {/* Add Photo Button */}
-          <motion.button
-            onClick={handleCapture}
-            disabled={isCapturing}
-            whileTap={{ scale: 0.95 }}
-            className="aspect-[4/3] rounded-xl border-2 border-dashed border-muted-foreground/30 flex flex-col items-center justify-center gap-2 text-muted-foreground hover:border-primary hover:text-primary transition-colors"
-          >
-            {isCapturing ? (
-              <motion.div
-                animate={{ rotate: 360 }}
-                transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+          {/* Add Photo Buttons */}
+          {isLoading ? (
+            <motion.div
+              className="aspect-[4/3] rounded-xl border-2 border-dashed border-muted-foreground/30 flex flex-col items-center justify-center gap-2"
+            >
+              <Loader2 className="w-8 h-8 animate-spin text-primary" />
+              <span className="text-xs text-muted-foreground">
+                {isProcessing ? t('exec.photo.optimizing') : t('exec.photo.uploading')}
+              </span>
+            </motion.div>
+          ) : (
+            <motion.div
+              className="aspect-[4/3] rounded-xl border-2 border-dashed border-muted-foreground/30 flex items-center justify-center gap-2"
+            >
+              <button
+                onClick={openCamera}
+                className="flex flex-col items-center gap-1 p-2 rounded-lg hover:bg-muted/50 transition-colors"
               >
-                <Camera className="w-8 h-8" />
-              </motion.div>
-            ) : (
-              <>
-                <Plus className="w-8 h-8" />
-                <span className="text-xs font-medium">{t('exec.photo.addPhoto')}</span>
-              </>
-            )}
-          </motion.button>
+                <div className="w-10 h-10 rounded-full bg-secondary/20 flex items-center justify-center">
+                  <Camera className="w-5 h-5 text-secondary" />
+                </div>
+                <span className="text-[10px] text-muted-foreground">Camera</span>
+              </button>
+              <button
+                onClick={openFilePicker}
+                className="flex flex-col items-center gap-1 p-2 rounded-lg hover:bg-muted/50 transition-colors"
+              >
+                <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                  <Upload className="w-5 h-5 text-primary" />
+                </div>
+                <span className="text-[10px] text-muted-foreground">Gallery</span>
+              </button>
+            </motion.div>
+          )}
         </div>
 
         {/* Photo count indicator */}
@@ -128,13 +233,14 @@ export const PhotoCaptureStep = ({
             variant="outline"
             onClick={onBack}
             className="flex-1 h-12 rounded-xl"
+            disabled={isLoading}
           >
             {t('common.back')}
           </Button>
         )}
         <Button
           onClick={onNext}
-          disabled={!canProceed}
+          disabled={!canProceed || isLoading}
           className="flex-1 h-12 rounded-xl bg-primary text-primary-foreground gap-2"
         >
           {t('common.continue')}
