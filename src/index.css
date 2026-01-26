@@ -185,8 +185,7 @@
     @apply relative flex flex-col w-full h-full;
     background: rgba(255, 255, 255, 0.45);
     backdrop-filter: blur(40px);
-    overflow-y: auto;
-    overflow-x: hidden;
+    overflow: hidden;
   }
   
   @media (min-width: 769px) {
