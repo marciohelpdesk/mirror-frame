@@ -11,6 +11,8 @@ interface DbJob {
   address: string;
   date: string;
   time: string;
+  checkout_time: string | null;
+  checkin_deadline: string | null;
   status: string;
   type: string;
   price: number | null;
@@ -23,6 +25,7 @@ interface DbJob {
   photos_before: string[] | null;
   photos_after: string[] | null;
   report_note: string | null;
+  report_pdf_url: string | null;
   damages: Json;
   inventory_used: Json;
   lost_and_found: Json;
@@ -37,6 +40,8 @@ const mapDbToJob = (db: DbJob): Job => ({
   address: db.address,
   date: db.date,
   time: db.time,
+  checkoutTime: db.checkout_time || undefined,
+  checkinDeadline: db.checkin_deadline || undefined,
   status: db.status as JobStatus,
   type: db.type as Job['type'],
   price: db.price || undefined,
@@ -49,6 +54,7 @@ const mapDbToJob = (db: DbJob): Job => ({
   photosBefore: db.photos_before || [],
   photosAfter: db.photos_after || [],
   reportNote: db.report_note || undefined,
+  reportPdfUrl: db.report_pdf_url || undefined,
   damages: (db.damages as unknown as DamageReport[]) || [],
   inventoryUsed: (db.inventory_used as unknown as InventoryUsage[]) || [],
   lostAndFound: (db.lost_and_found as unknown as LostAndFoundItem[]) || [],
@@ -61,6 +67,8 @@ const mapJobToDb = (job: Partial<Job>, userId: string): Partial<DbJob> => ({
   address: job.address,
   date: job.date,
   time: job.time,
+  checkout_time: job.checkoutTime || null,
+  checkin_deadline: job.checkinDeadline || null,
   status: job.status,
   type: job.type,
   price: job.price || null,
@@ -73,6 +81,7 @@ const mapJobToDb = (job: Partial<Job>, userId: string): Partial<DbJob> => ({
   photos_before: job.photosBefore || [],
   photos_after: job.photosAfter || [],
   report_note: job.reportNote || null,
+  report_pdf_url: job.reportPdfUrl || null,
   damages: (job.damages || []) as unknown as Json,
   inventory_used: (job.inventoryUsed || []) as unknown as Json,
   lost_and_found: (job.lostAndFound || []) as unknown as Json,

@@ -33,6 +33,8 @@ export interface JobFormData {
   clientName: string;
   selectedDate: Date | undefined;
   selectedTime: string;
+  checkoutTime: string;
+  checkinDeadline: string;
   jobType: typeof JOB_TYPES[number];
   price: string;
   assignedTo: string;
@@ -120,24 +122,44 @@ export const JobFormFields = ({ formData, onChange, properties, employees = [], 
         </Popover>
       </div>
 
-      {/* Time Selection */}
+      {/* Time Window Selection */}
       <div className="space-y-2">
         <Label className="flex items-center gap-2">
           <Clock className="w-4 h-4 text-muted-foreground" />
-          Time
+          Janela de Horário
         </Label>
-        <Select value={formData.selectedTime} onValueChange={(v) => onChange({ selectedTime: v })}>
-          <SelectTrigger>
-            <SelectValue placeholder="Select time" />
-          </SelectTrigger>
-          <SelectContent className="max-h-[200px]">
-            {TIME_SLOTS.map(time => (
-              <SelectItem key={time} value={time}>
-                {time}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div className="grid grid-cols-2 gap-2">
+          <div className="space-y-1">
+            <p className="text-xs text-muted-foreground">Check-out (início)</p>
+            <Select value={formData.checkoutTime || formData.selectedTime} onValueChange={(v) => onChange({ checkoutTime: v, selectedTime: v })}>
+              <SelectTrigger>
+                <SelectValue placeholder="Check-out" />
+              </SelectTrigger>
+              <SelectContent className="max-h-[200px]">
+                {TIME_SLOTS.map(time => (
+                  <SelectItem key={time} value={time}>
+                    {time}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1">
+            <p className="text-xs text-muted-foreground">Check-in (prazo)</p>
+            <Select value={formData.checkinDeadline || ''} onValueChange={(v) => onChange({ checkinDeadline: v })}>
+              <SelectTrigger>
+                <SelectValue placeholder="Check-in" />
+              </SelectTrigger>
+              <SelectContent className="max-h-[200px]">
+                {TIME_SLOTS.map(time => (
+                  <SelectItem key={time} value={time}>
+                    {time}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
       </div>
 
       {/* Job Type */}

@@ -58,6 +58,8 @@ export interface Job {
   address: string;
   date: string;
   time: string;
+  checkoutTime?: string;     // Guest checkout time - when cleaning can start
+  checkinDeadline?: string;  // Next guest check-in time - cleaning deadline
   status: JobStatus;
   type: 'Standard' | 'Deep Clean' | 'Move-out';
   price?: number;
@@ -71,6 +73,7 @@ export interface Job {
   photosBefore: string[];
   photosAfter: string[];
   reportNote?: string;
+  reportPdfUrl?: string;     // URL to saved PDF report in storage
   
   damages: DamageReport[];
   inventoryUsed: InventoryUsage[];

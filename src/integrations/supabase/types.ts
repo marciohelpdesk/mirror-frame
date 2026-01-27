@@ -82,7 +82,9 @@ export type Database = {
           address: string
           assigned_to: string | null
           check_in_time: string | null
+          checkin_deadline: string | null
           checklist: Json | null
+          checkout_time: string | null
           client_name: string
           created_at: string
           current_step: string | null
@@ -97,6 +99,7 @@ export type Database = {
           price: number | null
           property_id: string | null
           report_note: string | null
+          report_pdf_url: string | null
           start_time: number | null
           status: string
           time: string
@@ -108,7 +111,9 @@ export type Database = {
           address: string
           assigned_to?: string | null
           check_in_time?: string | null
+          checkin_deadline?: string | null
           checklist?: Json | null
+          checkout_time?: string | null
           client_name: string
           created_at?: string
           current_step?: string | null
@@ -123,6 +128,7 @@ export type Database = {
           price?: number | null
           property_id?: string | null
           report_note?: string | null
+          report_pdf_url?: string | null
           start_time?: number | null
           status?: string
           time: string
@@ -134,7 +140,9 @@ export type Database = {
           address?: string
           assigned_to?: string | null
           check_in_time?: string | null
+          checkin_deadline?: string | null
           checklist?: Json | null
+          checkout_time?: string | null
           client_name?: string
           created_at?: string
           current_step?: string | null
@@ -149,6 +157,7 @@ export type Database = {
           price?: number | null
           property_id?: string | null
           report_note?: string | null
+          report_pdf_url?: string | null
           start_time?: number | null
           status?: string
           time?: string
