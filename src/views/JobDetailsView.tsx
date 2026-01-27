@@ -11,7 +11,8 @@ import {
   Edit2,
   Trash2,
   AlertTriangle,
-  CheckCircle2
+  CheckCircle2,
+  FileDown
 } from 'lucide-react';
 import { Job, Property, JobStatus, Employee } from '@/types';
 import { PageHeader } from '@/components/PageHeader';
@@ -64,6 +65,8 @@ export const JobDetailsView = ({
     clientName: job.clientName,
     selectedDate: parseISO(job.date),
     selectedTime: job.time,
+    checkoutTime: job.checkoutTime || job.time,
+    checkinDeadline: job.checkinDeadline || '',
     jobType: job.type,
     price: job.price?.toString() || '',
     assignedTo: job.assignedTo || '',
@@ -87,7 +90,9 @@ export const JobDetailsView = ({
       clientName: formData.clientName || selectedProperty?.name || job.clientName,
       address: selectedProperty?.address || job.address,
       date: format(formData.selectedDate, 'yyyy-MM-dd'),
-      time: formData.selectedTime,
+      time: formData.checkoutTime || formData.selectedTime,
+      checkoutTime: formData.checkoutTime || formData.selectedTime,
+      checkinDeadline: formData.checkinDeadline || undefined,
       type: formData.jobType,
       price: formData.price ? parseFloat(formData.price) : job.price,
       assignedTo: formData.assignedTo || undefined,
@@ -207,8 +212,11 @@ export const JobDetailsView = ({
                 <Clock size={16} className="text-primary" />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">Time</p>
-                <p className="text-sm font-medium">{job.time}</p>
+                <p className="text-xs text-muted-foreground">Janela de Horário</p>
+                <p className="text-sm font-medium">
+                  {job.checkoutTime || job.time}
+                  {job.checkinDeadline && ` → ${job.checkinDeadline}`}
+                </p>
               </div>
             </div>
 
@@ -276,6 +284,19 @@ export const JobDetailsView = ({
             })}
           </div>
         </div>
+
+        {/* Download Report Button - for completed jobs */}
+        {job.status === JobStatus.COMPLETED && job.reportPdfUrl && (
+          <Button 
+            variant="outline"
+            className="w-full gap-2" 
+            size="lg"
+            onClick={() => window.open(job.reportPdfUrl, '_blank')}
+          >
+            <FileDown size={18} />
+            Baixar Relatório
+          </Button>
+        )}
 
         {/* Start Job Button */}
         {job.status === JobStatus.SCHEDULED && (

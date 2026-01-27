@@ -41,7 +41,10 @@ export const CalendarJobItem = forwardRef<HTMLDivElement, CalendarJobItemProps>(
         >
           <div className="flex items-center gap-1">
             <div className={`w-1.5 h-1.5 rounded-full ${dotColors[job.status]}`} />
-            <span className="truncate font-medium text-foreground">{job.time}</span>
+            <span className="truncate font-medium text-foreground">
+              {job.checkoutTime || job.time}
+              {job.checkinDeadline && `-${job.checkinDeadline}`}
+            </span>
             <span className="truncate text-muted-foreground">{job.clientName}</span>
           </div>
         </motion.div>
@@ -73,7 +76,10 @@ export const CalendarJobItem = forwardRef<HTMLDivElement, CalendarJobItemProps>(
             <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
               <div className="flex items-center gap-1">
                 <Clock size={12} />
-                <span>{job.time}</span>
+                <span>
+                  {job.checkoutTime || job.time}
+                  {job.checkinDeadline && ` → ${job.checkinDeadline}`}
+                </span>
               </div>
               <div className="flex items-center gap-1 truncate">
                 <MapPin size={12} className="shrink-0" />

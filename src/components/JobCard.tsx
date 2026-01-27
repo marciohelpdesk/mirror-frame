@@ -1,4 +1,4 @@
-import { Clock, MapPin, Play, Check } from 'lucide-react';
+import { Clock, MapPin, Play, Check, FileText } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Job, JobStatus } from '@/types';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -58,7 +58,10 @@ export const JobCard = ({ job, onStart, onView }: JobCardProps) => {
         <div className="flex items-center gap-4 text-sm text-muted-foreground">
           <div className="flex items-center gap-1.5">
             <Clock size={14} />
-            <span>{job.time}</span>
+            <span>
+              {job.checkoutTime || job.time}
+              {job.checkinDeadline && ` → ${job.checkinDeadline}`}
+            </span>
           </div>
           {job.status === JobStatus.IN_PROGRESS && (
             <span className="mono text-primary font-medium">
@@ -80,8 +83,15 @@ export const JobCard = ({ job, onStart, onView }: JobCardProps) => {
         )}
         
         {job.status === JobStatus.COMPLETED && (
-          <div className="w-10 h-10 rounded-full bg-success/20 flex items-center justify-center">
-            <Check size={18} className="text-success" />
+          <div className="flex items-center gap-2">
+            {job.reportPdfUrl && (
+              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center" title="Relatório disponível">
+                <FileText size={14} className="text-primary" />
+              </div>
+            )}
+            <div className="w-10 h-10 rounded-full bg-success/20 flex items-center justify-center">
+              <Check size={18} className="text-success" />
+            </div>
           </div>
         )}
       </div>
