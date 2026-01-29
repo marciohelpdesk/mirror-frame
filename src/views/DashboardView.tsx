@@ -97,14 +97,9 @@ export const DashboardView = ({ jobs, onStartJob, onViewJob, userProfile }: Dash
             >
               <Clock size={16} className="text-primary" />
             </motion.div>
-            <motion.p 
-              className="text-2xl font-light text-foreground"
-              key={inProgressJobs.length}
-              initial={{ scale: 1.2, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-            >
+            <p className="text-2xl font-light text-foreground">
               {inProgressJobs.length}
-            </motion.p>
+            </p>
             <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">{t('dashboard.active')}</p>
           </motion.div>
           
@@ -120,14 +115,9 @@ export const DashboardView = ({ jobs, onStartJob, onViewJob, userProfile }: Dash
             >
               <TrendingUp size={16} className="text-warning" />
             </motion.div>
-            <motion.p 
-              className="text-2xl font-light text-foreground"
-              key={scheduledJobs.length}
-              initial={{ scale: 1.2, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-            >
+            <p className="text-2xl font-light text-foreground">
               {scheduledJobs.length}
-            </motion.p>
+            </p>
             <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">{t('dashboard.scheduled')}</p>
           </motion.div>
           
@@ -143,14 +133,9 @@ export const DashboardView = ({ jobs, onStartJob, onViewJob, userProfile }: Dash
             >
               <CheckCircle2 size={16} className="text-success" />
             </motion.div>
-            <motion.p 
-              className="text-2xl font-light text-foreground"
-              key={completedJobs.length}
-              initial={{ scale: 1.2, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-            >
+            <p className="text-2xl font-light text-foreground">
               {completedJobs.length}
-            </motion.p>
+            </p>
             <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">{t('dashboard.done')}</p>
           </motion.div>
         </motion.div>
