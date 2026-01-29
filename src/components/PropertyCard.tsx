@@ -1,6 +1,7 @@
 import { MapPin, Bed, Bath } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Property } from '@/types';
+import { staggerItem, cardHover } from '@/lib/animations';
 
 interface PropertyCardProps {
   property: Property;
@@ -16,24 +17,48 @@ export const PropertyCard = ({ property, onClick }: PropertyCardProps) => {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="glass-panel overflow-hidden cursor-pointer active:scale-[0.98] transition-transform"
+      variants={{ ...staggerItem, ...cardHover }}
+      initial="initial"
+      animate="animate"
+      exit="exit"
+      whileHover="hover"
+      whileTap="tap"
+      layout
+      className="glass-panel overflow-hidden cursor-pointer"
       onClick={() => onClick(property.id)}
     >
       <div className="relative h-32 overflow-hidden">
         {property.photo ? (
-          <img 
+          <motion.img 
             src={property.photo} 
             alt={property.name}
             className="w-full h-full object-cover"
+            initial={{ scale: 1.1 }}
+            animate={{ scale: 1 }}
+            transition={{ duration: 0.6 }}
           />
         ) : (
-          <div className="w-full h-full bg-gradient-to-br from-primary/20 to-secondary/40 flex items-center justify-center">
-            <span className="text-4xl">🏠</span>
-          </div>
+          <motion.div 
+            className="w-full h-full bg-gradient-to-br from-primary/20 to-secondary/40 flex items-center justify-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+          >
+            <motion.span 
+              className="text-4xl"
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ type: 'spring', stiffness: 300, delay: 0.2 }}
+            >
+              🏠
+            </motion.span>
+          </motion.div>
         )}
-        <div className={`absolute top-3 right-3 w-3 h-3 rounded-full ${statusColors[property.status]} shadow-lg`} />
+        <motion.div 
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ type: 'spring', stiffness: 400, delay: 0.1 }}
+          className={`absolute top-3 right-3 w-3 h-3 rounded-full ${statusColors[property.status]} shadow-lg`} 
+        />
       </div>
       
       <div className="p-4">
@@ -59,9 +84,14 @@ export const PropertyCard = ({ property, onClick }: PropertyCardProps) => {
             </div>
           )}
           {property.basePrice && (
-            <span className="ml-auto font-medium text-primary">
+            <motion.span 
+              className="ml-auto font-medium text-primary"
+              initial={{ opacity: 0, x: 10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.3 }}
+            >
               ${property.basePrice}
-            </span>
+            </motion.span>
           )}
         </div>
       </div>

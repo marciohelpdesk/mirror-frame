@@ -11,6 +11,7 @@ import { CalendarJobItem } from '@/components/calendar/CalendarJobItem';
 import { AddJobModal } from '@/components/AddJobModal';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { staggerContainer, staggerItem } from '@/lib/animations';
 import { 
   format, 
   addDays, 
@@ -154,44 +155,73 @@ export const AgendaView = ({ jobs, properties, employees = [], onStartJob, onVie
       />
       
       <div className="px-4 relative z-10">
-        {/* View Toggle */}
-        <div className="glass-panel p-1 mb-4 flex gap-1">
-          {viewButtons.map(({ view, icon: Icon, label }) => (
-            <button
+        {/* View Toggle with Improved Animation */}
+        <motion.div 
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="glass-panel p-1 mb-4 flex gap-1"
+        >
+          {viewButtons.map(({ view, icon: Icon, label }, index) => (
+            <motion.button
               key={view}
               onClick={() => setCalendarView(view)}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: index * 0.05 }}
+              whileTap={{ scale: 0.95 }}
               className={`
-                flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-medium transition-all
+                flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-medium transition-all relative
                 ${calendarView === view 
-                  ? 'bg-primary text-primary-foreground' 
+                  ? 'text-primary-foreground' 
                   : 'text-muted-foreground hover:bg-muted'
                 }
               `}
             >
-              <Icon size={14} />
-              {label}
-            </button>
+              {calendarView === view && (
+                <motion.div
+                  layoutId="view-toggle-bg"
+                  className="absolute inset-0 bg-primary rounded-lg"
+                  transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                />
+              )}
+              <Icon size={14} className="relative z-10" />
+              <span className="relative z-10">{label}</span>
+            </motion.button>
           ))}
-        </div>
+        </motion.div>
 
-        {/* Calendar Navigation */}
-        <div className="glass-panel p-4 mb-4">
+        {/* Calendar Navigation with Better Animation */}
+        <motion.div 
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="glass-panel p-4 mb-4"
+        >
           <div className="flex justify-between items-center mb-4">
-            <button 
+            <motion.button 
               onClick={() => navigate('prev')}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
               className="liquid-btn w-10 h-10 text-muted-foreground"
             >
               <ChevronLeft size={20} />
-            </button>
-            <h3 className="font-medium text-foreground">
+            </motion.button>
+            <motion.h3 
+              key={getHeaderTitle()}
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="font-medium text-foreground"
+            >
               {getHeaderTitle()}
-            </h3>
-            <button 
+            </motion.h3>
+            <motion.button 
               onClick={() => navigate('next')}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
               className="liquid-btn w-10 h-10 text-muted-foreground"
             >
               <ChevronRight size={20} />
-            </button>
+            </motion.button>
           </div>
           
           {/* Calendar Views */}
@@ -238,23 +268,36 @@ export const AgendaView = ({ jobs, properties, employees = [], onStartJob, onVie
               )}
             </motion.div>
           </AnimatePresence>
-        </div>
+        </motion.div>
         
-        {/* Selected Day Jobs List */}
+        {/* Selected Day Jobs List with Stagger */}
         {calendarView !== 'day' && (
-          <div>
-            <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            <motion.h2 
+              key={format(selectedDate, 'yyyy-MM-dd')}
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3"
+            >
               {format(selectedDate, 'EEEE, MMMM d')}
-            </h2>
+            </motion.h2>
             
-            <div className="space-y-2">
-              <AnimatePresence>
+            <motion.div 
+              className="space-y-2"
+              variants={staggerContainer}
+              initial="initial"
+              animate="animate"
+            >
+              <AnimatePresence mode="popLayout">
                 {selectedDateJobs.map(job => (
                   <motion.div
                     key={job.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
+                    variants={staggerItem}
+                    layout
                   >
                     <CalendarJobItem
                       job={job}
@@ -268,15 +311,14 @@ export const AgendaView = ({ jobs, properties, employees = [], onStartJob, onVie
               
               {selectedDateJobs.length === 0 && (
                 <motion.div 
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
+                  variants={staggerItem}
                   className="glass-panel p-6 text-center"
                 >
                   <p className="text-muted-foreground text-sm">{t('agenda.noJobs')}</p>
                 </motion.div>
               )}
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         )}
       </div>
     </div>
