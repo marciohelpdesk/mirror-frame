@@ -67,6 +67,13 @@ const translations: Record<Language, Record<string, string>> = {
     'settings.language': 'Language',
     'settings.languageDesc': 'Choose your language',
     'settings.logout': 'Log Out',
+    'settings.calendar': 'Calendar Sync',
+    'settings.calendarDesc': 'Sync jobs with external calendars',
+    'settings.calendarLink': 'Calendar Link',
+    'settings.calendarLinkDesc': 'Subscribe to this URL in Google Calendar, Apple Calendar, or Outlook',
+    'settings.copyLink': 'Copy Link',
+    'settings.linkCopied': 'Link copied!',
+    'settings.generateLink': 'Generate Link',
     
     // Login
     'login.welcome': 'Welcome',
@@ -395,6 +402,13 @@ const translations: Record<Language, Record<string, string>> = {
     'settings.language': 'Idioma',
     'settings.languageDesc': 'Escolha seu idioma',
     'settings.logout': 'Sair',
+    'settings.calendar': 'Sincronizar Calendário',
+    'settings.calendarDesc': 'Sincronize jobs com calendários externos',
+    'settings.calendarLink': 'Link do Calendário',
+    'settings.calendarLinkDesc': 'Assine esta URL no Google Calendar, Apple Calendar ou Outlook',
+    'settings.copyLink': 'Copiar Link',
+    'settings.linkCopied': 'Link copiado!',
+    'settings.generateLink': 'Gerar Link',
     
     // Login
     'login.welcome': 'Bem-vindo',
