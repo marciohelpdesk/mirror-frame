@@ -148,124 +148,57 @@
     }
   }
   
-  /* Glass Panel Effect - Ultra Premium Frosted Glass */
+  /* Glass Panel Effect - Premium Frosted Glass */
   .glass-panel {
     background: linear-gradient(
-      145deg, 
-      rgba(255, 255, 255, 0.95) 0%, 
-      rgba(255, 255, 255, 0.85) 40%,
-      rgba(255, 255, 255, 0.75) 100%
+      165deg, 
+      rgba(255, 255, 255, 0.98) 0%, 
+      rgba(255, 255, 255, 0.92) 50%,
+      rgba(255, 255, 255, 0.88) 100%
     );
-    backdrop-filter: blur(60px) saturate(200%);
-    -webkit-backdrop-filter: blur(60px) saturate(200%);
+    backdrop-filter: blur(40px) saturate(180%);
     border-radius: 1.5rem;
-    border: 1px solid rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.9);
     box-shadow: 
-      0 25px 50px -12px rgba(0, 0, 0, 0.08),
-      0 12px 24px -8px rgba(0, 0, 0, 0.05),
-      0 4px 8px rgba(0, 0, 0, 0.02),
-      inset 0 1px 0 rgba(255, 255, 255, 0.9),
-      inset 0 -1px 0 rgba(0, 0, 0, 0.03);
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-  
-  .glass-panel::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    background: linear-gradient(
-      180deg,
-      rgba(255, 255, 255, 0.4) 0%,
-      transparent 40%
-    );
-    pointer-events: none;
-    opacity: 0.6;
+      0 8px 32px rgba(0, 0, 0, 0.06),
+      0 2px 8px rgba(0, 0, 0, 0.03),
+      inset 0 1px 0 rgba(255, 255, 255, 1),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.02);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
   
   .glass-panel:hover {
     box-shadow: 
-      0 30px 60px -15px rgba(0, 0, 0, 0.12),
-      0 15px 30px -10px rgba(0, 0, 0, 0.06),
+      0 12px 40px rgba(0, 0, 0, 0.08),
+      0 4px 12px rgba(0, 0, 0, 0.04),
       inset 0 1px 0 rgba(255, 255, 255, 1);
-    border-color: rgba(255, 255, 255, 0.8);
-    transform: translateY(-2px);
   }
   
-  /* Glass Panel Variants */
-  .glass-panel-subtle {
-    background: rgba(255, 255, 255, 0.6);
-    backdrop-filter: blur(40px) saturate(180%);
-    -webkit-backdrop-filter: blur(40px) saturate(180%);
-    border-radius: 1.25rem;
-    border: 1px solid rgba(255, 255, 255, 0.5);
-    box-shadow: 
-      0 10px 30px -10px rgba(0, 0, 0, 0.06),
-      inset 0 1px 0 rgba(255, 255, 255, 0.8);
-  }
-  
-  .glass-panel-elevated {
-    background: linear-gradient(
-      160deg, 
-      rgba(255, 255, 255, 0.98) 0%, 
-      rgba(255, 255, 255, 0.9) 100%
-    );
-    backdrop-filter: blur(80px) saturate(220%);
-    -webkit-backdrop-filter: blur(80px) saturate(220%);
-    border-radius: 1.75rem;
-    border: 1.5px solid rgba(255, 255, 255, 0.7);
-    box-shadow: 
-      0 40px 80px -20px rgba(0, 0, 0, 0.15),
-      0 20px 40px -15px rgba(0, 0, 0, 0.08),
-      inset 0 2px 0 rgba(255, 255, 255, 1);
-  }
-  
-  /* Liquid Button - Ultra Premium */
+  /* Liquid Button - Premium */
   .liquid-btn {
-    @apply flex items-center justify-center rounded-2xl;
-    position: relative;
+    @apply flex items-center justify-center rounded-2xl transition-all duration-300;
     background: linear-gradient(
       145deg,
-      rgba(255, 255, 255, 0.98) 0%,
-      rgba(255, 255, 255, 0.85) 100%
+      rgba(255, 255, 255, 0.95) 0%,
+      rgba(255, 255, 255, 0.8) 100%
     );
-    backdrop-filter: blur(30px) saturate(180%);
-    -webkit-backdrop-filter: blur(30px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(20px) saturate(150%);
+    border: 1px solid rgba(255, 255, 255, 0.7);
     box-shadow: 
-      0 8px 24px rgba(0, 0, 0, 0.06),
-      0 2px 6px rgba(0, 0, 0, 0.03),
+      0 4px 16px rgba(0, 0, 0, 0.05),
       inset 0 1px 0 rgba(255, 255, 255, 1);
-    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-    overflow: hidden;
-  }
-  
-  .liquid-btn::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(
-      180deg,
-      rgba(255, 255, 255, 0.6) 0%,
-      transparent 50%
-    );
-    pointer-events: none;
-    border-radius: inherit;
   }
   
   .liquid-btn:hover {
-    transform: scale(1.05) translateY(-2px);
+    @apply scale-105;
     box-shadow: 
-      0 16px 40px rgba(0, 0, 0, 0.1),
-      0 4px 12px rgba(0, 0, 0, 0.05),
+      0 8px 24px rgba(0, 0, 0, 0.08),
       inset 0 1px 0 rgba(255, 255, 255, 1);
   }
   
   .liquid-btn:active {
-    transform: scale(0.95);
-    box-shadow: 
-      0 4px 12px rgba(0, 0, 0, 0.06),
-      inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    @apply scale-95;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   }
   
   /* Mercury Drop Effect */

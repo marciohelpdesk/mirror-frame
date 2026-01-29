@@ -9,7 +9,6 @@ import { EditProfileModal } from '@/components/EditProfileModal';
 import { CalendarSyncSection } from '@/components/CalendarSyncSection';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Switch } from '@/components/ui/switch';
-import { staggerContainer, staggerItem, glassCardVariants } from '@/lib/animations';
 
 interface SettingsViewProps {
   userId?: string;
@@ -48,11 +47,9 @@ export const SettingsView = ({ userId, userProfile, employees, onLogout, onViewF
       <div className="px-6 pt-2 relative z-10">
         {/* Profile Card */}
         <motion.div 
-          variants={glassCardVariants}
-          initial="initial"
-          animate="enter"
-          whileHover="hover"
-          className="glass-panel-elevated p-8 flex flex-col items-center justify-center mb-6 relative"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="glass-panel p-8 flex flex-col items-center justify-center mb-6 relative"
         >
           <button
             onClick={() => setIsEditProfileOpen(true)}
@@ -61,17 +58,13 @@ export const SettingsView = ({ userId, userProfile, employees, onLogout, onViewF
           >
             <Pencil size={14} className="text-muted-foreground" />
           </button>
-          <motion.div 
-            className="w-28 h-28 rounded-full mb-4 border-4 border-white shadow-xl overflow-hidden"
-            whileHover={{ scale: 1.05 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-          >
+          <div className="w-28 h-28 rounded-full mb-4 border-4 border-white shadow-lg overflow-hidden">
             <img 
               src={userProfile.avatar} 
               className="w-full h-full object-cover" 
               alt="Profile" 
             />
-          </motion.div>
+          </div>
           <h2 className="text-2xl font-light text-foreground mb-1">{userProfile.name}</h2>
           <p className="text-sm text-muted-foreground">{userProfile.email}</p>
           <span className="mt-3 text-xs font-bold uppercase tracking-widest text-primary bg-primary/10 px-3 py-1 rounded-full">
@@ -79,39 +72,33 @@ export const SettingsView = ({ userId, userProfile, employees, onLogout, onViewF
           </span>
         </motion.div>
 
-        {/* Stagger Container for Settings Items */}
-        <motion.div
-          variants={staggerContainer}
-          initial="initial"
-          animate="enter"
-          className="space-y-4"
+        {/* Earnings Button */}
+        <motion.button 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          onClick={onViewFinance}
+          className="glass-panel w-full p-5 flex items-center justify-between text-foreground active:scale-95 transition-transform mb-4"
         >
-
-          {/* Earnings Button */}
-          <motion.button 
-            variants={staggerItem}
-            whileHover={{ scale: 1.02, y: -2 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={onViewFinance}
-            className="glass-panel w-full p-5 flex items-center justify-between text-foreground"
-          >
-            <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-xl bg-success/10 flex items-center justify-center">
-                <Wallet size={20} className="text-success" />
-              </div>
-              <div className="text-left">
-                <p className="font-medium">{t('settings.earnings')}</p>
-                <p className="text-xs text-muted-foreground">{t('settings.earningsDesc')}</p>
-              </div>
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 rounded-xl bg-success/10 flex items-center justify-center">
+              <Wallet size={20} className="text-success" />
             </div>
-            <ChevronRight size={20} className="text-muted-foreground" />
-          </motion.button>
-          
-          {/* Team Management Section */}
-          <motion.div 
-            variants={staggerItem}
-            className="glass-panel p-4"
-          >
+            <div className="text-left">
+              <p className="font-medium">{t('settings.earnings')}</p>
+              <p className="text-xs text-muted-foreground">{t('settings.earningsDesc')}</p>
+            </div>
+          </div>
+          <ChevronRight size={20} className="text-muted-foreground" />
+        </motion.button>
+        
+        {/* Team Management Section */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
+          className="glass-panel p-4 mb-4"
+        >
           <TeamManagement
             employees={employees}
             onAddEmployee={onAddEmployee}
@@ -119,43 +106,44 @@ export const SettingsView = ({ userId, userProfile, employees, onLogout, onViewF
           />
         </motion.div>
 
-          {/* Calendar Sync Section */}
-          <motion.div variants={staggerItem}>
-            <CalendarSyncSection userId={userId} />
-          </motion.div>
+        {/* Calendar Sync Section */}
+        <CalendarSyncSection userId={userId} />
 
-          {/* Language Toggle */}
-          <motion.div
-            variants={staggerItem}
-            className="glass-panel w-full p-4 flex items-center justify-between text-foreground"
-          >
-            <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                <Globe size={20} className="text-primary" />
-              </div>
-              <div className="text-left">
-                <p className="font-medium">{t('settings.language')}</p>
-                <p className="text-xs text-muted-foreground">{t('settings.languageDesc')}</p>
-              </div>
+        {/* Language Toggle */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.18 }}
+          className="glass-panel w-full p-4 flex items-center justify-between text-foreground mb-4"
+        >
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+              <Globe size={20} className="text-primary" />
             </div>
-            <div className="flex items-center gap-2">
-              <span className={`text-xs font-medium ${language === 'en' ? 'text-primary' : 'text-muted-foreground'}`}>EN</span>
-              <Switch
-                checked={language === 'pt'}
-                onCheckedChange={toggleLanguage}
-              />
-              <span className={`text-xs font-medium ${language === 'pt' ? 'text-primary' : 'text-muted-foreground'}`}>PT</span>
+            <div className="text-left">
+              <p className="font-medium">{t('settings.language')}</p>
+              <p className="text-xs text-muted-foreground">{t('settings.languageDesc')}</p>
             </div>
-          </motion.div>
-          
-          {/* Settings Items */}
-          {settingsItems.map((item) => (
+          </div>
+          <div className="flex items-center gap-2">
+            <span className={`text-xs font-medium ${language === 'en' ? 'text-primary' : 'text-muted-foreground'}`}>EN</span>
+            <Switch
+              checked={language === 'pt'}
+              onCheckedChange={toggleLanguage}
+            />
+            <span className={`text-xs font-medium ${language === 'pt' ? 'text-primary' : 'text-muted-foreground'}`}>PT</span>
+          </div>
+        </motion.div>
+        
+        {/* Settings Items */}
+        <div className="space-y-2 mb-6">
+          {settingsItems.map((item, i) => (
             <motion.button
               key={item.label}
-              variants={staggerItem}
-              whileHover={{ scale: 1.02, y: -2 }}
-              whileTap={{ scale: 0.98 }}
-              className="glass-panel w-full p-4 flex items-center justify-between text-foreground"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 + i * 0.05 }}
+              className="glass-panel w-full p-4 flex items-center justify-between text-foreground active:scale-95 transition-transform"
             >
               <div className="flex items-center gap-4">
                 <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
@@ -169,15 +157,13 @@ export const SettingsView = ({ userId, userProfile, employees, onLogout, onViewF
               <ChevronRight size={20} className="text-muted-foreground" />
             </motion.button>
           ))}
-        </motion.div>
+        </div>
         
         {/* Logout Button */}
         <motion.button 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
           onClick={onLogout}
           className="w-full py-4 text-destructive font-bold text-xs uppercase tracking-widest hover:text-destructive/80 transition-colors flex items-center justify-center gap-2"
         >

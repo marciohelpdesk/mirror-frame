@@ -1,4 +1,3 @@
-import { forwardRef } from 'react';
 import { motion } from 'framer-motion';
 import { useLanguage } from '@/contexts/LanguageContext';
 
@@ -11,14 +10,14 @@ interface LiquidProgressBubbleProps {
   showLabel?: boolean;
 }
 
-export const LiquidProgressBubble = forwardRef<HTMLDivElement, LiquidProgressBubbleProps>(({ 
+export const LiquidProgressBubble = ({ 
   percentage, 
   label,
   size = 180,
   animated = false,
   showPercentage = true,
   showLabel = true
-}, ref) => {
+}: LiquidProgressBubbleProps) => {
   const { t } = useLanguage();
   const displayLabel = label || t('dashboard.purification');
   
@@ -35,7 +34,7 @@ export const LiquidProgressBubble = forwardRef<HTMLDivElement, LiquidProgressBub
   const isComplete = clampedPercentage >= 100;
 
   return (
-    <div ref={ref} className="flex flex-col items-center gap-3">
+    <div className="flex flex-col items-center gap-3">
       {/* Label */}
       {showLabel && (
         <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-muted-foreground">
@@ -115,7 +114,7 @@ export const LiquidProgressBubble = forwardRef<HTMLDivElement, LiquidProgressBub
             {/* Animated liquid */}
             <motion.div
               className="absolute bottom-0 left-0 right-0"
-              initial={false}
+              initial={{ height: 0 }}
               animate={{ 
                 height: fillHeight,
                 y: animated ? [0, -2, 1, -1, 2, 0] : 0
@@ -219,15 +218,18 @@ export const LiquidProgressBubble = forwardRef<HTMLDivElement, LiquidProgressBub
         {/* Percentage text */}
         {showPercentage && (
           <div className="absolute inset-0 flex items-center justify-center">
-            <span className="text-4xl font-extralight text-foreground drop-shadow-sm">
+            <motion.span
+              key={clampedPercentage}
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              className="text-4xl font-extralight text-foreground drop-shadow-sm"
+            >
               {Math.round(clampedPercentage)}
               <span className="text-xl">%</span>
-            </span>
+            </motion.span>
           </div>
         )}
       </motion.div>
     </div>
   );
-});
-
-LiquidProgressBubble.displayName = 'LiquidProgressBubble';
+};
