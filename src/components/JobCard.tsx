@@ -34,44 +34,64 @@ export const JobCard = ({ job, onStart, onView }: JobCardProps) => {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="glass-panel p-5 cursor-pointer active:scale-[0.98] transition-transform"
+      initial={{ opacity: 0, y: 16, scale: 0.98 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: -8, scale: 0.98 }}
+      whileHover={{ scale: 1.01, y: -2 }}
+      whileTap={{ scale: 0.98 }}
+      transition={{ 
+        type: "spring", 
+        stiffness: 400, 
+        damping: 25,
+        mass: 0.8
+      }}
+      className="glass-panel p-5 cursor-pointer group"
       onClick={() => onView(job.id)}
     >
       <div className="flex justify-between items-start mb-3">
         <div>
-          <h3 className="font-medium text-foreground text-lg leading-tight">
+          <h3 className="font-medium text-foreground text-lg leading-tight group-hover:text-primary transition-colors duration-200">
             {job.clientName}
           </h3>
           <div className="flex items-center gap-1.5 text-muted-foreground text-sm mt-1">
-            <MapPin size={14} />
+            <MapPin size={14} className="group-hover:text-primary/60 transition-colors" />
             <span>{job.address}</span>
           </div>
         </div>
-        <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full ${statusClasses[job.status]}`}>
+        <motion.span 
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ delay: 0.1 }}
+          className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full ${statusClasses[job.status]}`}
+        >
           {statusLabels[job.status]}
-        </span>
+        </motion.span>
       </div>
       
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4 text-sm text-muted-foreground">
           <div className="flex items-center gap-1.5">
-            <Clock size={14} />
+            <Clock size={14} className="group-hover:text-primary/60 transition-colors" />
             <span>
               {job.checkoutTime || job.time}
               {job.checkinDeadline && ` → ${job.checkinDeadline}`}
             </span>
           </div>
           {job.status === JobStatus.IN_PROGRESS && (
-            <span className="mono text-primary font-medium">
+            <motion.span 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="mono text-primary font-medium"
+            >
               {formatTime(elapsed)}
-            </span>
+            </motion.span>
           )}
         </div>
         
         {job.status === JobStatus.SCHEDULED && (
-          <button
+          <motion.button
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
             onClick={(e) => {
               e.stopPropagation();
               onStart(job.id);
@@ -79,19 +99,30 @@ export const JobCard = ({ job, onStart, onView }: JobCardProps) => {
             className="liquid-btn w-10 h-10 text-primary"
           >
             <Play size={18} fill="currentColor" />
-          </button>
+          </motion.button>
         )}
         
         {job.status === JobStatus.COMPLETED && (
           <div className="flex items-center gap-2">
             {job.reportPdfUrl && (
-              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center" title="Relatório disponível">
+              <motion.div 
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ type: "spring", stiffness: 500 }}
+                className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center" 
+                title="Relatório disponível"
+              >
                 <FileText size={14} className="text-primary" />
-              </div>
+              </motion.div>
             )}
-            <div className="w-10 h-10 rounded-full bg-success/20 flex items-center justify-center">
+            <motion.div 
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ type: "spring", stiffness: 500, delay: 0.05 }}
+              className="w-10 h-10 rounded-full bg-success/20 flex items-center justify-center"
+            >
               <Check size={18} className="text-success" />
-            </div>
+            </motion.div>
           </div>
         )}
       </div>
