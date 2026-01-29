@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Job, Property, UserProfile, ViewState, JobStatus, Employee, InventoryItem } from '@/types';
 import { BottomNav } from '@/components/BottomNav';
@@ -18,6 +18,10 @@ import { useProperties } from '@/hooks/useProperties';
 import { useJobs } from '@/hooks/useJobs';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useInventory } from '@/hooks/useInventory';
+import { pageVariants } from '@/lib/animations';
+
+// View order for determining transition direction
+const viewOrder: ViewState[] = ['DASHBOARD', 'AGENDA', 'PROPERTIES', 'SETTINGS', 'PROPERTY_DETAILS', 'JOB_DETAILS', 'EXECUTION', 'FINANCE'];
 
 const Index = () => {
   // Auth State
@@ -272,9 +276,10 @@ const Index = () => {
           {view === 'DASHBOARD' && (
             <motion.div
               key="dashboard"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
+              variants={pageVariants}
+              initial="initial"
+              animate="enter"
+              exit="exit"
               className="h-full"
             >
               <DashboardView 
@@ -289,9 +294,10 @@ const Index = () => {
           {view === 'AGENDA' && (
             <motion.div
               key="agenda"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
+              variants={pageVariants}
+              initial="initial"
+              animate="enter"
+              exit="exit"
               className="h-full"
             >
               <AgendaView 
@@ -309,9 +315,10 @@ const Index = () => {
           {view === 'PROPERTIES' && (
             <motion.div
               key="properties"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
+              variants={pageVariants}
+              initial="initial"
+              animate="enter"
+              exit="exit"
               className="h-full"
             >
               <PropertiesView 
@@ -325,9 +332,10 @@ const Index = () => {
           {view === 'PROPERTY_DETAILS' && activeProperty && (
             <motion.div
               key="property-details"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
+              variants={pageVariants}
+              initial="initial"
+              animate="enter"
+              exit="exit"
               className="h-full"
             >
               <PropertyDetailsView 
@@ -342,9 +350,10 @@ const Index = () => {
           {view === 'JOB_DETAILS' && activeJob && (
             <motion.div
               key="job-details"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
+              variants={pageVariants}
+              initial="initial"
+              animate="enter"
+              exit="exit"
               className="h-full"
             >
               <JobDetailsView 
@@ -362,9 +371,10 @@ const Index = () => {
           {view === 'EXECUTION' && activeJob && (
             <motion.div
               key="execution"
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
+              variants={pageVariants}
+              initial="initial"
+              animate="enter"
+              exit="exit"
               className="h-full"
             >
               <ExecutionView
@@ -381,9 +391,10 @@ const Index = () => {
           {view === 'SETTINGS' && (
             <motion.div
               key="settings"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
+              variants={pageVariants}
+              initial="initial"
+              animate="enter"
+              exit="exit"
               className="h-full"
             >
               <SettingsView 
@@ -402,9 +413,10 @@ const Index = () => {
           {view === 'FINANCE' && (
             <motion.div
               key="finance"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
+              variants={pageVariants}
+              initial="initial"
+              animate="enter"
+              exit="exit"
               className="h-full"
             >
               <FinanceView 

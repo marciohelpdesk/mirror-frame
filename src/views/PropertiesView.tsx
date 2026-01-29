@@ -8,6 +8,7 @@ import { BackgroundEffects } from '@/components/BackgroundEffects';
 import { AddPropertyModal } from '@/components/AddPropertyModal';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/hooks/useAuth';
+import { staggerContainer, staggerItem, glassCardVariants } from '@/lib/animations';
 
 interface PropertiesViewProps {
   properties: Property[];
@@ -37,7 +38,11 @@ export const PropertiesView = ({ properties, onViewProperty, onAddProperty }: Pr
       
       <div className="px-6 relative z-10">
         {/* Search Bar */}
-        <div className="glass-panel flex items-center gap-3 px-4 py-3 mb-6">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="glass-panel flex items-center gap-3 px-4 py-3 mb-6"
+        >
           <Search size={18} className="text-muted-foreground" />
           <input 
             type="text"
@@ -46,39 +51,51 @@ export const PropertiesView = ({ properties, onViewProperty, onAddProperty }: Pr
             onChange={(e) => setSearchQuery(e.target.value)}
             className="flex-1 bg-transparent border-none outline-none text-foreground placeholder:text-muted-foreground"
           />
-        </div>
+        </motion.div>
         
         {/* Properties Grid */}
-        <div className="grid grid-cols-1 gap-4">
+        <motion.div 
+          className="grid grid-cols-1 gap-4"
+          variants={staggerContainer}
+          initial="initial"
+          animate="enter"
+        >
           <AnimatePresence>
             {filteredProperties.map((property) => (
-              <PropertyCard 
-                key={property.id}
-                property={property}
-                onClick={onViewProperty}
-              />
+              <motion.div key={property.id} variants={staggerItem}>
+                <PropertyCard 
+                  property={property}
+                  onClick={onViewProperty}
+                />
+              </motion.div>
             ))}
           </AnimatePresence>
           
           {filteredProperties.length === 0 && (
             <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
+              variants={glassCardVariants}
+              initial="initial"
+              animate="enter"
               className="glass-panel p-8 text-center"
             >
               <p className="text-muted-foreground">{t('properties.noProperties')}</p>
             </motion.div>
           )}
-        </div>
+        </motion.div>
       </div>
       
       {/* FAB */}
-      <button 
+      <motion.button 
+        initial={{ scale: 0, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ type: 'spring', stiffness: 300, damping: 20, delay: 0.3 }}
+        whileHover={{ scale: 1.1, boxShadow: '0 20px 40px -10px rgba(0, 0, 0, 0.2)' }}
+        whileTap={{ scale: 0.95 }}
         onClick={() => setShowAddModal(true)}
-        className="fixed bottom-28 right-6 w-14 h-14 bg-secondary text-secondary-foreground rounded-2xl shadow-lg flex items-center justify-center transition-all hover:scale-105 active:scale-95 z-50 md:right-[calc(50%-187.5px+24px)]"
+        className="fixed bottom-28 right-6 w-14 h-14 bg-secondary text-secondary-foreground rounded-2xl shadow-xl flex items-center justify-center z-50 md:right-[calc(50%-187.5px+24px)]"
       >
         <Plus size={28} strokeWidth={2.5} />
-      </button>
+      </motion.button>
 
       {/* Add Property Modal */}
       <AddPropertyModal

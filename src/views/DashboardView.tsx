@@ -7,6 +7,7 @@ import { JobCard } from '@/components/JobCard';
 import { BackgroundEffects } from '@/components/BackgroundEffects';
 import { LiquidProgressBubble } from '@/components/LiquidProgressBubble';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { staggerContainer, staggerItem, glassCardVariants } from '@/lib/animations';
 import purLogo from '@/assets/pur-logo.png';
 
 interface DashboardViewProps {
@@ -78,18 +79,16 @@ export const DashboardView = ({ jobs, onStartJob, onViewJob, userProfile }: Dash
       
       <div className="px-6 pt-2 relative z-10">
         {/* Stats Cards */}
-        <div className="grid grid-cols-3 gap-3 mb-6">
+        <motion.div 
+          className="grid grid-cols-3 gap-3 mb-6"
+          variants={staggerContainer}
+          initial="initial"
+          animate="enter"
+        >
           <motion.div 
-            initial={{ opacity: 0, y: 20, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            whileHover={{ scale: 1.03, y: -2 }}
-            transition={{ 
-              type: "spring",
-              stiffness: 400,
-              damping: 25,
-              delay: 0.1 
-            }}
-            className="glass-panel p-4 text-center cursor-default group"
+            variants={glassCardVariants}
+            whileHover="hover"
+            className="glass-panel p-4 text-center cursor-default group relative overflow-hidden"
           >
             <motion.div 
               className="flex items-center justify-center w-8 h-8 mx-auto mb-2 rounded-full bg-primary/10 group-hover:bg-primary/20 transition-colors"
@@ -110,16 +109,9 @@ export const DashboardView = ({ jobs, onStartJob, onViewJob, userProfile }: Dash
           </motion.div>
           
           <motion.div 
-            initial={{ opacity: 0, y: 20, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            whileHover={{ scale: 1.03, y: -2 }}
-            transition={{ 
-              type: "spring",
-              stiffness: 400,
-              damping: 25,
-              delay: 0.2 
-            }}
-            className="glass-panel p-4 text-center cursor-default group"
+            variants={glassCardVariants}
+            whileHover="hover"
+            className="glass-panel p-4 text-center cursor-default group relative overflow-hidden"
           >
             <motion.div 
               className="flex items-center justify-center w-8 h-8 mx-auto mb-2 rounded-full bg-warning/10 group-hover:bg-warning/20 transition-colors"
@@ -140,16 +132,9 @@ export const DashboardView = ({ jobs, onStartJob, onViewJob, userProfile }: Dash
           </motion.div>
           
           <motion.div 
-            initial={{ opacity: 0, y: 20, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            whileHover={{ scale: 1.03, y: -2 }}
-            transition={{ 
-              type: "spring",
-              stiffness: 400,
-              damping: 25,
-              delay: 0.3 
-            }}
-            className="glass-panel p-4 text-center cursor-default group"
+            variants={glassCardVariants}
+            whileHover="hover"
+            className="glass-panel p-4 text-center cursor-default group relative overflow-hidden"
           >
             <motion.div 
               className="flex items-center justify-center w-8 h-8 mx-auto mb-2 rounded-full bg-success/10 group-hover:bg-success/20 transition-colors"
@@ -168,7 +153,7 @@ export const DashboardView = ({ jobs, onStartJob, onViewJob, userProfile }: Dash
             </motion.p>
             <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">{t('dashboard.done')}</p>
           </motion.div>
-        </div>
+        </motion.div>
 
         {/* Purification Bubble */}
         <motion.div 
