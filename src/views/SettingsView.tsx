@@ -6,10 +6,12 @@ import { PageHeader } from '@/components/PageHeader';
 import { BackgroundEffects } from '@/components/BackgroundEffects';
 import { TeamManagement } from '@/components/TeamManagement';
 import { EditProfileModal } from '@/components/EditProfileModal';
+import { CalendarSyncSection } from '@/components/CalendarSyncSection';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Switch } from '@/components/ui/switch';
 
 interface SettingsViewProps {
+  userId?: string;
   userProfile: UserProfile;
   employees: Employee[];
   onLogout: () => void;
@@ -19,7 +21,7 @@ interface SettingsViewProps {
   onUpdateProfile: (profile: UserProfile) => void;
 }
 
-export const SettingsView = ({ userProfile, employees, onLogout, onViewFinance, onAddEmployee, onDeleteEmployee, onUpdateProfile }: SettingsViewProps) => {
+export const SettingsView = ({ userId, userProfile, employees, onLogout, onViewFinance, onAddEmployee, onDeleteEmployee, onUpdateProfile }: SettingsViewProps) => {
   const { t, language, setLanguage } = useLanguage();
   const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
 
@@ -103,6 +105,9 @@ export const SettingsView = ({ userProfile, employees, onLogout, onViewFinance, 
             onDeleteEmployee={onDeleteEmployee}
           />
         </motion.div>
+
+        {/* Calendar Sync Section */}
+        <CalendarSyncSection userId={userId} />
 
         {/* Language Toggle */}
         <motion.div

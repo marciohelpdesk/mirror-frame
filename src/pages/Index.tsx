@@ -387,6 +387,7 @@ const Index = () => {
               className="h-full"
             >
               <SettingsView 
+                userId={user?.id}
                 userProfile={userProfile}
                 employees={employees}
                 onLogout={handleLogout}
