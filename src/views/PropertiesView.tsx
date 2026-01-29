@@ -8,7 +8,6 @@ import { BackgroundEffects } from '@/components/BackgroundEffects';
 import { AddPropertyModal } from '@/components/AddPropertyModal';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/hooks/useAuth';
-import { staggerContainer, staggerItem, fadeInUp } from '@/lib/animations';
 
 interface PropertiesViewProps {
   properties: Property[];
@@ -38,12 +37,7 @@ export const PropertiesView = ({ properties, onViewProperty, onAddProperty }: Pr
       
       <div className="px-6 relative z-10">
         {/* Search Bar */}
-        <motion.div 
-          variants={fadeInUp}
-          initial="initial"
-          animate="animate"
-          className="glass-panel flex items-center gap-3 px-4 py-3 mb-6"
-        >
+        <div className="glass-panel flex items-center gap-3 px-4 py-3 mb-6">
           <Search size={18} className="text-muted-foreground" />
           <input 
             type="text"
@@ -52,16 +46,11 @@ export const PropertiesView = ({ properties, onViewProperty, onAddProperty }: Pr
             onChange={(e) => setSearchQuery(e.target.value)}
             className="flex-1 bg-transparent border-none outline-none text-foreground placeholder:text-muted-foreground"
           />
-        </motion.div>
+        </div>
         
-        {/* Properties Grid with Stagger Animation */}
-        <motion.div 
-          className="grid grid-cols-1 gap-4"
-          variants={staggerContainer}
-          initial="initial"
-          animate="animate"
-        >
-          <AnimatePresence mode="popLayout">
+        {/* Properties Grid */}
+        <div className="grid grid-cols-1 gap-4">
+          <AnimatePresence>
             {filteredProperties.map((property) => (
               <PropertyCard 
                 key={property.id}
@@ -73,27 +62,23 @@ export const PropertiesView = ({ properties, onViewProperty, onAddProperty }: Pr
           
           {filteredProperties.length === 0 && (
             <motion.div 
-              variants={staggerItem}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
               className="glass-panel p-8 text-center"
             >
               <p className="text-muted-foreground">{t('properties.noProperties')}</p>
             </motion.div>
           )}
-        </motion.div>
+        </div>
       </div>
       
-      {/* FAB with Animation */}
-      <motion.button 
+      {/* FAB */}
+      <button 
         onClick={() => setShowAddModal(true)}
-        initial={{ scale: 0, rotate: -180 }}
-        animate={{ scale: 1, rotate: 0 }}
-        transition={{ type: 'spring', stiffness: 300, damping: 20, delay: 0.3 }}
-        whileHover={{ scale: 1.1, rotate: 90 }}
-        whileTap={{ scale: 0.9 }}
-        className="fixed bottom-28 right-6 w-14 h-14 bg-secondary text-secondary-foreground rounded-2xl shadow-lg flex items-center justify-center z-50 md:right-[calc(50%-187.5px+24px)]"
+        className="fixed bottom-28 right-6 w-14 h-14 bg-secondary text-secondary-foreground rounded-2xl shadow-lg flex items-center justify-center transition-all hover:scale-105 active:scale-95 z-50 md:right-[calc(50%-187.5px+24px)]"
       >
         <Plus size={28} strokeWidth={2.5} />
-      </motion.button>
+      </button>
 
       {/* Add Property Modal */}
       <AddPropertyModal

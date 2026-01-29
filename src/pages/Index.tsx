@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Job, Property, UserProfile, ViewState, JobStatus, Employee, InventoryItem } from '@/types';
 import { BottomNav } from '@/components/BottomNav';
 import { DashboardView } from '@/views/DashboardView';
-import { pageVariants, slideFromRight, scaleUp } from '@/lib/animations';
 import { AgendaView } from '@/views/AgendaView';
 import { PropertiesView } from '@/views/PropertiesView';
 import { SettingsView } from '@/views/SettingsView';
@@ -273,10 +272,9 @@ const Index = () => {
           {view === 'DASHBOARD' && (
             <motion.div
               key="dashboard"
-              variants={pageVariants}
-              initial="initial"
-              animate="animate"
-              exit="exit"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
               className="h-full"
             >
               <DashboardView 
@@ -291,10 +289,9 @@ const Index = () => {
           {view === 'AGENDA' && (
             <motion.div
               key="agenda"
-              variants={pageVariants}
-              initial="initial"
-              animate="animate"
-              exit="exit"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
               className="h-full"
             >
               <AgendaView 
@@ -312,10 +309,9 @@ const Index = () => {
           {view === 'PROPERTIES' && (
             <motion.div
               key="properties"
-              variants={pageVariants}
-              initial="initial"
-              animate="animate"
-              exit="exit"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
               className="h-full"
             >
               <PropertiesView 
@@ -329,10 +325,9 @@ const Index = () => {
           {view === 'PROPERTY_DETAILS' && activeProperty && (
             <motion.div
               key="property-details"
-              variants={slideFromRight}
-              initial="initial"
-              animate="animate"
-              exit="exit"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
               className="h-full"
             >
               <PropertyDetailsView 
@@ -347,10 +342,9 @@ const Index = () => {
           {view === 'JOB_DETAILS' && activeJob && (
             <motion.div
               key="job-details"
-              variants={slideFromRight}
-              initial="initial"
-              animate="animate"
-              exit="exit"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
               className="h-full"
             >
               <JobDetailsView 
@@ -368,10 +362,9 @@ const Index = () => {
           {view === 'EXECUTION' && activeJob && (
             <motion.div
               key="execution"
-              variants={scaleUp}
-              initial="initial"
-              animate="animate"
-              exit="exit"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
               className="h-full"
             >
               <ExecutionView
@@ -388,10 +381,9 @@ const Index = () => {
           {view === 'SETTINGS' && (
             <motion.div
               key="settings"
-              variants={pageVariants}
-              initial="initial"
-              animate="animate"
-              exit="exit"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
               className="h-full"
             >
               <SettingsView 
@@ -410,10 +402,9 @@ const Index = () => {
           {view === 'FINANCE' && (
             <motion.div
               key="finance"
-              variants={slideFromRight}
-              initial="initial"
-              animate="animate"
-              exit="exit"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
               className="h-full"
             >
               <FinanceView 

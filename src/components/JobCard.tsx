@@ -2,7 +2,6 @@ import { Clock, MapPin, Play, Check, FileText } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Job, JobStatus } from '@/types';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { staggerItem, cardHover } from '@/lib/animations';
 
 interface JobCardProps {
   job: Job;
@@ -35,14 +34,9 @@ export const JobCard = ({ job, onStart, onView }: JobCardProps) => {
 
   return (
     <motion.div
-      variants={{ ...staggerItem, ...cardHover }}
-      initial="initial"
-      animate="animate"
-      exit="exit"
-      whileHover="hover"
-      whileTap="tap"
-      layout
-      className="glass-panel p-5 cursor-pointer"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="glass-panel p-5 cursor-pointer active:scale-[0.98] transition-transform"
       onClick={() => onView(job.id)}
     >
       <div className="flex justify-between items-start mb-3">
@@ -55,14 +49,9 @@ export const JobCard = ({ job, onStart, onView }: JobCardProps) => {
             <span>{job.address}</span>
           </div>
         </div>
-        <motion.span 
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ delay: 0.1, type: 'spring', stiffness: 400 }}
-          className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full ${statusClasses[job.status]}`}
-        >
+        <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full ${statusClasses[job.status]}`}>
           {statusLabels[job.status]}
-        </motion.span>
+        </span>
       </div>
       
       <div className="flex items-center justify-between">
@@ -75,51 +64,34 @@ export const JobCard = ({ job, onStart, onView }: JobCardProps) => {
             </span>
           </div>
           {job.status === JobStatus.IN_PROGRESS && (
-            <motion.span 
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="mono text-primary font-medium"
-            >
+            <span className="mono text-primary font-medium">
               {formatTime(elapsed)}
-            </motion.span>
+            </span>
           )}
         </div>
         
         {job.status === JobStatus.SCHEDULED && (
-          <motion.button
+          <button
             onClick={(e) => {
               e.stopPropagation();
               onStart(job.id);
             }}
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
             className="liquid-btn w-10 h-10 text-primary"
           >
             <Play size={18} fill="currentColor" />
-          </motion.button>
+          </button>
         )}
         
         {job.status === JobStatus.COMPLETED && (
           <div className="flex items-center gap-2">
             {job.reportPdfUrl && (
-              <motion.div 
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ type: 'spring', stiffness: 400, delay: 0.1 }}
-                className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center" 
-                title="Relatório disponível"
-              >
+              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center" title="Relatório disponível">
                 <FileText size={14} className="text-primary" />
-              </motion.div>
+              </div>
             )}
-            <motion.div 
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ type: 'spring', stiffness: 400 }}
-              className="w-10 h-10 rounded-full bg-success/20 flex items-center justify-center"
-            >
+            <div className="w-10 h-10 rounded-full bg-success/20 flex items-center justify-center">
               <Check size={18} className="text-success" />
-            </motion.div>
+            </div>
           </div>
         )}
       </div>
