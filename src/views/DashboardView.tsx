@@ -80,41 +80,92 @@ export const DashboardView = ({ jobs, onStartJob, onViewJob, userProfile }: Dash
         {/* Stats Cards */}
         <div className="grid grid-cols-3 gap-3 mb-6">
           <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="glass-panel p-4 text-center"
+            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            whileHover={{ scale: 1.03, y: -2 }}
+            transition={{ 
+              type: "spring",
+              stiffness: 400,
+              damping: 25,
+              delay: 0.1 
+            }}
+            className="glass-panel p-4 text-center cursor-default group"
           >
-            <div className="flex items-center justify-center w-8 h-8 mx-auto mb-2 rounded-full bg-primary/10">
+            <motion.div 
+              className="flex items-center justify-center w-8 h-8 mx-auto mb-2 rounded-full bg-primary/10 group-hover:bg-primary/20 transition-colors"
+              whileHover={{ rotate: 360 }}
+              transition={{ duration: 0.5 }}
+            >
               <Clock size={16} className="text-primary" />
-            </div>
-            <p className="text-2xl font-light text-foreground">{inProgressJobs.length}</p>
+            </motion.div>
+            <motion.p 
+              className="text-2xl font-light text-foreground"
+              key={inProgressJobs.length}
+              initial={{ scale: 1.2, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+            >
+              {inProgressJobs.length}
+            </motion.p>
             <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">{t('dashboard.active')}</p>
           </motion.div>
           
           <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="glass-panel p-4 text-center"
+            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            whileHover={{ scale: 1.03, y: -2 }}
+            transition={{ 
+              type: "spring",
+              stiffness: 400,
+              damping: 25,
+              delay: 0.2 
+            }}
+            className="glass-panel p-4 text-center cursor-default group"
           >
-            <div className="flex items-center justify-center w-8 h-8 mx-auto mb-2 rounded-full bg-warning/10">
+            <motion.div 
+              className="flex items-center justify-center w-8 h-8 mx-auto mb-2 rounded-full bg-warning/10 group-hover:bg-warning/20 transition-colors"
+              whileHover={{ rotate: 360 }}
+              transition={{ duration: 0.5 }}
+            >
               <TrendingUp size={16} className="text-warning" />
-            </div>
-            <p className="text-2xl font-light text-foreground">{scheduledJobs.length}</p>
+            </motion.div>
+            <motion.p 
+              className="text-2xl font-light text-foreground"
+              key={scheduledJobs.length}
+              initial={{ scale: 1.2, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+            >
+              {scheduledJobs.length}
+            </motion.p>
             <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">{t('dashboard.scheduled')}</p>
           </motion.div>
           
           <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="glass-panel p-4 text-center"
+            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            whileHover={{ scale: 1.03, y: -2 }}
+            transition={{ 
+              type: "spring",
+              stiffness: 400,
+              damping: 25,
+              delay: 0.3 
+            }}
+            className="glass-panel p-4 text-center cursor-default group"
           >
-            <div className="flex items-center justify-center w-8 h-8 mx-auto mb-2 rounded-full bg-success/10">
+            <motion.div 
+              className="flex items-center justify-center w-8 h-8 mx-auto mb-2 rounded-full bg-success/10 group-hover:bg-success/20 transition-colors"
+              whileHover={{ rotate: 360 }}
+              transition={{ duration: 0.5 }}
+            >
               <CheckCircle2 size={16} className="text-success" />
-            </div>
-            <p className="text-2xl font-light text-foreground">{completedJobs.length}</p>
+            </motion.div>
+            <motion.p 
+              className="text-2xl font-light text-foreground"
+              key={completedJobs.length}
+              initial={{ scale: 1.2, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+            >
+              {completedJobs.length}
+            </motion.p>
             <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">{t('dashboard.done')}</p>
           </motion.div>
         </div>

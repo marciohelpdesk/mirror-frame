@@ -2,12 +2,13 @@ import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 
 export const BackgroundEffects = () => {
-  const drops = useMemo(() => Array.from({ length: 6 }).map((_, i) => ({
+  const drops = useMemo(() => Array.from({ length: 5 }).map((_, i) => ({
     id: i,
-    left: `${Math.random() * 100}%`,
-    top: `${Math.random() * 100}%`,
-    size: Math.random() * 150 + 50,
-    delay: -(Math.random() * 10), 
+    left: `${15 + Math.random() * 70}%`,
+    top: `${10 + Math.random() * 60}%`,
+    size: Math.random() * 120 + 60,
+    delay: i * 0.15,
+    duration: 6 + Math.random() * 4,
   })), []);
 
   return (
@@ -16,22 +17,55 @@ export const BackgroundEffects = () => {
         <motion.div 
           key={drop.id}
           className="mercury-drop"
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 0.6, scale: 1 }}
-          transition={{ duration: 1, delay: drop.delay * -0.1 }}
+          initial={{ opacity: 0, scale: 0.6, y: 20 }}
+          animate={{ 
+            opacity: [0, 0.5, 0.4],
+            scale: [0.6, 1, 0.95],
+            y: [20, -10, 0],
+          }}
+          transition={{ 
+            duration: 1.5, 
+            delay: drop.delay,
+            ease: "easeOut"
+          }}
           style={{
             left: drop.left,
             top: drop.top,
             width: `${drop.size}px`,
             height: `${drop.size}px`,
-            animationDelay: `${drop.delay}s`,
+            animation: `float ${drop.duration}s infinite ease-in-out`,
+            animationDelay: `${-drop.delay * 2}s`,
           }}
         />
       ))}
       
-      {/* Large decorative drops */}
-      <div className="mercury-drop" style={{ width: '300px', height: '300px', top: '-100px', right: '-100px', opacity: 0.4 }} />
-      <div className="mercury-drop" style={{ width: '250px', height: '250px', bottom: '-80px', left: '-80px', opacity: 0.5 }} />
+      {/* Large decorative accent drops with subtle animation */}
+      <motion.div 
+        className="mercury-drop"
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 0.35, scale: 1 }}
+        transition={{ duration: 2, delay: 0.5 }}
+        style={{ 
+          width: '280px', 
+          height: '280px', 
+          top: '-80px', 
+          right: '-60px',
+          animation: 'float 12s infinite ease-in-out',
+        }} 
+      />
+      <motion.div 
+        className="mercury-drop"
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 0.4, scale: 1 }}
+        transition={{ duration: 2, delay: 0.8 }}
+        style={{ 
+          width: '220px', 
+          height: '220px', 
+          bottom: '-60px', 
+          left: '-50px',
+          animation: 'float 10s infinite ease-in-out reverse',
+        }} 
+      />
     </div>
   );
 };
