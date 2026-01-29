@@ -11,6 +11,7 @@ import { CalendarJobItem } from '@/components/calendar/CalendarJobItem';
 import { AddJobModal } from '@/components/AddJobModal';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { staggerContainer, staggerItem, glassCardVariants } from '@/lib/animations';
 import { 
   format, 
   addDays, 
@@ -155,43 +156,58 @@ export const AgendaView = ({ jobs, properties, employees = [], onStartJob, onVie
       
       <div className="px-4 relative z-10">
         {/* View Toggle */}
-        <div className="glass-panel p-1 mb-4 flex gap-1">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="glass-panel p-1.5 mb-4 flex gap-1"
+        >
           {viewButtons.map(({ view, icon: Icon, label }) => (
-            <button
+            <motion.button
               key={view}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
               onClick={() => setCalendarView(view)}
               className={`
-                flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-medium transition-all
+                flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-medium transition-all
                 ${calendarView === view 
-                  ? 'bg-primary text-primary-foreground' 
-                  : 'text-muted-foreground hover:bg-muted'
+                  ? 'bg-primary text-primary-foreground shadow-lg' 
+                  : 'text-muted-foreground hover:bg-muted/50'
                 }
               `}
             >
               <Icon size={14} />
               {label}
-            </button>
+            </motion.button>
           ))}
-        </div>
+        </motion.div>
 
         {/* Calendar Navigation */}
-        <div className="glass-panel p-4 mb-4">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="glass-panel-elevated p-4 mb-4"
+        >
           <div className="flex justify-between items-center mb-4">
-            <button 
+            <motion.button 
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
               onClick={() => navigate('prev')}
               className="liquid-btn w-10 h-10 text-muted-foreground"
             >
               <ChevronLeft size={20} />
-            </button>
+            </motion.button>
             <h3 className="font-medium text-foreground">
               {getHeaderTitle()}
             </h3>
-            <button 
+            <motion.button 
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
               onClick={() => navigate('next')}
               className="liquid-btn w-10 h-10 text-muted-foreground"
             >
               <ChevronRight size={20} />
-            </button>
+            </motion.button>
           </div>
           
           {/* Calendar Views */}
@@ -238,23 +254,30 @@ export const AgendaView = ({ jobs, properties, employees = [], onStartJob, onVie
               )}
             </motion.div>
           </AnimatePresence>
-        </div>
+        </motion.div>
         
         {/* Selected Day Jobs List */}
         {calendarView !== 'day' && (
-          <div>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+          >
             <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3">
               {format(selectedDate, 'EEEE, MMMM d')}
             </h2>
             
-            <div className="space-y-2">
+            <motion.div 
+              className="space-y-2"
+              variants={staggerContainer}
+              initial="initial"
+              animate="enter"
+            >
               <AnimatePresence>
                 {selectedDateJobs.map(job => (
                   <motion.div
                     key={job.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
+                    variants={staggerItem}
                   >
                     <CalendarJobItem
                       job={job}
@@ -268,15 +291,16 @@ export const AgendaView = ({ jobs, properties, employees = [], onStartJob, onVie
               
               {selectedDateJobs.length === 0 && (
                 <motion.div 
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
+                  variants={glassCardVariants}
+                  initial="initial"
+                  animate="enter"
                   className="glass-panel p-6 text-center"
                 >
                   <p className="text-muted-foreground text-sm">{t('agenda.noJobs')}</p>
                 </motion.div>
               )}
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         )}
       </div>
     </div>
