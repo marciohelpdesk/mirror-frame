@@ -31,6 +31,11 @@ const translations: Record<Language, Record<string, string>> = {
     'dashboard.active': 'Active',
     'dashboard.scheduled': 'Scheduled',
     'dashboard.done': 'Done',
+    'dashboard.weeklyProgress': 'Weekly Progress',
+    'dashboard.cleaningsCompleted': 'cleanings completed',
+    'dashboard.nextCleaning': 'Next Cleaning',
+    'dashboard.in': 'In',
+    'dashboard.now': 'Now',
     
     // Agenda
     'agenda.title': 'Agenda',
@@ -41,6 +46,12 @@ const translations: Record<Language, Record<string, string>> = {
     'agenda.day': 'Day',
     'agenda.addJob': 'Add Job',
     'agenda.noJobs': 'No jobs scheduled',
+    'agenda.jobs': 'jobs',
+    'agenda.legend': 'Legend',
+    'agenda.pending': 'Pending',
+    'agenda.inProgress': 'In Progress',
+    'agenda.completed': 'Completed',
+    'agenda.scheduled': 'Scheduled',
     
     // Properties
     'properties.title': 'Properties',
@@ -366,6 +377,11 @@ const translations: Record<Language, Record<string, string>> = {
     'dashboard.active': 'Ativos',
     'dashboard.scheduled': 'Agendados',
     'dashboard.done': 'Concluídos',
+    'dashboard.weeklyProgress': 'Progresso Semanal',
+    'dashboard.cleaningsCompleted': 'limpezas concluídas',
+    'dashboard.nextCleaning': 'Próxima Limpeza',
+    'dashboard.in': 'Em',
+    'dashboard.now': 'Agora',
     
     // Agenda
     'agenda.title': 'Agenda',
@@ -376,6 +392,12 @@ const translations: Record<Language, Record<string, string>> = {
     'agenda.day': 'Dia',
     'agenda.addJob': 'Adicionar Trabalho',
     'agenda.noJobs': 'Nenhum trabalho agendado',
+    'agenda.jobs': 'jobs',
+    'agenda.legend': 'Legenda',
+    'agenda.pending': 'Pendente',
+    'agenda.inProgress': 'Em andamento',
+    'agenda.completed': 'Concluído',
+    'agenda.scheduled': 'Agendado',
     
     // Properties
     'properties.title': 'Propriedades',

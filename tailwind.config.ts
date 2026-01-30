@@ -63,6 +63,14 @@ export default {
           blue: "hsl(var(--sky-blue))",
           cyan: "hsl(var(--sky-cyan))",
         },
+        // Status colors for jobs
+        status: {
+          pending: "hsl(var(--status-pending))",
+          done: "hsl(var(--status-done))",
+          late: "hsl(var(--status-late))",
+          scheduled: "hsl(var(--status-scheduled))",
+          active: "hsl(var(--status-active))",
+        },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",

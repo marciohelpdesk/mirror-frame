@@ -279,6 +279,7 @@ const Index = () => {
             >
               <DashboardView 
                 jobs={jobs}
+                properties={properties}
                 onStartJob={startJob}
                 onViewJob={viewJob}
                 userProfile={userProfile}

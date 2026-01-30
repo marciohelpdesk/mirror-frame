@@ -1,5 +1,5 @@
 import { forwardRef } from 'react';
-import { Clock, MapPin, GripVertical } from 'lucide-react';
+import { Clock, MapPin, GripVertical, Users } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Job, JobStatus } from '@/types';
 
@@ -11,39 +11,73 @@ interface CalendarJobItemProps {
   draggable?: boolean;
 }
 
+const getStatusConfig = (status: JobStatus) => {
+  switch (status) {
+    case JobStatus.SCHEDULED:
+      return {
+        bg: 'bg-status-scheduled/10',
+        border: 'border-status-scheduled/40',
+        dot: 'bg-status-scheduled',
+        borderLeft: 'border-l-status-scheduled',
+        badge: 'bg-status-scheduled/20 text-status-scheduled',
+        label: 'Agendado',
+      };
+    case JobStatus.IN_PROGRESS:
+      return {
+        bg: 'bg-status-active/10',
+        border: 'border-status-active/40',
+        dot: 'bg-status-active',
+        borderLeft: 'border-l-status-active',
+        badge: 'bg-status-active/20 text-status-active',
+        label: 'Em andamento',
+      };
+    case JobStatus.COMPLETED:
+      return {
+        bg: 'bg-status-done/10',
+        border: 'border-status-done/40',
+        dot: 'bg-status-done',
+        borderLeft: 'border-l-status-done',
+        badge: 'bg-status-done/20 text-status-done',
+        label: 'Concluído',
+      };
+    default:
+      return {
+        bg: 'bg-muted/10',
+        border: 'border-muted/40',
+        dot: 'bg-muted',
+        borderLeft: 'border-l-muted',
+        badge: 'bg-muted/20 text-muted-foreground',
+        label: '',
+      };
+  }
+};
+
 export const CalendarJobItem = forwardRef<HTMLDivElement, CalendarJobItemProps>(
   ({ job, compact = false, onView, onDragStart, draggable = true }, ref) => {
-    const statusColors = {
-      [JobStatus.SCHEDULED]: 'bg-warning/20 border-warning/40',
-      [JobStatus.IN_PROGRESS]: 'bg-primary/20 border-primary/40',
-      [JobStatus.COMPLETED]: 'bg-success/20 border-success/40',
-    };
-
-    const dotColors = {
-      [JobStatus.SCHEDULED]: 'bg-warning',
-      [JobStatus.IN_PROGRESS]: 'bg-primary',
-      [JobStatus.COMPLETED]: 'bg-success',
-    };
+    const config = getStatusConfig(job.status);
+    const isDraggable = draggable && job.status === JobStatus.SCHEDULED;
 
     if (compact) {
       return (
         <motion.div
           ref={ref}
           layout
-          draggable={draggable && job.status === JobStatus.SCHEDULED}
+          draggable={isDraggable}
           onDragStart={(e) => onDragStart?.(e as unknown as React.DragEvent, job)}
           onClick={() => onView(job.id)}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
           className={`
-            px-2 py-1 rounded-md text-xs cursor-pointer truncate border
-            ${statusColors[job.status]}
-            ${draggable && job.status === JobStatus.SCHEDULED ? 'cursor-grab active:cursor-grabbing' : ''}
+            px-2 py-1.5 rounded-lg text-xs cursor-pointer border
+            ${config.bg} ${config.border}
+            ${isDraggable ? 'cursor-grab active:cursor-grabbing' : ''}
+            transition-all duration-200
           `}
         >
-          <div className="flex items-center gap-1">
-            <div className={`w-1.5 h-1.5 rounded-full ${dotColors[job.status]}`} />
-            <span className="truncate font-medium text-foreground">
+          <div className="flex items-center gap-1.5">
+            <div className={`w-2 h-2 rounded-full ${config.dot} shrink-0`} />
+            <span className="font-semibold text-foreground">
               {job.checkoutTime || job.time}
-              {job.checkinDeadline && `-${job.checkinDeadline}`}
             </span>
             <span className="truncate text-muted-foreground">{job.clientName}</span>
           </div>
@@ -55,38 +89,63 @@ export const CalendarJobItem = forwardRef<HTMLDivElement, CalendarJobItemProps>(
       <motion.div
         ref={ref}
         layout
-        draggable={draggable && job.status === JobStatus.SCHEDULED}
+        draggable={isDraggable}
         onDragStart={(e) => onDragStart?.(e as unknown as React.DragEvent, job)}
         onClick={() => onView(job.id)}
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        whileHover={{ scale: 1.01, y: -2 }}
+        whileTap={{ scale: 0.99 }}
+        transition={{ type: "spring", stiffness: 400, damping: 25 }}
         className={`
-          glass-panel p-3 cursor-pointer border-l-4 
-          ${job.status === JobStatus.SCHEDULED ? 'border-l-warning' : ''}
-          ${job.status === JobStatus.IN_PROGRESS ? 'border-l-primary' : ''}
-          ${job.status === JobStatus.COMPLETED ? 'border-l-success' : ''}
-          ${draggable && job.status === JobStatus.SCHEDULED ? 'cursor-grab active:cursor-grabbing' : ''}
-          hover:scale-[1.02] transition-transform
+          glass-panel p-4 cursor-pointer border-l-4 
+          ${config.borderLeft}
+          ${isDraggable ? 'cursor-grab active:cursor-grabbing' : ''}
         `}
       >
-        <div className="flex items-start gap-2">
-          {draggable && job.status === JobStatus.SCHEDULED && (
-            <GripVertical size={16} className="text-muted-foreground mt-0.5 shrink-0" />
-          )}
-          <div className="flex-1 min-w-0">
-            <h4 className="font-medium text-foreground text-sm truncate">{job.clientName}</h4>
-            <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
-              <div className="flex items-center gap-1">
-                <Clock size={12} />
-                <span>
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex items-start gap-3 flex-1 min-w-0">
+            {isDraggable && (
+              <GripVertical size={16} className="text-muted-foreground mt-1 shrink-0 opacity-50" />
+            )}
+            <div className="flex-1 min-w-0">
+              {/* Time and Status */}
+              <div className="flex items-center gap-2 mb-1.5">
+                <div className={`w-2.5 h-2.5 rounded-full ${config.dot}`} />
+                <span className="font-bold text-foreground">
                   {job.checkoutTime || job.time}
                   {job.checkinDeadline && ` → ${job.checkinDeadline}`}
                 </span>
               </div>
-              <div className="flex items-center gap-1 truncate">
-                <MapPin size={12} className="shrink-0" />
-                <span className="truncate">{job.address}</span>
+              
+              {/* Property name */}
+              <h4 className="font-semibold text-foreground text-base truncate mb-2">
+                {job.clientName}
+              </h4>
+              
+              {/* Details */}
+              <div className="space-y-1.5 text-xs text-muted-foreground">
+                <div className="flex items-center gap-1.5">
+                  <MapPin size={12} className="shrink-0" />
+                  <span className="truncate">{job.address}</span>
+                </div>
+                {job.assignedTo && (
+                  <div className="flex items-center gap-1.5">
+                    <Users size={12} className="shrink-0" />
+                    <span>{job.assignedTo}</span>
+                  </div>
+                )}
               </div>
             </div>
           </div>
+          
+          {/* Status badge */}
+          <span className={`
+            px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide shrink-0
+            ${config.badge}
+          `}>
+            {config.label}
+          </span>
         </div>
       </motion.div>
     );
