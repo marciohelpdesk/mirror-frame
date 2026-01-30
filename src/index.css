@@ -54,6 +54,13 @@
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
     
+    /* Job Status Colors */
+    --status-pending: 38 92% 50%;
+    --status-done: 160 84% 39%;
+    --status-late: 0 84% 60%;
+    --status-scheduled: 215 16% 70%;
+    --status-active: 186 100% 46%;
+    
     /* UI */
     --border: 214 32% 91%;
     --input: 0 0% 100%;

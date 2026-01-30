@@ -1,22 +1,25 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { TrendingUp, Clock, CheckCircle2 } from 'lucide-react';
-import { Job, JobStatus } from '@/types';
+import { Job, JobStatus, Property } from '@/types';
 import { PageHeader } from '@/components/PageHeader';
 import { JobCard } from '@/components/JobCard';
 import { BackgroundEffects } from '@/components/BackgroundEffects';
 import { LiquidProgressBubble } from '@/components/LiquidProgressBubble';
+import { NextJobCard } from '@/components/dashboard/NextJobCard';
+import { WeeklyProgress } from '@/components/dashboard/WeeklyProgress';
+import { DashboardStats } from '@/components/dashboard/DashboardStats';
 import { useLanguage } from '@/contexts/LanguageContext';
 import purLogo from '@/assets/pur-logo.png';
 
 interface DashboardViewProps {
   jobs: Job[];
+  properties?: Property[];
   onStartJob: (jobId: string) => void;
   onViewJob: (jobId: string) => void;
   userProfile: { name: string; avatar: string };
 }
 
-export const DashboardView = ({ jobs, onStartJob, onViewJob, userProfile }: DashboardViewProps) => {
+export const DashboardView = ({ jobs, properties = [], onStartJob, onViewJob, userProfile }: DashboardViewProps) => {
   const { t } = useLanguage();
   const [currentTime, setCurrentTime] = useState(new Date());
   
@@ -25,10 +28,26 @@ export const DashboardView = ({ jobs, onStartJob, onViewJob, userProfile }: Dash
     return () => clearInterval(timer);
   }, []);
 
-  const todayJobs = jobs.filter(j => j.date === new Date().toISOString().split('T')[0]);
+  const todayStr = new Date().toISOString().split('T')[0];
+  const todayJobs = jobs.filter(j => j.date === todayStr);
   const inProgressJobs = todayJobs.filter(j => j.status === JobStatus.IN_PROGRESS);
   const scheduledJobs = todayJobs.filter(j => j.status === JobStatus.SCHEDULED);
   const completedJobs = todayJobs.filter(j => j.status === JobStatus.COMPLETED);
+
+  // Get the next upcoming job (first in-progress or first scheduled)
+  const nextJob = useMemo(() => {
+    if (inProgressJobs.length > 0) return inProgressJobs[0];
+    if (scheduledJobs.length > 0) {
+      // Sort by time and return the earliest
+      return [...scheduledJobs].sort((a, b) => a.time.localeCompare(b.time))[0];
+    }
+    return null;
+  }, [inProgressJobs, scheduledJobs]);
+
+  // Get property for next job
+  const nextJobProperty = nextJob?.propertyId 
+    ? properties.find(p => p.id === nextJob.propertyId)
+    : undefined;
 
   // Calculate purification progress based on all today's jobs checklists
   const purificationProgress = useMemo(() => {
@@ -53,6 +72,15 @@ export const DashboardView = ({ jobs, onStartJob, onViewJob, userProfile }: Dash
   const greeting = currentTime.getHours() < 12 ? t('dashboard.goodMorning') : 
                    currentTime.getHours() < 17 ? t('dashboard.goodAfternoon') : t('dashboard.goodEvening');
 
+  // Remaining jobs after next job
+  const remainingJobs = useMemo(() => {
+    const allUpcoming = [...inProgressJobs, ...scheduledJobs];
+    if (nextJob) {
+      return allUpcoming.filter(j => j.id !== nextJob.id);
+    }
+    return allUpcoming;
+  }, [inProgressJobs, scheduledJobs, nextJob]);
+
   return (
     <div className="flex flex-col h-full relative z-10 overflow-y-auto hide-scrollbar pb-32">
       <BackgroundEffects />
@@ -76,147 +104,69 @@ export const DashboardView = ({ jobs, onStartJob, onViewJob, userProfile }: Dash
         }
       />
       
-      <div className="px-6 pt-2 relative z-10">
+      <div className="px-6 pt-2 relative z-10 space-y-6">
         {/* Stats Cards */}
-        <div className="grid grid-cols-3 gap-3 mb-6">
-          <motion.div 
-            initial={{ opacity: 0, y: 20, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            whileHover={{ scale: 1.03, y: -2 }}
-            transition={{ 
-              type: "spring",
-              stiffness: 400,
-              damping: 25,
-              delay: 0.1 
-            }}
-            className="glass-panel p-4 text-center cursor-default group"
-          >
-            <motion.div 
-              className="flex items-center justify-center w-8 h-8 mx-auto mb-2 rounded-full bg-primary/10 group-hover:bg-primary/20 transition-colors"
-              whileHover={{ rotate: 360 }}
-              transition={{ duration: 0.5 }}
-            >
-              <Clock size={16} className="text-primary" />
-            </motion.div>
-            <motion.p 
-              className="text-2xl font-light text-foreground"
-              key={inProgressJobs.length}
-              initial={{ scale: 1.2, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-            >
-              {inProgressJobs.length}
-            </motion.p>
-            <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">{t('dashboard.active')}</p>
-          </motion.div>
-          
-          <motion.div 
-            initial={{ opacity: 0, y: 20, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            whileHover={{ scale: 1.03, y: -2 }}
-            transition={{ 
-              type: "spring",
-              stiffness: 400,
-              damping: 25,
-              delay: 0.2 
-            }}
-            className="glass-panel p-4 text-center cursor-default group"
-          >
-            <motion.div 
-              className="flex items-center justify-center w-8 h-8 mx-auto mb-2 rounded-full bg-warning/10 group-hover:bg-warning/20 transition-colors"
-              whileHover={{ rotate: 360 }}
-              transition={{ duration: 0.5 }}
-            >
-              <TrendingUp size={16} className="text-warning" />
-            </motion.div>
-            <motion.p 
-              className="text-2xl font-light text-foreground"
-              key={scheduledJobs.length}
-              initial={{ scale: 1.2, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-            >
-              {scheduledJobs.length}
-            </motion.p>
-            <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">{t('dashboard.scheduled')}</p>
-          </motion.div>
-          
-          <motion.div 
-            initial={{ opacity: 0, y: 20, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            whileHover={{ scale: 1.03, y: -2 }}
-            transition={{ 
-              type: "spring",
-              stiffness: 400,
-              damping: 25,
-              delay: 0.3 
-            }}
-            className="glass-panel p-4 text-center cursor-default group"
-          >
-            <motion.div 
-              className="flex items-center justify-center w-8 h-8 mx-auto mb-2 rounded-full bg-success/10 group-hover:bg-success/20 transition-colors"
-              whileHover={{ rotate: 360 }}
-              transition={{ duration: 0.5 }}
-            >
-              <CheckCircle2 size={16} className="text-success" />
-            </motion.div>
-            <motion.p 
-              className="text-2xl font-light text-foreground"
-              key={completedJobs.length}
-              initial={{ scale: 1.2, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-            >
-              {completedJobs.length}
-            </motion.p>
-            <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">{t('dashboard.done')}</p>
-          </motion.div>
-        </div>
+        <DashboardStats jobs={jobs} />
 
         {/* Purification Bubble */}
         <motion.div 
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.4 }}
-          className="flex justify-center mb-8"
+          className="flex justify-center"
         >
           <LiquidProgressBubble percentage={purificationProgress} showLabel={false} />
         </motion.div>
 
-        {/* Today's Jobs */}
-        <div className="mb-6">
-          <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4">
-            {t('dashboard.todayJobs')}
-          </h2>
-          
-          <div className="space-y-3">
-            <AnimatePresence>
-              {inProgressJobs.map((job, i) => (
-                <JobCard 
-                  key={job.id} 
-                  job={job} 
-                  onStart={onStartJob}
-                  onView={onViewJob}
-                />
-              ))}
-              {scheduledJobs.map((job, i) => (
-                <JobCard 
-                  key={job.id} 
-                  job={job} 
-                  onStart={onStartJob}
-                  onView={onViewJob}
-                />
-              ))}
-            </AnimatePresence>
-            
-            {todayJobs.length === 0 && (
-              <motion.div 
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="glass-panel p-8 text-center"
-              >
-                <p className="text-muted-foreground">{t('dashboard.noJobsToday')}</p>
-              </motion.div>
-            )}
+        {/* Next Job Highlight */}
+        {nextJob && (
+          <div>
+            <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3">
+              {t('dashboard.nextCleaning') || 'Próxima Limpeza'}
+            </h2>
+            <NextJobCard 
+              job={nextJob}
+              property={nextJobProperty}
+              onStart={onStartJob}
+              onView={onViewJob}
+            />
           </div>
-        </div>
+        )}
+
+        {/* Weekly Progress */}
+        <WeeklyProgress jobs={jobs} />
+
+        {/* Remaining Today's Jobs */}
+        {remainingJobs.length > 0 && (
+          <div>
+            <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4">
+              {t('dashboard.todayJobs')}
+            </h2>
+            
+            <div className="space-y-3">
+              <AnimatePresence>
+                {remainingJobs.map((job) => (
+                  <JobCard 
+                    key={job.id} 
+                    job={job} 
+                    onStart={onStartJob}
+                    onView={onViewJob}
+                  />
+                ))}
+              </AnimatePresence>
+            </div>
+          </div>
+        )}
+        
+        {todayJobs.length === 0 && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="glass-panel p-8 text-center"
+          >
+            <p className="text-muted-foreground">{t('dashboard.noJobsToday')}</p>
+          </motion.div>
+        )}
       </div>
     </div>
   );

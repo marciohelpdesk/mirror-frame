@@ -243,18 +243,24 @@ export const AgendaView = ({ jobs, properties, employees = [], onStartJob, onVie
         {/* Selected Day Jobs List */}
         {calendarView !== 'day' && (
           <div>
-            <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3">
-              {format(selectedDate, 'EEEE, MMMM d')}
-            </h2>
+            <div className="flex justify-between items-center mb-3">
+              <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                {format(selectedDate, 'EEEE, MMMM d')}
+              </h2>
+              <span className="text-xs text-muted-foreground">
+                {selectedDateJobs.length} {t('agenda.jobs') || 'jobs'}
+              </span>
+            </div>
             
-            <div className="space-y-2">
+            <div className="space-y-3">
               <AnimatePresence>
-                {selectedDateJobs.map(job => (
+                {selectedDateJobs.map((job, idx) => (
                   <motion.div
                     key={job.id}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
+                    transition={{ delay: idx * 0.05 }}
                   >
                     <CalendarJobItem
                       job={job}
@@ -278,6 +284,29 @@ export const AgendaView = ({ jobs, properties, employees = [], onStartJob, onVie
             </div>
           </div>
         )}
+
+        {/* Status Legend */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="glass-panel p-4 mt-4"
+        >
+          <p className="text-xs font-bold text-muted-foreground mb-3">{t('agenda.legend') || 'Legenda'}</p>
+          <div className="flex flex-wrap gap-4">
+            {[
+              { color: 'bg-status-pending', label: t('agenda.pending') || 'Pendente' },
+              { color: 'bg-status-active', label: t('agenda.inProgress') || 'Em andamento' },
+              { color: 'bg-status-done', label: t('agenda.completed') || 'Concluído' },
+              { color: 'bg-status-scheduled', label: t('agenda.scheduled') || 'Agendado' },
+            ].map((item) => (
+              <div key={item.label} className="flex items-center gap-2">
+                <div className={`w-3 h-3 rounded-full ${item.color}`} />
+                <span className="text-xs text-muted-foreground">{item.label}</span>
+              </div>
+            ))}
+          </div>
+        </motion.div>
       </div>
     </div>
   );
