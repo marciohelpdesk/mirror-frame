@@ -1,5 +1,5 @@
-import { useState, useCallback, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useCallback, useEffect, useRef } from 'react';
+import { AnimatePresence } from 'framer-motion';
 import { Job, Property, UserProfile, ViewState, JobStatus, Employee, InventoryItem } from '@/types';
 import { BottomNav } from '@/components/BottomNav';
 import { DashboardView } from '@/views/DashboardView';
@@ -12,6 +12,7 @@ import { PropertyDetailsView } from '@/views/PropertyDetailsView';
 import { JobDetailsView } from '@/views/JobDetailsView';
 import { ExecutionView } from '@/views/ExecutionView';
 import { FinanceView } from '@/views/FinanceView';
+import { PageTransition, getTransitionDirection } from '@/components/PageTransition';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { useProperties } from '@/hooks/useProperties';
@@ -46,6 +47,7 @@ const Index = () => {
   
   // App State
   const [view, setView] = useState<ViewState>('DASHBOARD');
+  const previousViewRef = useRef<ViewState>('DASHBOARD');
   const [activeJobId, setActiveJobId] = useState<string | null>(null);
   const [activePropertyId, setActivePropertyId] = useState<string | null>(null);
 
@@ -200,8 +202,9 @@ const Index = () => {
 
   // Navigation Handler
   const handleNavigate = useCallback((newView: ViewState) => {
+    previousViewRef.current = view;
     setView(newView);
-  }, []);
+  }, [view]);
 
   const activeProperty = properties.find(p => p.id === activePropertyId);
   const activeJob = jobs.find(j => j.id === activeJobId);
@@ -270,11 +273,9 @@ const Index = () => {
         
         <AnimatePresence mode="wait">
           {view === 'DASHBOARD' && (
-            <motion.div
+            <PageTransition
               key="dashboard"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
+              direction={getTransitionDirection('DASHBOARD', previousViewRef.current)}
               className="h-full"
             >
               <DashboardView 
@@ -284,15 +285,13 @@ const Index = () => {
                 onViewJob={viewJob}
                 userProfile={userProfile}
               />
-            </motion.div>
+            </PageTransition>
           )}
           
           {view === 'AGENDA' && (
-            <motion.div
+            <PageTransition
               key="agenda"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
+              direction={getTransitionDirection('AGENDA', previousViewRef.current)}
               className="h-full"
             >
               <AgendaView 
@@ -304,15 +303,13 @@ const Index = () => {
                 onRescheduleJob={rescheduleJob}
                 onAddJob={handleAddJob}
               />
-            </motion.div>
+            </PageTransition>
           )}
           
           {view === 'PROPERTIES' && (
-            <motion.div
+            <PageTransition
               key="properties"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
+              direction={getTransitionDirection('PROPERTIES', previousViewRef.current)}
               className="h-full"
             >
               <PropertiesView 
@@ -320,52 +317,46 @@ const Index = () => {
                 onViewProperty={viewProperty}
                 onAddProperty={handleAddProperty}
               />
-            </motion.div>
+            </PageTransition>
           )}
           
           {view === 'PROPERTY_DETAILS' && activeProperty && (
-            <motion.div
+            <PageTransition
               key="property-details"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
+              direction="right"
               className="h-full"
             >
               <PropertyDetailsView 
                 property={activeProperty}
-                onBack={() => setView('PROPERTIES')}
+                onBack={() => handleNavigate('PROPERTIES')}
                 onUpdate={handleUpdateProperty}
                 onDelete={handleDeleteProperty}
               />
-            </motion.div>
+            </PageTransition>
           )}
 
           {view === 'JOB_DETAILS' && activeJob && (
-            <motion.div
+            <PageTransition
               key="job-details"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
+              direction="right"
               className="h-full"
             >
               <JobDetailsView 
                 job={activeJob}
                 properties={properties}
                 employees={employees}
-                onBack={() => setView('AGENDA')}
+                onBack={() => handleNavigate('AGENDA')}
                 onStartJob={startJob}
                 onUpdateJob={handleUpdateJob}
                 onDeleteJob={handleDeleteJob}
               />
-            </motion.div>
+            </PageTransition>
           )}
 
           {view === 'EXECUTION' && activeJob && (
-            <motion.div
+            <PageTransition
               key="execution"
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
+              direction="scale"
               className="h-full"
             >
               <ExecutionView
@@ -376,15 +367,13 @@ const Index = () => {
                 onComplete={completeJob}
                 onCancel={cancelExecution}
               />
-            </motion.div>
+            </PageTransition>
           )}
           
           {view === 'SETTINGS' && (
-            <motion.div
+            <PageTransition
               key="settings"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
+              direction={getTransitionDirection('SETTINGS', previousViewRef.current)}
               className="h-full"
             >
               <SettingsView 
@@ -392,27 +381,25 @@ const Index = () => {
                 userProfile={userProfile}
                 employees={employees}
                 onLogout={handleLogout}
-                onViewFinance={() => setView('FINANCE')}
+                onViewFinance={() => handleNavigate('FINANCE')}
                 onAddEmployee={handleAddEmployee}
                 onDeleteEmployee={handleDeleteEmployee}
                 onUpdateProfile={handleUpdateProfile}
               />
-            </motion.div>
+            </PageTransition>
           )}
 
           {view === 'FINANCE' && (
-            <motion.div
+            <PageTransition
               key="finance"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
+              direction="right"
               className="h-full"
             >
               <FinanceView 
                 jobs={jobs}
-                onBack={() => setView('SETTINGS')}
+                onBack={() => handleNavigate('SETTINGS')}
               />
-            </motion.div>
+            </PageTransition>
           )}
         </AnimatePresence>
         
