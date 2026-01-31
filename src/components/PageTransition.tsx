@@ -1,5 +1,5 @@
-import { motion, Variants } from 'framer-motion';
-import { ReactNode } from 'react';
+import { motion, Variants, Transition } from 'framer-motion';
+import { ReactNode, forwardRef } from 'react';
 
 type TransitionDirection = 'left' | 'right' | 'up' | 'down' | 'fade' | 'scale';
 
@@ -10,11 +10,17 @@ interface PageTransitionProps {
 }
 
 const getVariants = (direction: TransitionDirection): Variants => {
-  const distance = 30;
-  const springConfig = {
-    type: "spring" as const,
-    stiffness: 300,
-    damping: 30,
+  const distance = 20;
+  
+  // Smoother transition config using named easing
+  const enterTransition: Transition = {
+    duration: 0.25,
+    ease: "easeOut",
+  };
+  
+  const exitTransition: Transition = {
+    duration: 0.15,
+    ease: "easeIn",
   };
 
   switch (direction) {
@@ -24,12 +30,12 @@ const getVariants = (direction: TransitionDirection): Variants => {
         animate: { 
           opacity: 1, 
           x: 0,
-          transition: springConfig
+          transition: enterTransition
         },
         exit: { 
           opacity: 0, 
           x: distance,
-          transition: { duration: 0.2 }
+          transition: exitTransition
         },
       };
     case 'right':
@@ -38,12 +44,12 @@ const getVariants = (direction: TransitionDirection): Variants => {
         animate: { 
           opacity: 1, 
           x: 0,
-          transition: springConfig
+          transition: enterTransition
         },
         exit: { 
           opacity: 0, 
           x: -distance,
-          transition: { duration: 0.2 }
+          transition: exitTransition
         },
       };
     case 'up':
@@ -52,12 +58,12 @@ const getVariants = (direction: TransitionDirection): Variants => {
         animate: { 
           opacity: 1, 
           y: 0,
-          transition: springConfig
+          transition: enterTransition
         },
         exit: { 
           opacity: 0, 
           y: distance,
-          transition: { duration: 0.2 }
+          transition: exitTransition
         },
       };
     case 'down':
@@ -66,30 +72,26 @@ const getVariants = (direction: TransitionDirection): Variants => {
         animate: { 
           opacity: 1, 
           y: 0,
-          transition: springConfig
+          transition: enterTransition
         },
         exit: { 
           opacity: 0, 
           y: -distance,
-          transition: { duration: 0.2 }
+          transition: exitTransition
         },
       };
     case 'scale':
       return {
-        initial: { opacity: 0, scale: 0.92 },
+        initial: { opacity: 0, scale: 0.95 },
         animate: { 
           opacity: 1, 
           scale: 1,
-          transition: {
-            type: "spring",
-            stiffness: 400,
-            damping: 25,
-          }
+          transition: enterTransition
         },
         exit: { 
           opacity: 0, 
-          scale: 0.95,
-          transition: { duration: 0.15 }
+          scale: 0.98,
+          transition: exitTransition
         },
       };
     case 'fade':
@@ -98,35 +100,41 @@ const getVariants = (direction: TransitionDirection): Variants => {
         initial: { opacity: 0 },
         animate: { 
           opacity: 1,
-          transition: { duration: 0.25 }
+          transition: { duration: 0.2 }
         },
         exit: { 
           opacity: 0,
-          transition: { duration: 0.15 }
+          transition: { duration: 0.12 }
         },
       };
   }
 };
 
-export const PageTransition = ({ 
-  children, 
-  direction = 'fade',
-  className = ''
-}: PageTransitionProps) => {
-  const variants = getVariants(direction);
+// Using forwardRef to properly handle AnimatePresence refs
+export const PageTransition = forwardRef<HTMLDivElement, PageTransitionProps>(
+  ({ children, direction = 'fade', className = '' }, ref) => {
+    const variants = getVariants(direction);
 
-  return (
-    <motion.div
-      variants={variants}
-      initial="initial"
-      animate="animate"
-      exit="exit"
-      className={className}
-    >
-      {children}
-    </motion.div>
-  );
-};
+    return (
+      <motion.div
+        ref={ref}
+        variants={variants}
+        initial="initial"
+        animate="animate"
+        exit="exit"
+        className={className}
+        style={{ 
+          willChange: 'opacity, transform',
+          backfaceVisibility: 'hidden',
+        }}
+      >
+        {children}
+      </motion.div>
+    );
+  }
+);
+
+PageTransition.displayName = 'PageTransition';
 
 // Navigation order for determining slide direction
 const viewOrder = ['DASHBOARD', 'AGENDA', 'PROPERTIES', 'SETTINGS'];
