@@ -4,12 +4,6 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100;200;300;400;500;600;700&display=swap');
 
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
-
-@import url("https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&display=swap");
-
-@import url("https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap");
-
 /* Pur Design System - Florida Sky Aesthetic */
 
 @layer base {
@@ -17,144 +11,111 @@
     /* Safe Area Insets */
     --safe-area-inset-top: env(safe-area-inset-top, 0px);
     --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
-
+    
     /* Florida Sky Gradient Colors (HSL) */
     --sky-pink: 340 100% 93%;
     --sky-blue: 176 100% 85%;
     --sky-cyan: 186 100% 56%;
-
+    
     /* Core Colors */
-    --background: 209 40% 96%;
-    --foreground: 222 47% 11%;
-
+    --background: 176 100% 94%;
+    --foreground: 220 20% 15%;
+    
     /* Glass Panel */
-    --card: 210 40% 98%;
-    --card-foreground: 222 47% 11%;
-
-    --popover: 214 31% 91%;
-    --popover-foreground: 222 47% 11%;
-
+    --card: 0 0% 100%;
+    --card-foreground: 220 20% 15%;
+    
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 20% 15%;
+    
     /* Primary - Cyan accent */
-    --primary: 200 98% 39%;
-    --primary-foreground: 204 100% 97%;
-
+    --primary: 186 100% 46%;
+    --primary-foreground: 0 0% 100%;
+    
     /* Secondary - Mint/Teal */
-    --secondary: 215 24% 26%;
-    --secondary-foreground: 210 40% 98%;
-
+    --secondary: 162 64% 80%;
+    --secondary-foreground: 162 64% 20%;
+    
     /* Muted */
-    --muted: 215 20% 65%;
-    --muted-foreground: 222 47% 11%;
-
+    --muted: 214 32% 91%;
+    --muted-foreground: 215 16% 47%;
+    
     /* Accent - Light cyan */
-    --accent: 210 40% 98%;
-    --accent-foreground: 215 19% 34%;
-
+    --accent: 186 100% 93%;
+    --accent-foreground: 186 100% 30%;
+    
     /* Status Colors */
     --success: 162 64% 60%;
     --success-foreground: 0 0% 100%;
-
+    
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 100%;
-
-    --destructive: 0 72% 50%;
-    --destructive-foreground: 0 85% 97%;
-
+    
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    
     /* Job Status Colors */
     --status-pending: 38 92% 50%;
     --status-done: 160 84% 39%;
     --status-late: 0 84% 60%;
     --status-scheduled: 215 16% 70%;
     --status-active: 186 100% 46%;
-
+    
     /* UI */
-    --border: 212 26% 83%;
-    --input: 212 26% 83%;
-    --ring: 200 98% 39%;
-
-    --radius: 0.5rem;
-
+    --border: 214 32% 91%;
+    --input: 0 0% 100%;
+    --ring: 186 100% 46%;
+    
+    --radius: 1rem;
+    
     /* Sidebar */
     --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 222 47% 11%;
-    --sidebar-primary: 200 98% 39%;
-    --sidebar-primary-foreground: 204 100% 97%;
-    --sidebar-accent: 215 24% 26%;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 212 26% 83%;
-    --sidebar-ring: 200 98% 39%;
-    --chart-1: 198 93% 59%;
-    --chart-2: 213 93% 67%;
-    --chart-3: 215 20% 65%;
-    --chart-4: 215 16% 46%;
-    --chart-5: 215 19% 34%;
-    --sidebar: 210 40% 98%;
-    --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
-    --font-serif: 'Lora', ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif;
-    --font-mono: 'Space Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
-    --shadow-2xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
-    --shadow-xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
-    --shadow-sm: 0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 1px 2px -1px hsl(0 0% 0% / 0.1);
-    --shadow: 0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 1px 2px -1px hsl(0 0% 0% / 0.1);
-    --shadow-md: 0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 2px 4px -1px hsl(0 0% 0% / 0.1);
-    --shadow-lg: 0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 4px 6px -1px hsl(0 0% 0% / 0.1);
-    --shadow-xl: 0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 8px 10px -1px hsl(0 0% 0% / 0.1);
-    --shadow-2xl: 0 1px 3px 0px hsl(0 0% 0% / 0.25);
-    --tracking-normal: 0em;
-    --spacing: 0.25rem;
+    --sidebar-foreground: 240 5% 26%;
+    --sidebar-primary: 186 100% 46%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 186 100% 95%;
+    --sidebar-accent-foreground: 186 100% 30%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 186 100% 46%;
   }
 
   .dark {
-    --background: 222 47% 11%;
-    --foreground: 210 40% 98%;
-
-    --card: 217 32% 17%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 215 24% 26%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 198 93% 59%;
-    --primary-foreground: 204 80% 15%;
-
-    --secondary: 212 26% 83%;
-    --secondary-foreground: 228 84% 4%;
-
-    --muted: 215 16% 46%;
-    --muted-foreground: 210 40% 98%;
-
-    --accent: 228 84% 4%;
-    --accent-foreground: 215 20% 65%;
-
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 85% 97%;
-
-    --border: 215 19% 34%;
-    --input: 215 19% 34%;
-    --ring: 198 93% 59%;
-
+    --background: 220 25% 8%;
+    --foreground: 0 0% 98%;
+    
+    --card: 220 25% 12%;
+    --card-foreground: 0 0% 98%;
+    
+    --popover: 220 25% 12%;
+    --popover-foreground: 0 0% 98%;
+    
+    --primary: 186 100% 46%;
+    --primary-foreground: 0 0% 100%;
+    
+    --secondary: 217 33% 17%;
+    --secondary-foreground: 0 0% 98%;
+    
+    --muted: 217 33% 17%;
+    --muted-foreground: 215 20% 65%;
+    
+    --accent: 217 33% 17%;
+    --accent-foreground: 0 0% 98%;
+    
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 0 0% 98%;
+    
+    --border: 217 33% 17%;
+    --input: 217 33% 17%;
+    --ring: 186 100% 46%;
+    
     --sidebar-background: 220 25% 6%;
-    --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 198 93% 59%;
-    --sidebar-primary-foreground: 204 80% 15%;
-    --sidebar-accent: 215 20% 65%;
-    --sidebar-accent-foreground: 228 84% 4%;
-    --sidebar-border: 215 19% 34%;
-    --sidebar-ring: 198 93% 59%;
-    --chart-1: 199 95% 73%;
-    --chart-2: 211 96% 78%;
-    --chart-3: 215 20% 65%;
-    --chart-4: 215 16% 46%;
-    --chart-5: 215 19% 34%;
-    --sidebar: 217 32% 17%;
-    --shadow-2xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
-    --shadow-xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
-    --shadow-sm: 0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 1px 2px -1px hsl(0 0% 0% / 0.1);
-    --shadow: 0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 1px 2px -1px hsl(0 0% 0% / 0.1);
-    --shadow-md: 0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 2px 4px -1px hsl(0 0% 0% / 0.1);
-    --shadow-lg: 0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 4px 6px -1px hsl(0 0% 0% / 0.1);
-    --shadow-xl: 0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 8px 10px -1px hsl(0 0% 0% / 0.1);
-    --shadow-2xl: 0 1px 3px 0px hsl(0 0% 0% / 0.25);
+    --sidebar-foreground: 240 5% 96%;
+    --sidebar-primary: 186 100% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 25% 15%;
+    --sidebar-accent-foreground: 240 5% 96%;
+    --sidebar-border: 220 25% 15%;
+    --sidebar-ring: 186 100% 46%;
   }
 }
 
@@ -166,7 +127,7 @@
   html, body, #root {
     @apply h-full;
   }
-
+  
   body {
     @apply bg-background text-foreground font-sans antialiased;
     font-family: 'Outfit', sans-serif;
@@ -179,7 +140,7 @@
   .bg-florida-sky {
     background: linear-gradient(180deg, hsl(var(--sky-pink)) 0%, hsl(var(--sky-blue)) 100%);
   }
-
+  
   /* Florida Sky Fixed - Covers entire viewport */
   .bg-florida-sky-fixed {
     position: fixed;
@@ -187,13 +148,13 @@
     background: linear-gradient(180deg, hsl(var(--sky-pink)) 0%, hsl(var(--sky-blue)) 100%);
     z-index: 0;
   }
-
+  
   @media (max-width: 768px) {
     .bg-florida-sky-fixed {
       display: none;
     }
   }
-
+  
   /* Glass Panel Effect - Premium Frosted Glass */
   .glass-panel {
     background: linear-gradient(
@@ -212,14 +173,14 @@
       inset 0 -1px 0 rgba(0, 0, 0, 0.02);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
-
+  
   .glass-panel:hover {
     box-shadow: 
       0 12px 40px rgba(0, 0, 0, 0.08),
       0 4px 12px rgba(0, 0, 0, 0.04),
       inset 0 1px 0 rgba(255, 255, 255, 1);
   }
-
+  
   /* Glass Panel Elevated - For floating UI like bottom nav */
   .glass-panel-elevated {
     background: linear-gradient(
@@ -238,7 +199,7 @@
       inset 0 -1px 0 rgba(0, 0, 0, 0.02),
       0 0 0 1px rgba(255, 255, 255, 0.5);
   }
-
+  
   .liquid-btn {
     @apply flex items-center justify-center rounded-2xl transition-all duration-300;
     background: linear-gradient(
@@ -252,19 +213,19 @@
       0 4px 16px rgba(0, 0, 0, 0.05),
       inset 0 1px 0 rgba(255, 255, 255, 1);
   }
-
+  
   .liquid-btn:hover {
     @apply scale-105;
     box-shadow: 
       0 8px 24px rgba(0, 0, 0, 0.08),
       inset 0 1px 0 rgba(255, 255, 255, 1);
   }
-
+  
   .liquid-btn:active {
     @apply scale-95;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   }
-
+  
   /* Mercury Drop Effect */
   .mercury-drop {
     position: absolute;
@@ -276,16 +237,16 @@
     animation: float 8s infinite ease-in-out;
     pointer-events: none;
   }
-
+  
   /* Safe Area Padding */
   .pt-safe {
     padding-top: env(safe-area-inset-top, 0px);
   }
-
+  
   .pb-safe {
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
-
+  
   /* Mobile Frame */
   .mobile-frame {
     @apply relative flex flex-col w-full;
@@ -297,7 +258,7 @@
     overflow-y: auto;
     overflow-x: hidden;
   }
-
+  
   @media (min-width: 769px) {
     .mobile-frame {
       @apply w-[375px] max-h-[95vh] rounded-[40px];
@@ -310,41 +271,41 @@
         inset 0 -2px 6px 0 rgba(255, 255, 255, 0.2);
     }
   }
-
+  
   /* Mono Text */
   .mono {
     font-variant-numeric: tabular-nums;
     letter-spacing: 0.05em;
   }
-
+  
   /* Hide Scrollbar */
   .hide-scrollbar {
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
-
+  
   .hide-scrollbar::-webkit-scrollbar {
     display: none;
   }
-
+  
   /* Status Pills */
   .status-scheduled {
     @apply bg-amber-100 text-amber-700;
   }
-
+  
   .status-in-progress {
     @apply bg-primary/10 text-primary;
   }
-
+  
   .status-completed {
     @apply bg-emerald-100 text-emerald-700;
   }
-
+  
   /* Cyan Glow */
   .cyan-glow {
     box-shadow: 0 0 20px rgba(34, 211, 238, 0.4);
   }
-
+  
   /* Label Styles */
   .field-label {
     @apply text-[10px] font-bold text-muted-foreground uppercase tracking-widest ml-1 mb-1 block;
