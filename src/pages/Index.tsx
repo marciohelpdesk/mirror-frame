@@ -13,6 +13,7 @@ import { JobDetailsView } from '@/views/JobDetailsView';
 import { ExecutionView } from '@/views/ExecutionView';
 import { FinanceView } from '@/views/FinanceView';
 import { PageTransition, getTransitionDirection } from '@/components/PageTransition';
+import { DashboardSkeleton, AgendaSkeleton, PropertiesSkeleton } from '@/components/skeletons/DashboardSkeleton';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { useProperties } from '@/hooks/useProperties';
@@ -265,14 +266,18 @@ const Index = () => {
       <div className="bg-florida-sky-fixed" />
       <div className="min-h-screen relative z-10 md:flex md:items-center md:justify-center">
       <div className="mobile-frame">
+        {/* Skeleton Loading States */}
         {isDataLoading && (
-          <div className="absolute inset-0 z-50 flex items-center justify-center bg-background/50">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <div className="absolute inset-0 z-40">
+            {(view === 'DASHBOARD' || !view) && <DashboardSkeleton />}
+            {view === 'AGENDA' && <AgendaSkeleton />}
+            {view === 'PROPERTIES' && <PropertiesSkeleton />}
+            {view === 'SETTINGS' && <DashboardSkeleton />}
           </div>
         )}
         
         <AnimatePresence mode="wait">
-          {view === 'DASHBOARD' && (
+          {!isDataLoading && view === 'DASHBOARD' && (
             <PageTransition
               key="dashboard"
               direction={getTransitionDirection('DASHBOARD', previousViewRef.current)}
@@ -288,7 +293,7 @@ const Index = () => {
             </PageTransition>
           )}
           
-          {view === 'AGENDA' && (
+          {!isDataLoading && view === 'AGENDA' && (
             <PageTransition
               key="agenda"
               direction={getTransitionDirection('AGENDA', previousViewRef.current)}
@@ -306,7 +311,7 @@ const Index = () => {
             </PageTransition>
           )}
           
-          {view === 'PROPERTIES' && (
+          {!isDataLoading && view === 'PROPERTIES' && (
             <PageTransition
               key="properties"
               direction={getTransitionDirection('PROPERTIES', previousViewRef.current)}
@@ -370,7 +375,7 @@ const Index = () => {
             </PageTransition>
           )}
           
-          {view === 'SETTINGS' && (
+          {!isDataLoading && view === 'SETTINGS' && (
             <PageTransition
               key="settings"
               direction={getTransitionDirection('SETTINGS', previousViewRef.current)}

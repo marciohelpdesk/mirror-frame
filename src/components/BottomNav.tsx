@@ -1,6 +1,6 @@
 import { Home, Calendar, Building2, Settings } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import type { ViewState } from '@/types';
 import { useLanguage } from '@/contexts/LanguageContext';
 
@@ -12,6 +12,8 @@ interface BottomNavProps {
 export const BottomNav = ({ currentView, onNavigate }: BottomNavProps) => {
   const { t } = useLanguage();
   const [ripples, setRipples] = useState<{ id: number; x: number; y: number; itemId: ViewState }[]>([]);
+  const [hoveredItem, setHoveredItem] = useState<ViewState | null>(null);
+  const navRef = useRef<HTMLDivElement>(null);
   
   const navItems = [
     { id: 'DASHBOARD' as ViewState, icon: Home, label: t('nav.dashboard') },
@@ -44,19 +46,70 @@ export const BottomNav = ({ currentView, onNavigate }: BottomNavProps) => {
     onNavigate(itemId);
   };
 
+  const activeIndex = navItems.findIndex(item => item.id === currentView);
+
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 px-3 pb-3 md:left-1/2 md:-translate-x-1/2 md:w-[375px]">
-      <div className="glass-panel flex justify-between items-center py-2 px-3">
-        {navItems.map((item) => {
+    <nav className="fixed bottom-0 left-0 right-0 z-50 px-3 pb-3 pb-safe md:left-1/2 md:-translate-x-1/2 md:w-[375px]">
+      <motion.div 
+        ref={navRef}
+        initial={{ y: 100, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ 
+          type: "spring", 
+          stiffness: 300, 
+          damping: 30,
+          delay: 0.2 
+        }}
+        className="glass-panel-elevated flex justify-between items-center py-2 px-3 relative"
+      >
+        {/* Animated background indicator */}
+        <motion.div
+          className="absolute h-[calc(100%-16px)] bg-primary/15 rounded-xl pointer-events-none"
+          initial={false}
+          animate={{
+            x: activeIndex * (navRef.current ? navRef.current.offsetWidth / 4 : 82) + 6,
+            width: navRef.current ? (navRef.current.offsetWidth / 4) - 12 : 70,
+          }}
+          transition={{
+            type: "spring",
+            stiffness: 400,
+            damping: 35,
+          }}
+          style={{ top: 8 }}
+        />
+
+        {/* Glow effect under active item */}
+        <motion.div
+          className="absolute -bottom-1 h-4 bg-primary/30 rounded-full blur-xl pointer-events-none"
+          initial={false}
+          animate={{
+            x: activeIndex * (navRef.current ? navRef.current.offsetWidth / 4 : 82) + 20,
+            width: 40,
+            opacity: 0.8,
+          }}
+          transition={{
+            type: "spring",
+            stiffness: 400,
+            damping: 35,
+          }}
+        />
+
+        {navItems.map((item, index) => {
           const isActive = currentView === item.id;
+          const isHovered = hoveredItem === item.id;
           const Icon = item.icon;
           
           return (
-            <button
+            <motion.button
               key={item.id}
               onClick={(e) => handleClick(e, item.id)}
-              className="relative flex flex-col items-center justify-center gap-1.5 min-w-[72px] min-h-[56px] py-2 px-3 rounded-xl transition-all active:scale-95 overflow-hidden"
+              onHoverStart={() => setHoveredItem(item.id)}
+              onHoverEnd={() => setHoveredItem(null)}
+              className="relative flex flex-col items-center justify-center gap-1.5 min-w-[72px] min-h-[56px] py-2 px-3 rounded-xl transition-colors overflow-hidden"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
             >
+              {/* Ripple effects */}
               <AnimatePresence>
                 {ripples
                   .filter(r => r.itemId === item.id)
@@ -77,28 +130,62 @@ export const BottomNav = ({ currentView, onNavigate }: BottomNavProps) => {
                     />
                   ))}
               </AnimatePresence>
-              {isActive && (
-                <motion.div
-                  layoutId="nav-indicator"
-                  className="absolute inset-0 bg-primary/10 rounded-xl"
-                  transition={{ type: 'spring', bounce: 0.2, duration: 0.4 }}
+
+              {/* Icon with animation */}
+              <motion.div
+                animate={{
+                  scale: isActive ? 1.1 : isHovered ? 1.05 : 1,
+                  y: isActive ? -2 : 0,
+                }}
+                transition={{ type: "spring", stiffness: 400, damping: 25 }}
+              >
+                <Icon 
+                  size={22} 
+                  className={`relative z-10 transition-colors duration-200 ${
+                    isActive 
+                      ? 'text-primary' 
+                      : isHovered 
+                        ? 'text-primary/70' 
+                        : 'text-muted-foreground'
+                  }`}
+                  strokeWidth={isActive ? 2.5 : 2}
                 />
-              )}
-              <Icon 
-                size={22} 
-                className={`relative z-10 transition-colors ${
-                  isActive ? 'text-primary' : 'text-muted-foreground'
+              </motion.div>
+
+              {/* Label with animation */}
+              <motion.span 
+                animate={{
+                  scale: isActive ? 1.05 : 1,
+                  opacity: isActive ? 1 : 0.7,
+                }}
+                transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                className={`relative z-10 text-[10px] font-semibold uppercase tracking-wider text-center transition-colors duration-200 ${
+                  isActive 
+                    ? 'text-primary' 
+                    : isHovered 
+                      ? 'text-primary/70' 
+                      : 'text-muted-foreground'
                 }`}
-              />
-              <span className={`relative z-10 text-[10px] font-semibold uppercase tracking-wider text-center ${
-                isActive ? 'text-primary' : 'text-muted-foreground'
-              }`}>
+              >
                 {item.label}
-              </span>
-            </button>
+              </motion.span>
+
+              {/* Active dot indicator */}
+              <AnimatePresence>
+                {isActive && (
+                  <motion.div
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0, opacity: 0 }}
+                    transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                    className="absolute -bottom-0.5 w-1 h-1 bg-primary rounded-full"
+                  />
+                )}
+              </AnimatePresence>
+            </motion.button>
           );
         })}
-      </div>
+      </motion.div>
     </nav>
   );
 };
