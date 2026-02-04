@@ -1,5 +1,4 @@
 import { useNavigate, useParams } from 'react-router-dom';
-import { MobileLayout } from '@/components/layout/MobileLayout';
 import { JobDetailsView as JobDetailsContent } from '@/views/JobDetailsView';
 import { useAuth } from '@/hooks/useAuth';
 import { useJobs } from '@/hooks/useJobs';
@@ -55,16 +54,14 @@ export default function JobDetails() {
   }
 
   return (
-    <MobileLayout showNav={false}>
-      <JobDetailsContent
-        job={job}
-        properties={properties}
-        employees={employees}
-        onBack={handleBack}
-        onStartJob={handleStartJob}
-        onUpdateJob={handleUpdateJob}
-        onDeleteJob={handleDeleteJob}
-      />
-    </MobileLayout>
+    <JobDetailsContent
+      job={job}
+      properties={properties}
+      employees={employees}
+      onBack={handleBack}
+      onStartJob={handleStartJob}
+      onUpdateJob={handleUpdateJob}
+      onDeleteJob={handleDeleteJob}
+    />
   );
 }

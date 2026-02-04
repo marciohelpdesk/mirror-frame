@@ -1,5 +1,4 @@
 import { useNavigate } from 'react-router-dom';
-import { MobileLayout } from '@/components/layout/MobileLayout';
 import { FinanceView as FinanceContent } from '@/views/FinanceView';
 import { useAuth } from '@/hooks/useAuth';
 import { useJobs } from '@/hooks/useJobs';
@@ -19,11 +18,9 @@ export default function Finance() {
   }
 
   return (
-    <MobileLayout showNav={false}>
-      <FinanceContent
-        jobs={jobs}
-        onBack={handleBack}
-      />
-    </MobileLayout>
+    <FinanceContent
+      jobs={jobs}
+      onBack={handleBack}
+    />
   );
 }

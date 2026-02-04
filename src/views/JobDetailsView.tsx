@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { Job, Property, JobStatus, Employee } from '@/types';
 import { PageHeader } from '@/components/PageHeader';
-import { BackgroundEffects } from '@/components/BackgroundEffects';
+
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -123,9 +123,7 @@ export const JobDetailsView = ({
 
   return (
     <div className="flex flex-col h-full relative z-10 overflow-y-auto hide-scrollbar pb-32">
-      <BackgroundEffects />
-      
-      <PageHeader 
+      <PageHeader
         title="Job Details"
         subtitle={job.type}
         leftElement={

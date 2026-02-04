@@ -84,9 +84,9 @@ export const PublicOnly = ({ children }: { children: ReactNode }) => {
 export const ProtectedLayout = () => (
   <RequireAuth>
     <MobileLayout>
-      <SuspenseWrapper>
+      <Suspense fallback={<PageLoader />}>
         <Outlet />
-      </SuspenseWrapper>
+      </Suspense>
     </MobileLayout>
   </RequireAuth>
 );

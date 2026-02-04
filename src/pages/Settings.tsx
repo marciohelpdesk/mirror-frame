@@ -1,5 +1,4 @@
 import { useNavigate } from 'react-router-dom';
-import { MobileLayout } from '@/components/layout/MobileLayout';
 import { SettingsView as SettingsContent } from '@/views/SettingsView';
 import { DashboardSkeleton } from '@/components/skeletons/DashboardSkeleton';
 import { useAuth } from '@/hooks/useAuth';
@@ -45,25 +44,19 @@ export default function Settings() {
   };
 
   if (isLoading) {
-    return (
-      <MobileLayout>
-        <DashboardSkeleton />
-      </MobileLayout>
-    );
+    return <DashboardSkeleton />;
   }
 
   return (
-    <MobileLayout>
-      <SettingsContent
-        userId={user?.id}
-        userProfile={userProfile}
-        employees={employees}
-        onLogout={handleLogout}
-        onViewFinance={handleViewFinance}
-        onAddEmployee={handleAddEmployee}
-        onDeleteEmployee={handleDeleteEmployee}
-        onUpdateProfile={handleUpdateProfile}
-      />
-    </MobileLayout>
+    <SettingsContent
+      userId={user?.id}
+      userProfile={userProfile}
+      employees={employees}
+      onLogout={handleLogout}
+      onViewFinance={handleViewFinance}
+      onAddEmployee={handleAddEmployee}
+      onDeleteEmployee={handleDeleteEmployee}
+      onUpdateProfile={handleUpdateProfile}
+    />
   );
 }

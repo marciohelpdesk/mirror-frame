@@ -1,9 +1,7 @@
 import { ReactNode } from 'react';
 import { useLocation } from 'react-router-dom';
-import { AnimatePresence, motion } from 'framer-motion';
 import { BottomNavRouter } from '@/components/layout/BottomNavRouter';
 import { BackgroundEffects } from '@/components/BackgroundEffects';
-import { PageTransition } from '@/components/PageTransition';
 
 interface MobileLayoutProps {
   children: ReactNode;
@@ -34,21 +32,10 @@ export const MobileLayout = ({
         <div className="mobile-frame relative">
           <BackgroundEffects />
           
-          {/* Page Content with Animation */}
-          <motion.main
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.2, ease: "easeOut" }}
-            className={`relative z-10 min-h-screen ${shouldShowNav ? 'pb-24' : ''} ${className}`}
-            style={{ willChange: 'opacity, transform' }}
-          >
-            <AnimatePresence mode="wait" initial={false}>
-              <PageTransition key={location.pathname} className="min-h-screen">
-                {children}
-              </PageTransition>
-            </AnimatePresence>
-          </motion.main>
+          {/* Page Content - NO extra animations here */}
+          <main className={`relative z-10 min-h-screen ${shouldShowNav ? 'pb-24' : ''} ${className}`}>
+            {children}
+          </main>
 
           {/* Bottom Navigation */}
           {shouldShowNav && <BottomNavRouter />}

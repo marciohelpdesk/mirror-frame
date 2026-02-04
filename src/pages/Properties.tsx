@@ -1,5 +1,4 @@
 import { useNavigate } from 'react-router-dom';
-import { MobileLayout } from '@/components/layout/MobileLayout';
 import { PropertiesView as PropertiesContent } from '@/views/PropertiesView';
 import { PropertiesSkeleton } from '@/components/skeletons/DashboardSkeleton';
 import { useAuth } from '@/hooks/useAuth';
@@ -20,20 +19,14 @@ export default function Properties() {
   };
 
   if (isLoading) {
-    return (
-      <MobileLayout>
-        <PropertiesSkeleton />
-      </MobileLayout>
-    );
+    return <PropertiesSkeleton />;
   }
 
   return (
-    <MobileLayout>
-      <PropertiesContent
-        properties={properties}
-        onViewProperty={handleViewProperty}
-        onAddProperty={handleAddProperty}
-      />
-    </MobileLayout>
+    <PropertiesContent
+      properties={properties}
+      onViewProperty={handleViewProperty}
+      onAddProperty={handleAddProperty}
+    />
   );
 }
