@@ -4,7 +4,7 @@ import { ArrowLeft, TrendingUp, DollarSign, Calendar, CheckCircle2, ChevronDown,
 import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, BarChart, Bar, Tooltip } from 'recharts';
 import { Job, JobStatus } from '@/types';
 import { PageHeader } from '@/components/PageHeader';
-import { BackgroundEffects } from '@/components/BackgroundEffects';
+
 import { format, subDays, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isWithinInterval, parseISO } from 'date-fns';
 
 interface FinanceViewProps {
@@ -116,9 +116,7 @@ export const FinanceView = ({ jobs, onBack }: FinanceViewProps) => {
 
   return (
     <div className="flex flex-col h-full relative z-10 overflow-y-auto hide-scrollbar pb-32">
-      <BackgroundEffects />
-      
-      <PageHeader 
+      <PageHeader
         title="Earnings"
         subtitle="Finance"
         leftElement={

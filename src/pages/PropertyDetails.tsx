@@ -1,5 +1,4 @@
 import { useNavigate, useParams } from 'react-router-dom';
-import { MobileLayout } from '@/components/layout/MobileLayout';
 import { PropertyDetailsView as PropertyDetailsContent } from '@/views/PropertyDetailsView';
 import { useAuth } from '@/hooks/useAuth';
 import { useProperties } from '@/hooks/useProperties';
@@ -37,13 +36,11 @@ export default function PropertyDetails() {
   }
 
   return (
-    <MobileLayout showNav={false}>
-      <PropertyDetailsContent
-        property={property}
-        onBack={handleBack}
-        onUpdate={handleUpdate}
-        onDelete={handleDelete}
-      />
-    </MobileLayout>
+    <PropertyDetailsContent
+      property={property}
+      onBack={handleBack}
+      onUpdate={handleUpdate}
+      onDelete={handleDelete}
+    />
   );
 }

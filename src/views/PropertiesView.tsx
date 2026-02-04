@@ -1,10 +1,8 @@
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Search } from 'lucide-react';
 import { Property } from '@/types';
 import { PageHeader } from '@/components/PageHeader';
 import { PropertyCard } from '@/components/PropertyCard';
-import { BackgroundEffects } from '@/components/BackgroundEffects';
 import { AddPropertyModal } from '@/components/AddPropertyModal';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useAuth } from '@/hooks/useAuth';
@@ -28,8 +26,6 @@ export const PropertiesView = ({ properties, onViewProperty, onAddProperty }: Pr
 
   return (
     <div className="flex flex-col h-full relative z-10 overflow-y-auto hide-scrollbar pb-32">
-      <BackgroundEffects />
-      
       <PageHeader 
         title={t('properties.title')}
         subtitle={t('properties.subtitle')}
@@ -50,24 +46,18 @@ export const PropertiesView = ({ properties, onViewProperty, onAddProperty }: Pr
         
         {/* Properties Grid */}
         <div className="grid grid-cols-1 gap-4">
-          <AnimatePresence>
-            {filteredProperties.map((property) => (
-              <PropertyCard 
-                key={property.id}
-                property={property}
-                onClick={onViewProperty}
-              />
-            ))}
-          </AnimatePresence>
+          {filteredProperties.map((property) => (
+            <PropertyCard 
+              key={property.id}
+              property={property}
+              onClick={onViewProperty}
+            />
+          ))}
           
           {filteredProperties.length === 0 && (
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="glass-panel p-8 text-center"
-            >
+            <div className="glass-panel p-8 text-center">
               <p className="text-muted-foreground">{t('properties.noProperties')}</p>
-            </motion.div>
+            </div>
           )}
         </div>
       </div>
