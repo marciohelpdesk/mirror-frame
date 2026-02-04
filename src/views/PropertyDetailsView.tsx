@@ -26,7 +26,6 @@ import {
 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Property, Room, ChecklistSection } from '@/types';
-import { BackgroundEffects } from '@/components/BackgroundEffects';
 import { RoomManagement } from '@/components/RoomManagement';
 import { ChecklistTemplateEditor } from '@/components/ChecklistTemplateEditor';
 import { PhotoUploader } from '@/components/PhotoUploader';
@@ -93,8 +92,6 @@ export const PropertyDetailsView = ({ property, onBack, onUpdate, onDelete }: Pr
 
   return (
     <div className="flex flex-col h-full relative z-10 overflow-y-auto hide-scrollbar pb-32">
-      <BackgroundEffects />
-      
       {/* Header */}
       <div className="sticky top-0 z-20 glass-panel border-b border-white/10">
         <div className="flex items-center justify-between px-4 py-4">

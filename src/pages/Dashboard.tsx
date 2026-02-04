@@ -1,5 +1,4 @@
 import { useNavigate } from 'react-router-dom';
-import { MobileLayout } from '@/components/layout/MobileLayout';
 import { DashboardView as DashboardContent } from '@/views/DashboardView';
 import { DashboardSkeleton } from '@/components/skeletons/DashboardSkeleton';
 import { useAuth } from '@/hooks/useAuth';
@@ -48,22 +47,16 @@ export default function Dashboard() {
   };
 
   if (isLoading) {
-    return (
-      <MobileLayout>
-        <DashboardSkeleton />
-      </MobileLayout>
-    );
+    return <DashboardSkeleton />;
   }
 
   return (
-    <MobileLayout>
-      <DashboardContent
-        jobs={jobs}
-        properties={properties}
-        onStartJob={handleStartJob}
-        onViewJob={handleViewJob}
-        userProfile={userProfile}
-      />
-    </MobileLayout>
+    <DashboardContent
+      jobs={jobs}
+      properties={properties}
+      onStartJob={handleStartJob}
+      onViewJob={handleViewJob}
+      userProfile={userProfile}
+    />
   );
 }

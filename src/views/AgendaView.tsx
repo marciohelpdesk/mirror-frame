@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Calendar, CalendarDays, CalendarRange, Plus } from 'lucide-react';
 import { Job, JobStatus, Property, Employee } from '@/types';
 import { PageHeader } from '@/components/PageHeader';
-import { BackgroundEffects } from '@/components/BackgroundEffects';
 import { DayView } from '@/components/calendar/DayView';
 import { WeekView } from '@/components/calendar/WeekView';
 import { MonthView } from '@/components/calendar/MonthView';
@@ -128,8 +127,6 @@ export const AgendaView = ({ jobs, properties, employees = [], onStartJob, onVie
 
   return (
     <div className="flex flex-col h-full relative z-10 overflow-y-auto hide-scrollbar pb-32">
-      <BackgroundEffects />
-      
       <PageHeader 
         title={t('agenda.title')}
         subtitle={t('agenda.subtitle')}

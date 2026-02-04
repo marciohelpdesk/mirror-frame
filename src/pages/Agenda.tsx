@@ -1,5 +1,4 @@
 import { useNavigate } from 'react-router-dom';
-import { MobileLayout } from '@/components/layout/MobileLayout';
 import { AgendaView as AgendaContent } from '@/views/AgendaView';
 import { AgendaSkeleton } from '@/components/skeletons/DashboardSkeleton';
 import { useAuth } from '@/hooks/useAuth';
@@ -55,24 +54,18 @@ export default function Agenda() {
   };
 
   if (isLoading) {
-    return (
-      <MobileLayout>
-        <AgendaSkeleton />
-      </MobileLayout>
-    );
+    return <AgendaSkeleton />;
   }
 
   return (
-    <MobileLayout>
-      <AgendaContent
-        jobs={jobs}
-        properties={properties}
-        employees={employees}
-        onStartJob={handleStartJob}
-        onViewJob={handleViewJob}
-        onRescheduleJob={handleRescheduleJob}
-        onAddJob={handleAddJob}
-      />
-    </MobileLayout>
+    <AgendaContent
+      jobs={jobs}
+      properties={properties}
+      employees={employees}
+      onStartJob={handleStartJob}
+      onViewJob={handleViewJob}
+      onRescheduleJob={handleRescheduleJob}
+      onAddJob={handleAddJob}
+    />
   );
 }
