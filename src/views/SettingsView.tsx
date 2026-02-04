@@ -3,7 +3,6 @@ import { motion } from 'framer-motion';
 import { ChevronRight, LogOut, Wallet, Bell, Shield, HelpCircle, Globe, Pencil } from 'lucide-react';
 import { UserProfile, Employee } from '@/types';
 import { PageHeader } from '@/components/PageHeader';
-import { BackgroundEffects } from '@/components/BackgroundEffects';
 import { TeamManagement } from '@/components/TeamManagement';
 import { EditProfileModal } from '@/components/EditProfileModal';
 import { CalendarSyncSection } from '@/components/CalendarSyncSection';
@@ -37,8 +36,6 @@ export const SettingsView = ({ userId, userProfile, employees, onLogout, onViewF
 
   return (
     <div className="flex flex-col h-full relative z-10 overflow-y-auto hide-scrollbar pb-32">
-      <BackgroundEffects />
-      
       <PageHeader 
         title={t('settings.title')}
         subtitle={t('settings.subtitle')}

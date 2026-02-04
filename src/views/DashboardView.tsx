@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Job, JobStatus, Property } from '@/types';
 import { PageHeader } from '@/components/PageHeader';
 import { JobCard } from '@/components/JobCard';
-import { BackgroundEffects } from '@/components/BackgroundEffects';
 import { LiquidProgressBubble } from '@/components/LiquidProgressBubble';
 import { NextJobCard } from '@/components/dashboard/NextJobCard';
 import { WeeklyProgress } from '@/components/dashboard/WeeklyProgress';
@@ -83,8 +82,6 @@ export const DashboardView = ({ jobs, properties = [], onStartJob, onViewJob, us
 
   return (
     <div className="flex flex-col h-full relative z-10 overflow-y-auto hide-scrollbar pb-32">
-      <BackgroundEffects />
-      
       <PageHeader 
         title={greeting}
         subtitle={currentTime.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}

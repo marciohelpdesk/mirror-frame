@@ -1,8 +1,9 @@
 import { ReactNode } from 'react';
 import { useLocation } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import { BottomNavRouter } from '@/components/layout/BottomNavRouter';
 import { BackgroundEffects } from '@/components/BackgroundEffects';
+import { PageTransition } from '@/components/PageTransition';
 
 interface MobileLayoutProps {
   children: ReactNode;
@@ -18,7 +19,7 @@ export const MobileLayout = ({
   const location = useLocation();
   
   // Hide nav on specific pages
-  const hideNavPaths = ['/execution', '/login', '/reset-password'];
+  const hideNavPaths = ['/execution', '/login', '/reset-password', '/finance', '/properties/', '/jobs/'];
   const shouldShowNav = showNav && !hideNavPaths.some(path => 
     location.pathname.startsWith(path)
   );
@@ -42,7 +43,11 @@ export const MobileLayout = ({
             className={`relative z-10 min-h-screen ${shouldShowNav ? 'pb-24' : ''} ${className}`}
             style={{ willChange: 'opacity, transform' }}
           >
-            {children}
+            <AnimatePresence mode="wait" initial={false}>
+              <PageTransition key={location.pathname} className="min-h-screen">
+                {children}
+              </PageTransition>
+            </AnimatePresence>
           </motion.main>
 
           {/* Bottom Navigation */}

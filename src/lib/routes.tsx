@@ -1,8 +1,9 @@
 import { lazy, Suspense, ReactNode } from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { MobileLayout } from '@/components/layout/MobileLayout';
 
 // Lazy loading for performance
 const Login = lazy(() => import('@/pages/auth/Login'));
@@ -79,6 +80,17 @@ export const PublicOnly = ({ children }: { children: ReactNode }) => {
   return <>{children}</>;
 };
 
+// Protected layout shell - keeps background/nav mounted across route changes
+export const ProtectedLayout = () => (
+  <RequireAuth>
+    <MobileLayout>
+      <SuspenseWrapper>
+        <Outlet />
+      </SuspenseWrapper>
+    </MobileLayout>
+  </RequireAuth>
+);
+
 // Suspense wrapper for lazy components
 const SuspenseWrapper = ({ children }: { children: ReactNode }) => (
   <Suspense fallback={<PageLoader />}>
@@ -107,88 +119,54 @@ export const routes = [
       </SuspenseWrapper>
     ),
   },
-  
-  // Protected routes
+
+  // Protected routes (layout kept mounted)
   {
     path: '/',
-    element: <Navigate to="/dashboard" replace />,
+    element: <ProtectedLayout />,
+    children: [
+      {
+        index: true,
+        element: <Navigate to="/dashboard" replace />,
+      },
+      {
+        path: 'dashboard',
+        element: <Dashboard />,
+      },
+      {
+        path: 'agenda',
+        element: <Agenda />,
+      },
+      {
+        path: 'properties',
+        element: <Properties />,
+      },
+      {
+        path: 'properties/:id',
+        element: <PropertyDetails />,
+      },
+      {
+        path: 'jobs/:id',
+        element: <JobDetails />,
+      },
+      {
+        path: 'settings',
+        element: <Settings />,
+      },
+      {
+        path: 'finance',
+        element: <Finance />,
+      },
+    ],
   },
-  {
-    path: '/dashboard',
-    element: (
-      <RequireAuth>
-        <SuspenseWrapper>
-          <Dashboard />
-        </SuspenseWrapper>
-      </RequireAuth>
-    ),
-  },
-  {
-    path: '/agenda',
-    element: (
-      <RequireAuth>
-        <SuspenseWrapper>
-          <Agenda />
-        </SuspenseWrapper>
-      </RequireAuth>
-    ),
-  },
-  {
-    path: '/properties',
-    element: (
-      <RequireAuth>
-        <SuspenseWrapper>
-          <Properties />
-        </SuspenseWrapper>
-      </RequireAuth>
-    ),
-  },
-  {
-    path: '/properties/:id',
-    element: (
-      <RequireAuth>
-        <SuspenseWrapper>
-          <PropertyDetails />
-        </SuspenseWrapper>
-      </RequireAuth>
-    ),
-  },
-  {
-    path: '/jobs/:id',
-    element: (
-      <RequireAuth>
-        <SuspenseWrapper>
-          <JobDetails />
-        </SuspenseWrapper>
-      </RequireAuth>
-    ),
-  },
+
+  // Execution is a special flow with its own layout
   {
     path: '/execution/:jobId',
     element: (
       <RequireAuth>
         <SuspenseWrapper>
           <Execution />
-        </SuspenseWrapper>
-      </RequireAuth>
-    ),
-  },
-  {
-    path: '/settings',
-    element: (
-      <RequireAuth>
-        <SuspenseWrapper>
-          <Settings />
-        </SuspenseWrapper>
-      </RequireAuth>
-    ),
-  },
-  {
-    path: '/finance',
-    element: (
-      <RequireAuth>
-        <SuspenseWrapper>
-          <Finance />
         </SuspenseWrapper>
       </RequireAuth>
     ),

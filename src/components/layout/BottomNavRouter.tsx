@@ -1,6 +1,6 @@
 import { Home, Calendar, Building2, Settings } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useState, useRef } from 'react';
+import { useLayoutEffect, useState, useRef } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
 
@@ -16,6 +16,7 @@ export const BottomNavRouter = () => {
   const [ripples, setRipples] = useState<{ id: number; x: number; y: number; path: string }[]>([]);
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const navRef = useRef<HTMLDivElement>(null);
+  const [navWidth, setNavWidth] = useState(0);
   
   const navItems: NavItem[] = [
     { path: '/dashboard', icon: Home, labelKey: 'nav.dashboard' },
@@ -50,6 +51,20 @@ export const BottomNavRouter = () => {
     location.pathname === item.path || location.pathname.startsWith(item.path + '/')
   );
 
+  useLayoutEffect(() => {
+    const el = navRef.current;
+    if (!el) return;
+
+    const update = () => setNavWidth(el.offsetWidth);
+    update();
+
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  const itemWidth = navWidth ? navWidth / navItems.length : 82;
+
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 px-3 pb-3 pb-safe md:left-1/2 md:-translate-x-1/2 md:w-[375px]">
       <motion.div 
@@ -69,8 +84,8 @@ export const BottomNavRouter = () => {
           className="absolute h-[calc(100%-16px)] bg-primary/15 rounded-xl pointer-events-none"
           initial={false}
           animate={{
-            x: activeIndex >= 0 ? activeIndex * (navRef.current ? navRef.current.offsetWidth / 4 : 82) + 6 : 0,
-            width: navRef.current ? (navRef.current.offsetWidth / 4) - 12 : 70,
+            x: activeIndex >= 0 ? activeIndex * itemWidth + 6 : 0,
+            width: itemWidth - 12,
             opacity: activeIndex >= 0 ? 1 : 0,
           }}
           transition={{
@@ -86,7 +101,7 @@ export const BottomNavRouter = () => {
           className="absolute -bottom-1 h-4 bg-primary/30 rounded-full blur-xl pointer-events-none"
           initial={false}
           animate={{
-            x: activeIndex >= 0 ? activeIndex * (navRef.current ? navRef.current.offsetWidth / 4 : 82) + 20 : 0,
+            x: activeIndex >= 0 ? activeIndex * itemWidth + 20 : 0,
             width: 40,
             opacity: activeIndex >= 0 ? 0.8 : 0,
           }}

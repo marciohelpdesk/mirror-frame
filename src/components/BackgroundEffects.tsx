@@ -12,7 +12,7 @@ export const BackgroundEffects = () => {
   })), []);
 
   return (
-    <div className="fixed inset-0 overflow-hidden pointer-events-none z-[1]">
+    <div className="absolute inset-0 overflow-hidden pointer-events-none z-[1]">
       {drops.map(drop => (
         <motion.div 
           key={drop.id}
