@@ -1,6 +1,6 @@
 import { Home, Calendar, Building2, Settings } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useLayoutEffect, useState, useRef } from 'react';
+import { useLayoutEffect, useState, useRef, useCallback } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useLanguage } from '@/contexts/LanguageContext';
 
@@ -16,7 +16,8 @@ export const BottomNavRouter = () => {
   const [ripples, setRipples] = useState<{ id: number; x: number; y: number; path: string }[]>([]);
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const navRef = useRef<HTMLDivElement>(null);
-  const [navWidth, setNavWidth] = useState(0);
+  const itemRefs = useRef<(HTMLAnchorElement | null)[]>([]);
+  const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0 });
   
   const navItems: NavItem[] = [
     { path: '/dashboard', icon: Home, labelKey: 'nav.dashboard' },
@@ -51,19 +52,36 @@ export const BottomNavRouter = () => {
     location.pathname === item.path || location.pathname.startsWith(item.path + '/')
   );
 
+  const updateIndicator = useCallback(() => {
+    const activeItem = itemRefs.current[activeIndex];
+    const container = navRef.current;
+    
+    if (activeItem && container && activeIndex >= 0) {
+      const itemRect = activeItem.getBoundingClientRect();
+      const containerRect = container.getBoundingClientRect();
+      
+      setIndicatorStyle({
+        left: itemRect.left - containerRect.left,
+        width: itemRect.width,
+      });
+    }
+  }, [activeIndex]);
+
   useLayoutEffect(() => {
     const el = navRef.current;
     if (!el) return;
 
-    const update = () => setNavWidth(el.offsetWidth);
-    update();
+    // Initial measurement
+    updateIndicator();
 
-    const ro = new ResizeObserver(update);
+    // Re-measure on resize
+    const ro = new ResizeObserver(() => {
+      updateIndicator();
+    });
     ro.observe(el);
+    
     return () => ro.disconnect();
-  }, []);
-
-  const itemWidth = navWidth ? navWidth / navItems.length : 82;
+  }, [updateIndicator]);
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 px-3 pb-3 pb-safe md:left-1/2 md:-translate-x-1/2 md:w-[375px]">
@@ -81,11 +99,11 @@ export const BottomNavRouter = () => {
       >
         {/* Animated background indicator */}
         <motion.div
-          className="absolute h-[calc(100%-16px)] bg-primary/15 rounded-xl pointer-events-none"
+          className="absolute h-[calc(100%-16px)] bg-primary/15 rounded-xl pointer-events-none top-2"
           initial={false}
           animate={{
-            x: activeIndex >= 0 ? activeIndex * itemWidth + 6 : 0,
-            width: itemWidth - 12,
+            left: indicatorStyle.left,
+            width: indicatorStyle.width,
             opacity: activeIndex >= 0 ? 1 : 0,
           }}
           transition={{
@@ -93,7 +111,6 @@ export const BottomNavRouter = () => {
             stiffness: 400,
             damping: 35,
           }}
-          style={{ top: 8 }}
         />
 
         {/* Glow effect under active item */}
@@ -101,8 +118,8 @@ export const BottomNavRouter = () => {
           className="absolute -bottom-1 h-4 bg-primary/30 rounded-full blur-xl pointer-events-none"
           initial={false}
           animate={{
-            x: activeIndex >= 0 ? activeIndex * itemWidth + 20 : 0,
-            width: 40,
+            left: indicatorStyle.left + (indicatorStyle.width / 2) - 20,
+            width: indicatorStyle.width > 0 ? 40 : 0,
             opacity: activeIndex >= 0 ? 0.8 : 0,
           }}
           transition={{
@@ -112,7 +129,7 @@ export const BottomNavRouter = () => {
           }}
         />
 
-        {navItems.map((item) => {
+        {navItems.map((item, index) => {
           const isActive = location.pathname === item.path || location.pathname.startsWith(item.path + '/');
           const isHovered = hoveredItem === item.path;
           const Icon = item.icon;
@@ -120,6 +137,7 @@ export const BottomNavRouter = () => {
           return (
             <NavLink
               key={item.path}
+              ref={(el) => { itemRefs.current[index] = el; }}
               to={item.path}
               onClick={(e) => handleClick(e, item.path)}
               onMouseEnter={() => setHoveredItem(item.path)}
