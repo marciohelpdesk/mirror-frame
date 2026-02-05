@@ -1,12 +1,11 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Calendar, TrendingUp, Zap } from 'lucide-react';
 import { Job, JobStatus, Property } from '@/types';
 import { PageHeader } from '@/components/PageHeader';
 import { JobCard } from '@/components/JobCard';
-import { LiquidProgressBubble } from '@/components/LiquidProgressBubble';
 import { NextJobCard } from '@/components/dashboard/NextJobCard';
 import { WeeklyProgress } from '@/components/dashboard/WeeklyProgress';
-import { DashboardStats } from '@/components/dashboard/DashboardStats';
 import { useLanguage } from '@/contexts/LanguageContext';
 import purLogo from '@/assets/pur-logo.png';
 
@@ -48,25 +47,10 @@ export const DashboardView = ({ jobs, properties = [], onStartJob, onViewJob, us
     ? properties.find(p => p.id === nextJob.propertyId)
     : undefined;
 
-  // Calculate purification progress based on all today's jobs checklists
-  const purificationProgress = useMemo(() => {
-    const activeJobs = [...inProgressJobs, ...completedJobs];
-    if (activeJobs.length === 0) return 0;
-    
-    let totalItems = 0;
-    let completedItems = 0;
-    
-    activeJobs.forEach(job => {
-      job.checklist.forEach(section => {
-        section.items.forEach(item => {
-          totalItems++;
-          if (item.completed) completedItems++;
-        });
-      });
-    });
-    
-    return totalItems > 0 ? (completedItems / totalItems) * 100 : 0;
-  }, [inProgressJobs, completedJobs]);
+  // Calculate today's progress
+  const todayProgress = todayJobs.length > 0 
+    ? Math.round((completedJobs.length / todayJobs.length) * 100) 
+    : 0;
 
   const greeting = currentTime.getHours() < 12 ? t('dashboard.goodMorning') : 
                    currentTime.getHours() < 17 ? t('dashboard.goodAfternoon') : t('dashboard.goodEvening');
@@ -102,17 +86,63 @@ export const DashboardView = ({ jobs, properties = [], onStartJob, onViewJob, us
       />
       
       <div className="px-6 pt-2 relative z-10 space-y-6">
-        {/* Stats Cards */}
-        <DashboardStats jobs={jobs} />
-
-        {/* Purification Bubble */}
+        {/* Modern Stats Row */}
         <motion.div 
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.4 }}
-          className="flex justify-center"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="grid grid-cols-3 gap-3"
         >
-          <LiquidProgressBubble percentage={purificationProgress} showLabel={false} />
+          {/* Today's Progress */}
+          <div className="glass-panel p-4 relative overflow-hidden group">
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent" />
+            <div className="relative">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center">
+                  <Zap size={16} className="text-primary" />
+                </div>
+              </div>
+              <p className="text-2xl font-bold text-foreground">{todayProgress}%</p>
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
+                {t('dashboard.progress') || 'Progresso'}
+              </p>
+            </div>
+          </div>
+
+          {/* Today's Jobs */}
+          <div className="glass-panel p-4 relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-success/5 to-transparent" />
+            <div className="relative">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-8 h-8 rounded-xl bg-success/10 flex items-center justify-center">
+                  <Calendar size={16} className="text-success" />
+                </div>
+              </div>
+              <p className="text-2xl font-bold text-foreground">
+                <span className="text-success">{completedJobs.length}</span>
+                <span className="text-muted-foreground text-lg">/{todayJobs.length}</span>
+              </p>
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
+                {t('dashboard.today') || 'Hoje'}
+              </p>
+            </div>
+          </div>
+
+          {/* Pending */}
+          <div className="glass-panel p-4 relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-warning/5 to-transparent" />
+            <div className="relative">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-8 h-8 rounded-xl bg-warning/10 flex items-center justify-center">
+                  <TrendingUp size={16} className="text-warning" />
+                </div>
+              </div>
+              <p className="text-2xl font-bold text-foreground">{scheduledJobs.length + inProgressJobs.length}</p>
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
+                {t('dashboard.pending') || 'Pendentes'}
+              </p>
+            </div>
+          </div>
         </motion.div>
 
         {/* Next Job Highlight */}
