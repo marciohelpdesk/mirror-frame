@@ -65,7 +65,7 @@ export const PropertiesView = ({ properties, onViewProperty, onAddProperty }: Pr
       {/* FAB */}
       <button 
         onClick={() => setShowAddModal(true)}
-        className="fixed bottom-28 right-6 w-14 h-14 bg-secondary text-secondary-foreground rounded-2xl shadow-lg flex items-center justify-center transition-all hover:scale-105 active:scale-95 z-50 md:right-[calc(50%-187.5px+24px)]"
+        className="fixed bottom-28 right-6 w-14 h-14 glass-panel-elevated bg-primary/90 text-primary-foreground rounded-2xl shadow-lg flex items-center justify-center transition-all hover:scale-105 hover:bg-primary active:scale-95 z-50 md:right-[calc(50%-187.5px+24px)]"
       >
         <Plus size={28} strokeWidth={2.5} />
       </button>
