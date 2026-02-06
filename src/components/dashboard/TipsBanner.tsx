@@ -3,12 +3,18 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Lightbulb, Sparkles, Clock, Shield, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 
+// Import cleaning images
+import cleaning1 from '@/assets/tips/cleaning-1.jpg';
+import cleaning2 from '@/assets/tips/cleaning-2.jpg';
+import cleaning3 from '@/assets/tips/cleaning-3.jpg';
+import cleaning4 from '@/assets/tips/cleaning-4.jpg';
+
 interface Tip {
   id: string;
   icon: React.ReactNode;
   title: string;
   description: string;
-  gradient: string;
+  image: string;
 }
 
 export const TipsBanner = () => {
@@ -19,31 +25,31 @@ export const TipsBanner = () => {
   const tips: Tip[] = [
     {
       id: '1',
-      icon: <Lightbulb size={20} className="text-amber-500" />,
+      icon: <Lightbulb size={16} className="text-amber-500" />,
       title: t('tips.efficiency') || 'Dica de Eficiência',
       description: t('tips.efficiencyDesc') || 'Comece sempre pelos cômodos mais altos e desça - a poeira cai para baixo!',
-      gradient: 'from-amber-500/20 via-orange-500/10 to-transparent',
+      image: cleaning1,
     },
     {
       id: '2',
-      icon: <Sparkles size={20} className="text-primary" />,
+      icon: <Sparkles size={16} className="text-primary" />,
       title: t('tips.quality') || 'Qualidade Premium',
       description: t('tips.qualityDesc') || 'Lembre-se: detalhes fazem a diferença. Verifique os cantos e rodapés.',
-      gradient: 'from-primary/20 via-cyan-500/10 to-transparent',
+      image: cleaning2,
     },
     {
       id: '3',
-      icon: <Clock size={20} className="text-success" />,
+      icon: <Clock size={16} className="text-success" />,
       title: t('tips.time') || 'Gestão de Tempo',
       description: t('tips.timeDesc') || 'Chegue 5 minutos antes para verificar materiais e planejar o trabalho.',
-      gradient: 'from-success/20 via-emerald-500/10 to-transparent',
+      image: cleaning3,
     },
     {
       id: '4',
-      icon: <Shield size={20} className="text-violet-500" />,
+      icon: <Shield size={16} className="text-violet-500" />,
       title: t('tips.safety') || 'Segurança Primeiro',
       description: t('tips.safetyDesc') || 'Sempre fotografe o estado inicial da propriedade para documentação.',
-      gradient: 'from-violet-500/20 via-purple-500/10 to-transparent',
+      image: cleaning4,
     },
   ];
 
@@ -67,7 +73,7 @@ export const TipsBanner = () => {
 
   const variants = {
     enter: (direction: number) => ({
-      x: direction > 0 ? 100 : -100,
+      x: direction > 0 ? 50 : -50,
       opacity: 0,
     }),
     center: {
@@ -75,7 +81,7 @@ export const TipsBanner = () => {
       opacity: 1,
     },
     exit: (direction: number) => ({
-      x: direction < 0 ? 100 : -100,
+      x: direction < 0 ? 50 : -50,
       opacity: 0,
     }),
   };
@@ -84,20 +90,34 @@ export const TipsBanner = () => {
 
   return (
     <div className="relative w-full overflow-hidden">
-      <div className="glass-panel p-4 relative">
-        {/* Gradient Background */}
-        <div 
-          className={`absolute inset-0 bg-gradient-to-r ${currentTip.gradient} rounded-3xl transition-all duration-500`}
-        />
+      <div className="glass-panel relative overflow-hidden">
+        {/* Background Image with Overlay */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentTip.id + '-bg'}
+            initial={{ opacity: 0, scale: 1.1 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5 }}
+            className="absolute inset-0"
+          >
+            <img 
+              src={currentTip.image} 
+              alt="" 
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-white/95 via-white/85 to-white/60" />
+          </motion.div>
+        </AnimatePresence>
         
-        <div className="relative flex items-center gap-3">
+        <div className="relative flex items-center gap-2 p-4">
           {/* Navigation Left */}
           <button
             onClick={() => navigate(-1)}
-            className="flex-shrink-0 w-8 h-8 rounded-full bg-white/50 backdrop-blur-sm flex items-center justify-center hover:bg-white/70 transition-colors"
+            className="flex-shrink-0 w-7 h-7 rounded-full bg-white/70 backdrop-blur-sm flex items-center justify-center hover:bg-white/90 transition-colors shadow-sm"
             aria-label="Previous tip"
           >
-            <ChevronLeft size={16} className="text-foreground/70" />
+            <ChevronLeft size={14} className="text-foreground/70" />
           </button>
 
           {/* Content */}
@@ -114,16 +134,16 @@ export const TipsBanner = () => {
                 className="flex items-center gap-3"
               >
                 {/* Icon */}
-                <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-white/60 backdrop-blur-sm flex items-center justify-center shadow-sm">
+                <div className="flex-shrink-0 w-9 h-9 rounded-xl bg-white/80 backdrop-blur-sm flex items-center justify-center shadow-sm">
                   {currentTip.icon}
                 </div>
 
                 {/* Text */}
                 <div className="min-w-0 flex-1">
-                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">
+                  <p className="text-[9px] uppercase tracking-wider text-muted-foreground font-bold">
                     {currentTip.title}
                   </p>
-                  <p className="text-sm text-foreground font-medium leading-snug truncate">
+                  <p className="text-xs text-foreground font-medium leading-snug line-clamp-2">
                     {currentTip.description}
                   </p>
                 </div>
@@ -134,15 +154,15 @@ export const TipsBanner = () => {
           {/* Navigation Right */}
           <button
             onClick={() => navigate(1)}
-            className="flex-shrink-0 w-8 h-8 rounded-full bg-white/50 backdrop-blur-sm flex items-center justify-center hover:bg-white/70 transition-colors"
+            className="flex-shrink-0 w-7 h-7 rounded-full bg-white/70 backdrop-blur-sm flex items-center justify-center hover:bg-white/90 transition-colors shadow-sm"
             aria-label="Next tip"
           >
-            <ChevronRight size={16} className="text-foreground/70" />
+            <ChevronRight size={14} className="text-foreground/70" />
           </button>
         </div>
 
         {/* Dots Indicator */}
-        <div className="flex justify-center gap-1.5 mt-3">
+        <div className="relative flex justify-center gap-1.5 pb-3 -mt-1">
           {tips.map((_, index) => (
             <button
               key={index}
@@ -150,10 +170,10 @@ export const TipsBanner = () => {
                 setDirection(index > currentIndex ? 1 : -1);
                 setCurrentIndex(index);
               }}
-              className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
+              className={`h-1 rounded-full transition-all duration-300 ${
                 index === currentIndex 
                   ? 'bg-primary w-4' 
-                  : 'bg-muted-foreground/30 hover:bg-muted-foreground/50'
+                  : 'bg-foreground/20 w-1 hover:bg-foreground/40'
               }`}
               aria-label={`Go to tip ${index + 1}`}
             />
