@@ -1,5 +1,5 @@
-import { useEffect, useRef } from 'react';
-import { useSpring, animated, config } from '@react-spring/web';
+import { useEffect, useState } from 'react';
+import { motion, useSpring, useTransform } from 'framer-motion';
 
 interface AnimatedCounterProps {
   value: number;
@@ -8,24 +8,16 @@ interface AnimatedCounterProps {
 }
 
 export const AnimatedCounter = ({ value, suffix = '', className = '' }: AnimatedCounterProps) => {
-  const prevValue = useRef(value);
-  
-  const { number } = useSpring({
-    from: { number: prevValue.current },
-    number: value,
-    config: { ...config.gentle, duration: 600 },
-    onChange: () => {
-      prevValue.current = value;
-    },
-  });
+  const spring = useSpring(value, { stiffness: 100, damping: 30 });
+  const display = useTransform(spring, (current) => `${Math.round(current)}${suffix}`);
 
   useEffect(() => {
-    prevValue.current = value;
-  }, [value]);
+    spring.set(value);
+  }, [spring, value]);
 
   return (
-    <animated.span className={className}>
-      {number.to((n) => `${Math.round(n)}${suffix}`)}
-    </animated.span>
+    <motion.span className={className}>
+      {display}
+    </motion.span>
   );
 };
