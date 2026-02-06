@@ -6,9 +6,9 @@ import { PageHeader } from '@/components/PageHeader';
 import { JobCard } from '@/components/JobCard';
 import { NextJobCard } from '@/components/dashboard/NextJobCard';
 import { WeeklyProgress } from '@/components/dashboard/WeeklyProgress';
+import { AnimatedCounter } from '@/components/dashboard/AnimatedCounter';
 import { useLanguage } from '@/contexts/LanguageContext';
 import purLogo from '@/assets/pur-logo.png';
-
 interface DashboardViewProps {
   jobs: Job[];
   properties?: Property[];
@@ -94,55 +94,82 @@ export const DashboardView = ({ jobs, properties = [], onStartJob, onViewJob, us
           className="grid grid-cols-3 gap-3"
         >
           {/* Today's Progress */}
-          <div className="glass-panel p-4 relative overflow-hidden group">
+          <motion.div 
+            className="glass-panel p-4 relative overflow-hidden group"
+            whileHover={{ scale: 1.02 }}
+            transition={{ type: "spring", stiffness: 400, damping: 25 }}
+          >
             <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent" />
             <div className="relative">
               <div className="flex items-center gap-2 mb-2">
-                <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center">
+                <motion.div 
+                  className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center"
+                  whileHover={{ rotate: 15 }}
+                >
                   <Zap size={16} className="text-primary" />
-                </div>
+                </motion.div>
               </div>
-              <p className="text-2xl font-bold text-foreground">{todayProgress}%</p>
+              <p className="text-2xl font-bold text-foreground">
+                <AnimatedCounter value={todayProgress} suffix="%" />
+              </p>
               <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
                 {t('dashboard.progress') || 'Progresso'}
               </p>
             </div>
-          </div>
+          </motion.div>
 
           {/* Today's Jobs */}
-          <div className="glass-panel p-4 relative overflow-hidden">
+          <motion.div 
+            className="glass-panel p-4 relative overflow-hidden"
+            whileHover={{ scale: 1.02 }}
+            transition={{ type: "spring", stiffness: 400, damping: 25 }}
+          >
             <div className="absolute inset-0 bg-gradient-to-br from-success/5 to-transparent" />
             <div className="relative">
               <div className="flex items-center gap-2 mb-2">
-                <div className="w-8 h-8 rounded-xl bg-success/10 flex items-center justify-center">
+                <motion.div 
+                  className="w-8 h-8 rounded-xl bg-success/10 flex items-center justify-center"
+                  whileHover={{ rotate: 15 }}
+                >
                   <Calendar size={16} className="text-success" />
-                </div>
+                </motion.div>
               </div>
               <p className="text-2xl font-bold text-foreground">
-                <span className="text-success">{completedJobs.length}</span>
+                <span className="text-success">
+                  <AnimatedCounter value={completedJobs.length} />
+                </span>
                 <span className="text-muted-foreground text-lg">/{todayJobs.length}</span>
               </p>
               <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
                 {t('dashboard.today') || 'Hoje'}
               </p>
             </div>
-          </div>
+          </motion.div>
 
           {/* Pending */}
-          <div className="glass-panel p-4 relative overflow-hidden">
+          <motion.div 
+            className="glass-panel p-4 relative overflow-hidden"
+            whileHover={{ scale: 1.02 }}
+            transition={{ type: "spring", stiffness: 400, damping: 25 }}
+          >
             <div className="absolute inset-0 bg-gradient-to-br from-warning/5 to-transparent" />
             <div className="relative">
               <div className="flex items-center gap-2 mb-2">
-                <div className="w-8 h-8 rounded-xl bg-warning/10 flex items-center justify-center">
+                <motion.div 
+                  className="w-8 h-8 rounded-xl bg-warning/10 flex items-center justify-center"
+                  whileHover={{ rotate: 15 }}
+                >
                   <TrendingUp size={16} className="text-warning" />
-                </div>
+                </motion.div>
               </div>
-              <p className="text-2xl font-bold text-foreground">{scheduledJobs.length + inProgressJobs.length}</p>
+              <p className="text-2xl font-bold text-foreground">
+                <AnimatedCounter value={scheduledJobs.length + inProgressJobs.length} />
+              </p>
               <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
                 {t('dashboard.pending') || 'Pendentes'}
               </p>
             </div>
-          </div>
+          </motion.div>
         </motion.div>
 
         {/* Next Job Highlight */}
