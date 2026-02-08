@@ -101,11 +101,87 @@ class PremiumReportGenerator {
 
   private addImg(data: string, x: number, y: number, w: number, h: number): boolean {
     try {
-      if (!data || !data.startsWith('data:image')) return false;
+      if (!data) return false;
+      // Support both data URIs and pre-converted base64
+      if (!data.startsWith('data:image')) return false;
       const fmt = data.includes('data:image/png') ? 'PNG' : 'JPEG';
       this.pdf.addImage(data, fmt, x, y, w, h);
       return true;
     } catch { return false; }
+  }
+
+  // Convert URL to base64 data URI
+  private async urlToBase64(url: string): Promise<string> {
+    if (!url) return '';
+    if (url.startsWith('data:image')) return url;
+    
+    try {
+      const response = await fetch(url, { mode: 'cors' });
+      const blob = await response.blob();
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string || '');
+        reader.onerror = () => resolve('');
+        reader.readAsDataURL(blob);
+      });
+    } catch (e) {
+      console.warn('Failed to convert URL to base64:', url, e);
+      return '';
+    }
+  }
+
+  // Pre-convert all image URLs in job data to base64
+  private async preloadImages(data: ReportData): Promise<ReportData> {
+    const { job, lostAndFound } = data;
+    
+    // Convert all photo URLs in parallel
+    const allUrls: { type: string; index: number; url: string; subIndex?: number }[] = [];
+    
+    job.photosBefore.forEach((url, i) => allUrls.push({ type: 'before', index: i, url }));
+    job.photosAfter.forEach((url, i) => allUrls.push({ type: 'after', index: i, url }));
+    
+    job.checklist.forEach((section, si) => {
+      section.items.forEach((item, ii) => {
+        if (item.photoUrl) allUrls.push({ type: 'checklist', index: si, subIndex: ii, url: item.photoUrl });
+      });
+    });
+    
+    (job.damages || []).forEach((d, i) => {
+      if (d.photoUrl) allUrls.push({ type: 'damage', index: i, url: d.photoUrl });
+    });
+    
+    (lostAndFound || job.lostAndFound || []).forEach((item, i) => {
+      if (item.photoUrl) allUrls.push({ type: 'lostfound', index: i, url: item.photoUrl });
+    });
+
+    // Fetch all in parallel
+    const results = await Promise.all(allUrls.map(async (entry) => ({
+      ...entry,
+      base64: await this.urlToBase64(entry.url),
+    })));
+
+    // Apply back to a cloned job
+    const clonedJob: Job = JSON.parse(JSON.stringify(job));
+    const clonedLF: LostAndFoundItem[] = JSON.parse(JSON.stringify(lostAndFound || job.lostAndFound || []));
+
+    results.forEach(r => {
+      if (!r.base64) return;
+      switch (r.type) {
+        case 'before': clonedJob.photosBefore[r.index] = r.base64; break;
+        case 'after': clonedJob.photosAfter[r.index] = r.base64; break;
+        case 'checklist': 
+          if (r.subIndex !== undefined) clonedJob.checklist[r.index].items[r.subIndex].photoUrl = r.base64;
+          break;
+        case 'damage': 
+          if (clonedJob.damages[r.index]) clonedJob.damages[r.index].photoUrl = r.base64;
+          break;
+        case 'lostfound':
+          if (clonedLF[r.index]) clonedLF[r.index].photoUrl = r.base64;
+          break;
+      }
+    });
+
+    return { ...data, job: clonedJob, lostAndFound: clonedLF };
   }
 
   private text(str: string, x: number, y: number, opts?: any) {
@@ -767,10 +843,12 @@ class PremiumReportGenerator {
   public async generate(data: ReportData): Promise<Blob> {
     await this.loadLogo();
 
-    const { job, inventory, lostAndFound } = data;
+    // Pre-convert all image URLs to base64 for PDF embedding
+    const processedData = await this.preloadImages(data);
+    const { job, inventory, lostAndFound } = processedData;
 
     // Page 1: Cover
-    this.drawCoverPage(data);
+    this.drawCoverPage(processedData);
 
     // Page 2+: Content
     this.pdf.addPage();
