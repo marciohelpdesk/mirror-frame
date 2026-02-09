@@ -1,22 +1,14 @@
 import jsPDF from 'jspdf';
-import { Job, Property, InventoryItem, DamageReport, ChecklistSection } from '@/types';
+import { Job, InventoryItem, DamageReport, ChecklistSection, LostAndFoundItem } from '@/types';
 import purLogo from '@/assets/pur-logo.png';
 
 export interface ReportData {
   job: Job;
-  property?: Property;
+  property?: import('@/types').Property;
   inventory: InventoryItem[];
   responsibleName: string;
   lostAndFound?: LostAndFoundItem[];
   laundryExpedition?: LaundryItem[];
-}
-
-export interface LostAndFoundItem {
-  id: string;
-  description: string;
-  location: string;
-  photoUrl?: string;
-  date: string;
 }
 
 export interface LaundryItem {
@@ -26,34 +18,51 @@ export interface LaundryItem {
   unit: string;
 }
 
-// Premium color palette
-const C = {
-  navy: [15, 23, 42] as RGB,        // Primary dark
-  slate: [30, 41, 59] as RGB,
-  cyan: [6, 182, 212] as RGB,        // Brand accent
-  teal: [20, 184, 166] as RGB,
-  emerald: [16, 185, 129] as RGB,
-  amber: [245, 158, 11] as RGB,
-  rose: [244, 63, 94] as RGB,
-  white: [255, 255, 255] as RGB,
-  gray50: [248, 250, 252] as RGB,
-  gray100: [241, 245, 249] as RGB,
-  gray200: [226, 232, 240] as RGB,
-  gray400: [148, 163, 184] as RGB,
-  gray500: [100, 116, 139] as RGB,
-  gray700: [51, 65, 85] as RGB,
-  gray900: [15, 23, 42] as RGB,
-};
-
 type RGB = [number, number, number];
+
+// Refined premium palette
+const P = {
+  // Primary tones
+  darkNavy:    [10, 15, 30] as RGB,
+  navy:        [18, 27, 52] as RGB,
+  slate:       [35, 48, 72] as RGB,
+  
+  // Accent
+  cyan:        [0, 188, 212] as RGB,
+  cyanLight:   [77, 208, 225] as RGB,
+  cyanDark:    [0, 151, 167] as RGB,
+  teal:        [0, 150, 136] as RGB,
+  
+  // Status
+  emerald:     [16, 185, 129] as RGB,
+  emeraldDark: [5, 150, 105] as RGB,
+  amber:       [245, 158, 11] as RGB,
+  amberDark:   [217, 119, 6] as RGB,
+  rose:        [239, 68, 68] as RGB,
+  roseDark:    [220, 38, 38] as RGB,
+  
+  // Neutrals
+  white:       [255, 255, 255] as RGB,
+  offWhite:    [250, 252, 255] as RGB,
+  gray50:      [248, 250, 252] as RGB,
+  gray100:     [241, 245, 249] as RGB,
+  gray200:     [226, 232, 240] as RGB,
+  gray300:     [203, 213, 225] as RGB,
+  gray400:     [148, 163, 184] as RGB,
+  gray500:     [100, 116, 139] as RGB,
+  gray600:     [71, 85, 105] as RGB,
+  gray700:     [51, 65, 85] as RGB,
+  gray800:     [30, 41, 59] as RGB,
+  gray900:     [15, 23, 42] as RGB,
+};
 
 class PremiumReportGenerator {
   private pdf: jsPDF;
   private W: number;
   private H: number;
-  private M = 14; // margin
+  private M = 16; // margin
   private y = 0;
-  private CW: number; // content width
+  private CW: number;
   private logoDataUrl = '';
   private logoLoaded = false;
 
@@ -64,7 +73,7 @@ class PremiumReportGenerator {
     this.CW = this.W - this.M * 2;
   }
 
-  // ─── Helpers ──────────────────────────────────
+  // ─── Utilities ─────────────────────────────────
   private async loadLogo(): Promise<void> {
     return new Promise((resolve) => {
       const img = new Image();
@@ -81,40 +90,9 @@ class PremiumReportGenerator {
     });
   }
 
-  private pageBreak(need: number) {
-    if (this.y + need > this.H - 25) {
-      this.pdf.addPage();
-      this.y = this.M;
-      this.drawPageAccent();
-    }
-  }
-
-  private drawPageAccent() {
-    // Subtle side accent on every page
-    this.pdf.setFillColor(...C.cyan);
-    this.pdf.rect(0, 0, 3, this.H, 'F');
-  }
-
-  private setColor(c: RGB) { this.pdf.setTextColor(c[0], c[1], c[2]); }
-  private setFill(c: RGB) { this.pdf.setFillColor(c[0], c[1], c[2]); }
-  private setDraw(c: RGB) { this.pdf.setDrawColor(c[0], c[1], c[2]); }
-
-  private addImg(data: string, x: number, y: number, w: number, h: number): boolean {
-    try {
-      if (!data) return false;
-      // Support both data URIs and pre-converted base64
-      if (!data.startsWith('data:image')) return false;
-      const fmt = data.includes('data:image/png') ? 'PNG' : 'JPEG';
-      this.pdf.addImage(data, fmt, x, y, w, h);
-      return true;
-    } catch { return false; }
-  }
-
-  // Convert URL to base64 data URI
   private async urlToBase64(url: string): Promise<string> {
     if (!url) return '';
     if (url.startsWith('data:image')) return url;
-    
     try {
       const response = await fetch(url, { mode: 'cors' });
       const blob = await response.blob();
@@ -124,476 +102,565 @@ class PremiumReportGenerator {
         reader.onerror = () => resolve('');
         reader.readAsDataURL(blob);
       });
-    } catch (e) {
-      console.warn('Failed to convert URL to base64:', url, e);
-      return '';
-    }
+    } catch { return ''; }
   }
 
-  // Pre-convert all image URLs in job data to base64
   private async preloadImages(data: ReportData): Promise<ReportData> {
     const { job, lostAndFound } = data;
+    const urls: { type: string; index: number; url: string; sub?: number }[] = [];
     
-    // Convert all photo URLs in parallel
-    const allUrls: { type: string; index: number; url: string; subIndex?: number }[] = [];
-    
-    job.photosBefore.forEach((url, i) => allUrls.push({ type: 'before', index: i, url }));
-    job.photosAfter.forEach((url, i) => allUrls.push({ type: 'after', index: i, url }));
-    
-    job.checklist.forEach((section, si) => {
-      section.items.forEach((item, ii) => {
-        if (item.photoUrl) allUrls.push({ type: 'checklist', index: si, subIndex: ii, url: item.photoUrl });
-      });
-    });
-    
-    (job.damages || []).forEach((d, i) => {
-      if (d.photoUrl) allUrls.push({ type: 'damage', index: i, url: d.photoUrl });
-    });
-    
-    (lostAndFound || job.lostAndFound || []).forEach((item, i) => {
-      if (item.photoUrl) allUrls.push({ type: 'lostfound', index: i, url: item.photoUrl });
-    });
+    job.photosBefore.forEach((u, i) => urls.push({ type: 'b', index: i, url: u }));
+    job.photosAfter.forEach((u, i) => urls.push({ type: 'a', index: i, url: u }));
+    job.checklist.forEach((s, si) => s.items.forEach((item, ii) => {
+      if (item.photoUrl) urls.push({ type: 'c', index: si, sub: ii, url: item.photoUrl });
+    }));
+    (job.damages || []).forEach((d, i) => { if (d.photoUrl) urls.push({ type: 'd', index: i, url: d.photoUrl }); });
+    (lostAndFound || job.lostAndFound || []).forEach((item, i) => { if (item.photoUrl) urls.push({ type: 'l', index: i, url: item.photoUrl }); });
 
-    // Fetch all in parallel
-    const results = await Promise.all(allUrls.map(async (entry) => ({
-      ...entry,
-      base64: await this.urlToBase64(entry.url),
-    })));
-
-    // Apply back to a cloned job
-    const clonedJob: Job = JSON.parse(JSON.stringify(job));
-    const clonedLF: LostAndFoundItem[] = JSON.parse(JSON.stringify(lostAndFound || job.lostAndFound || []));
+    const results = await Promise.all(urls.map(async (e) => ({ ...e, b64: await this.urlToBase64(e.url) })));
+    const cj: Job = JSON.parse(JSON.stringify(job));
+    const cl: LostAndFoundItem[] = JSON.parse(JSON.stringify(lostAndFound || job.lostAndFound || []));
 
     results.forEach(r => {
-      if (!r.base64) return;
-      switch (r.type) {
-        case 'before': clonedJob.photosBefore[r.index] = r.base64; break;
-        case 'after': clonedJob.photosAfter[r.index] = r.base64; break;
-        case 'checklist': 
-          if (r.subIndex !== undefined) clonedJob.checklist[r.index].items[r.subIndex].photoUrl = r.base64;
-          break;
-        case 'damage': 
-          if (clonedJob.damages[r.index]) clonedJob.damages[r.index].photoUrl = r.base64;
-          break;
-        case 'lostfound':
-          if (clonedLF[r.index]) clonedLF[r.index].photoUrl = r.base64;
-          break;
-      }
+      if (!r.b64) return;
+      if (r.type === 'b') cj.photosBefore[r.index] = r.b64;
+      else if (r.type === 'a') cj.photosAfter[r.index] = r.b64;
+      else if (r.type === 'c' && r.sub !== undefined) cj.checklist[r.index].items[r.sub].photoUrl = r.b64;
+      else if (r.type === 'd' && cj.damages[r.index]) cj.damages[r.index].photoUrl = r.b64;
+      else if (r.type === 'l' && cl[r.index]) cl[r.index].photoUrl = r.b64;
     });
 
-    return { ...data, job: clonedJob, lostAndFound: clonedLF };
+    return { ...data, job: cj, lostAndFound: cl };
   }
 
-  private text(str: string, x: number, y: number, opts?: any) {
-    this.pdf.text(str, x, y, opts);
+  private sc(c: RGB) { this.pdf.setTextColor(c[0], c[1], c[2]); }
+  private sf(c: RGB) { this.pdf.setFillColor(c[0], c[1], c[2]); }
+  private sd(c: RGB) { this.pdf.setDrawColor(c[0], c[1], c[2]); }
+
+  private rr(x: number, y: number, w: number, h: number, r: number, s: string) {
+    this.pdf.roundedRect(x, y, w, h, r, r, s);
   }
 
-  private roundRect(x: number, y: number, w: number, h: number, r: number, style: string) {
-    this.pdf.roundedRect(x, y, w, h, r, r, style);
+  private addImg(data: string, x: number, y: number, w: number, h: number): boolean {
+    try {
+      if (!data || !data.startsWith('data:image')) return false;
+      this.pdf.addImage(data, data.includes('png') ? 'PNG' : 'JPEG', x, y, w, h);
+      return true;
+    } catch { return false; }
   }
 
-  private badge(label: string, x: number, y: number, bg: RGB, fg: RGB = C.white, w?: number) {
-    const bw = w || this.pdf.getTextWidth(label) + 6;
-    this.setFill(bg);
-    this.roundRect(x, y, bw, 7, 2, 'F');
-    this.setColor(fg);
-    this.pdf.setFontSize(6);
+  private pageBreak(need: number) {
+    if (this.y + need > this.H - 30) {
+      this.pdf.addPage();
+      this.y = 18;
+      this.drawPageHeader();
+    }
+  }
+
+  private drawPageHeader() {
+    // Top accent line
+    this.sf(P.cyan);
+    this.pdf.rect(0, 0, this.W, 2.5, 'F');
+    // Secondary thin line
+    this.sf(P.cyanDark);
+    this.pdf.rect(0, 2.5, this.W, 0.5, 'F');
+  }
+
+  // ─── Design Components ─────────────────────────
+
+  private badge(label: string, x: number, y: number, bg: RGB, fg: RGB = P.white, w?: number) {
+    const bw = w || (this.pdf.getTextWidth(label) + 8);
+    this.sf(bg);
+    this.rr(x, y, bw, 6.5, 1.5, 'F');
+    this.sc(fg);
+    this.pdf.setFontSize(6.5);
     this.pdf.setFont('helvetica', 'bold');
-    this.text(label, x + bw / 2, y + 5, { align: 'center' });
+    this.pdf.text(label, x + bw / 2, y + 4.5, { align: 'center' });
   }
 
-  // ─── Cover Page ───────────────────────────────
-  private drawCoverPage(data: ReportData) {
+  private pillBadge(label: string, x: number, y: number, bg: RGB, fg: RGB = P.white) {
+    const bw = this.pdf.getTextWidth(label) + 10;
+    this.sf(bg);
+    this.rr(x, y, bw, 7.5, 3.5, 'F');
+    this.sc(fg);
+    this.pdf.setFontSize(7);
+    this.pdf.setFont('helvetica', 'bold');
+    this.pdf.text(label, x + bw / 2, y + 5.2, { align: 'center' });
+    return bw;
+  }
+
+  private sectionTitle(title: string, icon?: string) {
+    this.pageBreak(18);
+
+    // Accent bar
+    this.sf(P.navy);
+    this.rr(this.M, this.y, this.CW, 12, 3, 'F');
+    
+    // Cyan left accent
+    this.sf(P.cyan);
+    this.pdf.rect(this.M, this.y + 1, 4, 10, 'F');
+
+    this.sc(P.white);
+    this.pdf.setFont('helvetica', 'bold');
+    this.pdf.setFontSize(10);
+    const label = icon ? `${icon}  ${title}` : title;
+    this.pdf.text(label, this.M + 10, this.y + 8);
+
+    this.y += 16;
+  }
+
+  private card(x: number, y: number, w: number, h: number, accentColor?: RGB) {
+    // Shadow
+    this.sf(P.gray200);
+    this.rr(x + 0.5, y + 0.5, w, h, 3, 'F');
+    // Card
+    this.sf(P.white);
+    this.sd(P.gray200);
+    this.pdf.setLineWidth(0.2);
+    this.rr(x, y, w, h, 3, 'FD');
+    // Left accent
+    if (accentColor) {
+      this.sf(accentColor);
+      this.rr(x, y, 3.5, h, 2, 'F');
+      this.pdf.rect(x + 2, y, 1.5, h, 'F');
+    }
+  }
+
+  private statBox(x: number, y: number, w: number, value: string, label: string, color: RGB) {
+    this.card(x, y, w, 30);
+    
+    // Color top stripe
+    this.sf(color);
+    this.rr(x, y, w, 3, 3, 'F');
+    this.pdf.rect(x, y + 2, w, 1, 'F');
+
+    // Icon circle
+    this.sf(color);
+    const cx = x + w / 2;
+    this.pdf.circle(cx, y + 13, 5, 'F');
+    
+    this.sc(P.white);
+    this.pdf.setFont('helvetica', 'bold');
+    this.pdf.setFontSize(7);
+    // Simple icon text
+    this.pdf.text(value.length <= 3 ? value : '•', cx, y + 14.5, { align: 'center' });
+
+    // Value
+    this.sc(P.gray800);
+    this.pdf.setFont('helvetica', 'bold');
+    this.pdf.setFontSize(14);
+    this.pdf.text(value, cx, y + 24, { align: 'center' });
+
+    // Label
+    this.sc(P.gray500);
+    this.pdf.setFont('helvetica', 'normal');
+    this.pdf.setFontSize(6.5);
+    this.pdf.text(label, cx, y + 28.5, { align: 'center' });
+  }
+
+  // ─── Cover Page ────────────────────────────────
+  private drawCover(data: ReportData) {
     const { job, property } = data;
 
-    // Full navy background
-    this.setFill(C.navy);
+    // Full dark background
+    this.sf(P.darkNavy);
     this.pdf.rect(0, 0, this.W, this.H, 'F');
 
-    // Gradient accent strip at top
-    this.setFill(C.cyan);
-    this.pdf.rect(0, 0, this.W, 4, 'F');
-    this.setFill(C.teal);
-    this.pdf.rect(0, 4, this.W, 2, 'F');
+    // Top gradient bar
+    this.sf(P.cyan);
+    this.pdf.rect(0, 0, this.W, 5, 'F');
+    this.sf(P.cyanDark);
+    this.pdf.rect(0, 5, this.W, 1.5, 'F');
+
+    // Decorative geometric elements
+    this.pdf.setGState(new (this.pdf as any).GState({ opacity: 0.05 }));
+    this.sf(P.cyan);
+    this.pdf.circle(this.W - 30, 60, 80, 'F');
+    this.pdf.circle(30, this.H - 80, 60, 'F');
+    this.pdf.setGState(new (this.pdf as any).GState({ opacity: 1 }));
 
     // Logo
-    const logoY = 35;
+    let logoY = 45;
     if (this.logoLoaded && this.logoDataUrl) {
-      try { this.pdf.addImage(this.logoDataUrl, 'PNG', this.W / 2 - 15, logoY, 30, 30); } catch {}
+      try { this.pdf.addImage(this.logoDataUrl, 'PNG', this.W / 2 - 18, logoY, 36, 36); } catch {}
+      logoY += 44;
+    } else {
+      logoY += 10;
     }
 
-    // Brand
-    this.setColor(C.white);
+    // Brand name
+    this.sc(P.white);
     this.pdf.setFont('helvetica', 'bold');
-    this.pdf.setFontSize(28);
-    this.text('MAISON PUR', this.W / 2, logoY + 42, { align: 'center' });
+    this.pdf.setFontSize(32);
+    this.pdf.text('MAISON PUR', this.W / 2, logoY, { align: 'center' });
 
-    this.pdf.setFontSize(9);
-    this.setColor(C.gray400);
+    // Tagline
+    this.sc(P.gray400);
     this.pdf.setFont('helvetica', 'normal');
-    this.text('EXCELÊNCIA EM GESTÃO DE PROPRIEDADES', this.W / 2, logoY + 50, { align: 'center' });
+    this.pdf.setFontSize(9);
+    this.pdf.text('EXCELÊNCIA EM GESTÃO DE PROPRIEDADES', this.W / 2, logoY + 9, { align: 'center' });
 
-    // Decorative line
-    this.setDraw(C.cyan);
-    this.pdf.setLineWidth(0.8);
-    this.pdf.line(this.W / 2 - 30, logoY + 55, this.W / 2 + 30, logoY + 55);
+    // Decorative divider
+    const divY = logoY + 18;
+    this.sf(P.cyan);
+    this.pdf.rect(this.W / 2 - 20, divY, 40, 0.8, 'F');
+    this.sf(P.cyanLight);
+    this.pdf.circle(this.W / 2 - 22, divY + 0.4, 1.2, 'F');
+    this.pdf.circle(this.W / 2 + 22, divY + 0.4, 1.2, 'F');
 
-    // Report type
-    const typeY = logoY + 70;
-    this.setColor(C.cyan);
+    // Report type label
+    this.sc(P.cyan);
     this.pdf.setFont('helvetica', 'bold');
-    this.pdf.setFontSize(11);
-    this.text('RELATÓRIO DE INSPEÇÃO E LIMPEZA', this.W / 2, typeY, { align: 'center' });
+    this.pdf.setFontSize(10);
+    this.pdf.text('RELATÓRIO DE INSPEÇÃO E LIMPEZA', this.W / 2, divY + 14, { align: 'center' });
 
     // Property name - hero
     const propName = (property?.name || job.clientName).toUpperCase();
-    this.setColor(C.white);
-    this.pdf.setFontSize(24);
+    this.sc(P.white);
+    this.pdf.setFontSize(26);
     this.pdf.setFont('helvetica', 'bold');
-    this.text(propName, this.W / 2, typeY + 20, { align: 'center' });
+    this.pdf.text(propName, this.W / 2, divY + 30, { align: 'center' });
 
     // Address
-    this.setColor(C.gray400);
+    this.sc(P.gray400);
     this.pdf.setFontSize(10);
     this.pdf.setFont('helvetica', 'normal');
-    this.text(property?.address || job.address, this.W / 2, typeY + 28, { align: 'center' });
+    const addr = property?.address || job.address;
+    this.pdf.text(addr, this.W / 2, divY + 38, { align: 'center' });
+
+    // Job type pill
+    this.pillBadge(job.type.toUpperCase(), this.W / 2 - 16, divY + 44, P.cyan, P.darkNavy);
 
     // Info cards at bottom
-    const cardY = this.H - 90;
-    const cardW = (this.CW - 12) / 4;
-    const dateStr = new Date(job.date).toLocaleDateString('pt-BR');
+    const cardY = this.H - 75;
+    const dateStr = new Date(job.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
     const startTime = job.startTime ? new Date(job.startTime).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : job.time;
     const endTime = job.endTime ? new Date(job.endTime).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '--:--';
 
+    // Single glass card for info
+    this.sf(P.slate);
+    this.rr(this.M + 5, cardY, this.CW - 10, 38, 5, 'F');
+
     const infos = [
-      { label: 'DATA', value: dateStr },
-      { label: 'INÍCIO', value: startTime },
-      { label: 'TÉRMINO', value: endTime },
-      { label: 'RESPONSÁVEL', value: data.responsibleName },
+      { icon: '📅', label: 'DATA', value: dateStr },
+      { icon: '🕐', label: 'INÍCIO', value: startTime },
+      { icon: '🕑', label: 'TÉRMINO', value: endTime },
+      { icon: '👤', label: 'RESPONSÁVEL', value: data.responsibleName },
     ];
 
+    const colW = (this.CW - 20) / 4;
     infos.forEach((info, i) => {
-      const x = this.M + i * (cardW + 4);
-      this.setFill(C.slate);
-      this.roundRect(x, cardY, cardW, 28, 3, 'F');
+      const cx = this.M + 10 + i * colW + colW / 2;
 
-      this.setColor(C.gray400);
+      this.sc(P.gray400);
       this.pdf.setFont('helvetica', 'bold');
-      this.pdf.setFontSize(7);
-      this.text(info.label, x + cardW / 2, cardY + 10, { align: 'center' });
+      this.pdf.setFontSize(6.5);
+      this.pdf.text(info.label, cx, cardY + 10, { align: 'center' });
 
-      this.setColor(C.white);
-      this.pdf.setFont('helvetica', 'normal');
-      this.pdf.setFontSize(11);
-      const val = info.value.length > 12 ? info.value.substring(0, 12) + '…' : info.value;
-      this.text(val, x + cardW / 2, cardY + 20, { align: 'center' });
+      this.sc(P.white);
+      this.pdf.setFont('helvetica', 'bold');
+      this.pdf.setFontSize(10);
+      const val = info.value.length > 14 ? info.value.substring(0, 14) + '…' : info.value;
+      this.pdf.text(val, cx, cardY + 20, { align: 'center' });
+
+      // Divider between columns (not last)
+      if (i < 3) {
+        this.sf(P.gray600);
+        this.pdf.rect(this.M + 10 + (i + 1) * colW, cardY + 6, 0.3, 26, 'F');
+      }
     });
 
-    // Job type badge
-    this.badge(job.type.toUpperCase(), this.W / 2 - 18, cardY + 35, C.cyan, C.navy, 36);
-
-    // Footer text
-    this.setColor(C.gray500);
+    // Footer
+    this.sc(P.gray600);
     this.pdf.setFontSize(7);
     this.pdf.setFont('helvetica', 'normal');
-    this.text('Documento gerado automaticamente pelo sistema Maison Pur', this.W / 2, this.H - 12, { align: 'center' });
+    this.pdf.text('Documento gerado automaticamente pelo sistema Maison Pur', this.W / 2, this.H - 10, { align: 'center' });
   }
 
-  // ─── Executive Summary ────────────────────────
-  private drawExecutiveSummary(job: Job) {
-    this.pageBreak(70);
-
-    // Section title
-    this.drawSectionTitle('RESUMO EXECUTIVO');
+  // ─── Executive Summary ─────────────────────────
+  private drawSummary(job: Job) {
+    this.sectionTitle('RESUMO EXECUTIVO', '📊');
 
     const totalTasks = job.checklist.reduce((a, s) => a + s.items.length, 0);
     const completed = job.checklist.reduce((a, s) => a + s.items.filter(i => i.completed).length, 0);
-    const completion = totalTasks > 0 ? Math.round((completed / totalTasks) * 100) : 0;
-    const damageCount = job.damages?.length || 0;
-    const lostCount = job.lostAndFound?.length || 0;
-    const photoCount = (job.photosBefore?.length || 0) + (job.photosAfter?.length || 0);
-    const duration = job.startTime && job.endTime ? Math.floor((job.endTime - job.startTime) / 60000) : 0;
+    const pct = totalTasks > 0 ? Math.round((completed / totalTasks) * 100) : 0;
+    const dmg = job.damages?.length || 0;
+    const lost = job.lostAndFound?.length || 0;
+    const photos = (job.photosBefore?.length || 0) + (job.photosAfter?.length || 0);
+    const dur = job.startTime && job.endTime ? Math.floor((job.endTime - job.startTime) / 60000) : 0;
 
-    // Main stats row
+    // Stats row
     const stats = [
-      { value: `${completion}%`, label: 'CONCLUSÃO', color: completion === 100 ? C.emerald : C.amber, big: true },
-      { value: `${completed}/${totalTasks}`, label: 'TAREFAS', color: C.cyan },
-      { value: `${damageCount}`, label: 'AVARIAS', color: damageCount > 0 ? C.rose : C.emerald },
-      { value: `${lostCount}`, label: 'ACHADOS', color: C.amber },
-      { value: `${photoCount}`, label: 'FOTOS', color: C.cyan },
-      { value: duration > 0 ? `${Math.floor(duration / 60)}h${String(duration % 60).padStart(2, '0')}` : '--', label: 'DURAÇÃO', color: C.teal },
+      { value: `${pct}%`, label: 'CONCLUSÃO', color: pct === 100 ? P.emerald : P.amber },
+      { value: `${completed}/${totalTasks}`, label: 'TAREFAS', color: P.cyan },
+      { value: `${dmg}`, label: 'AVARIAS', color: dmg > 0 ? P.rose : P.emerald },
+      { value: `${lost}`, label: 'ACHADOS', color: P.amberDark },
+      { value: `${photos}`, label: 'FOTOS', color: P.teal },
+      { value: dur > 0 ? `${Math.floor(dur / 60)}h${String(dur % 60).padStart(2, '0')}` : '--', label: 'DURAÇÃO', color: P.cyanDark },
     ];
 
-    const statW = (this.CW - (stats.length - 1) * 3) / stats.length;
+    const gap = 3;
+    const sw = (this.CW - (stats.length - 1) * gap) / stats.length;
     stats.forEach((s, i) => {
-      const x = this.M + i * (statW + 3);
-      this.setFill(C.gray50);
-      this.setDraw(C.gray200);
-      this.pdf.setLineWidth(0.3);
-      this.roundRect(x, this.y, statW, 26, 3, 'FD');
-
-      // Color accent top
-      this.setFill(s.color);
-      this.pdf.rect(x + 1, this.y, statW - 2, 2, 'F');
-
-      this.setColor(s.color);
-      this.pdf.setFont('helvetica', 'bold');
-      this.pdf.setFontSize(s.big ? 18 : 15);
-      this.text(s.value, x + statW / 2, this.y + 14, { align: 'center' });
-
-      this.setColor(C.gray500);
-      this.pdf.setFont('helvetica', 'normal');
-      this.pdf.setFontSize(6);
-      this.text(s.label, x + statW / 2, this.y + 21, { align: 'center' });
+      this.statBox(this.M + i * (sw + gap), this.y, sw, s.value, s.label, s.color);
     });
+    this.y += 35;
 
-    this.y += 32;
-
-    // Completion bar
-    this.setFill(C.gray200);
-    this.roundRect(this.M, this.y, this.CW, 5, 2, 'F');
-    if (completion > 0) {
-      this.setFill(completion === 100 ? C.emerald : C.cyan);
-      this.roundRect(this.M, this.y, this.CW * (completion / 100), 5, 2, 'F');
-    }
-    this.y += 10;
-
-    // Notes if present
-    if (job.reportNote) {
-      this.pageBreak(25);
-      this.setFill(C.gray50);
-      this.setDraw(C.cyan);
-      this.pdf.setLineWidth(0.5);
-      const noteLines = this.pdf.splitTextToSize(job.reportNote, this.CW - 16);
-      const noteH = 12 + noteLines.length * 4.5;
-      this.roundRect(this.M, this.y, this.CW, noteH, 3, 'FD');
-
-      // Accent left bar
-      this.setFill(C.cyan);
-      this.pdf.rect(this.M, this.y, 3, noteH, 'F');
-
-      this.setColor(C.gray500);
-      this.pdf.setFont('helvetica', 'bold');
-      this.pdf.setFontSize(7);
-      this.text('OBSERVAÇÕES DO RESPONSÁVEL', this.M + 10, this.y + 7);
-
-      this.setColor(C.gray700);
-      this.pdf.setFont('helvetica', 'normal');
-      this.pdf.setFontSize(9);
-      this.text(noteLines, this.M + 10, this.y + 14);
-
-      this.y += noteH + 6;
-    }
-  }
-
-  // ─── Section Title ─────────────────────────────
-  private drawSectionTitle(title: string) {
-    this.pageBreak(15);
-    this.setColor(C.navy);
+    // Big completion bar
+    this.pageBreak(12);
+    this.card(this.M, this.y, this.CW, 10);
+    this.sc(P.gray600);
     this.pdf.setFont('helvetica', 'bold');
-    this.pdf.setFontSize(13);
-    this.text(title, this.M, this.y + 5);
+    this.pdf.setFontSize(7);
+    this.pdf.text('PROGRESSO GERAL', this.M + 8, this.y + 5);
 
-    // Underline
-    this.setFill(C.cyan);
-    this.pdf.rect(this.M, this.y + 8, 25, 1.5, 'F');
-    this.setFill(C.gray200);
-    this.pdf.rect(this.M + 25, this.y + 8, this.CW - 25, 0.5, 'F');
+    this.sf(P.gray200);
+    this.rr(this.M + 55, this.y + 2.5, this.CW - 80, 5, 2, 'F');
+    if (pct > 0) {
+      this.sf(pct === 100 ? P.emerald : P.cyan);
+      const barW = (this.CW - 80) * (pct / 100);
+      this.rr(this.M + 55, this.y + 2.5, barW, 5, 2, 'F');
+    }
+    this.sc(pct === 100 ? P.emerald : P.cyan);
+    this.pdf.setFontSize(8);
+    this.pdf.text(`${pct}%`, this.M + this.CW - 18, this.y + 6.5, { align: 'center' });
 
     this.y += 14;
+
+    // Notes
+    if (job.reportNote) {
+      this.pageBreak(25);
+      const lines = this.pdf.splitTextToSize(job.reportNote, this.CW - 20);
+      const h = 14 + lines.length * 4.5;
+      this.card(this.M, this.y, this.CW, h, P.cyan);
+
+      this.sc(P.cyan);
+      this.pdf.setFont('helvetica', 'bold');
+      this.pdf.setFontSize(7.5);
+      this.pdf.text('OBSERVAÇÕES DO RESPONSÁVEL', this.M + 12, this.y + 8);
+
+      this.sc(P.gray700);
+      this.pdf.setFont('helvetica', 'normal');
+      this.pdf.setFontSize(9);
+      this.pdf.text(lines, this.M + 12, this.y + 15);
+
+      this.y += h + 5;
+    }
   }
 
-  // ─── Checklist Section Cards ──────────────────
-  private drawChecklistSection(section: ChecklistSection) {
-    const totalItems = section.items.length;
-    const completedItems = section.items.filter(i => i.completed).length;
-    const allDone = completedItems === totalItems;
+  // ─── Checklist Section ─────────────────────────
+  private drawChecklist(section: ChecklistSection) {
+    const total = section.items.length;
+    const done = section.items.filter(i => i.completed).length;
+    const allDone = done === total;
+    const pct = total > 0 ? Math.round((done / total) * 100) : 0;
 
-    // Calculate height
-    const rows = Math.ceil(totalItems / 2);
-    const cardH = 22 + rows * 9;
+    // Calculate needed height
+    const itemH = 8;
+    const headerH = 18;
+    const cardH = headerH + total * itemH + 6;
     this.pageBreak(cardH + 5);
 
     const x = this.M;
     const y = this.y;
 
-    // Card
-    this.setFill(C.white);
-    this.setDraw(allDone ? C.emerald : C.gray200);
-    this.pdf.setLineWidth(allDone ? 0.6 : 0.3);
-    this.roundRect(x, y, this.CW, cardH, 3, 'FD');
+    // Card with accent
+    this.card(x, y, this.CW, cardH, allDone ? P.emerald : P.amber);
 
-    // Status indicator left bar
-    this.setFill(allDone ? C.emerald : C.amber);
-    this.pdf.rect(x, y + 2, 3, cardH - 4, 'F');
+    // Section header area
+    this.sf(allDone ? P.emerald : P.amber);
+    this.pdf.setGState(new (this.pdf as any).GState({ opacity: 0.08 }));
+    this.pdf.rect(x, y, this.CW, headerH, 'F');
+    this.pdf.setGState(new (this.pdf as any).GState({ opacity: 1 }));
 
-    // Title
-    this.setColor(C.navy);
+    // Section title
+    this.sc(P.gray800);
     this.pdf.setFont('helvetica', 'bold');
     this.pdf.setFontSize(11);
-    this.text(section.title, x + 10, y + 10);
+    this.pdf.text(section.title.toUpperCase(), x + 12, y + 8);
 
-    // Counter badge
-    const badgeBg = allDone ? C.emerald : C.amber;
-    this.badge(`${completedItems}/${totalItems}`, x + this.CW - 28, y + 4, badgeBg);
+    // Status badge
+    const statusColor = allDone ? P.emerald : P.amber;
+    this.pillBadge(`${done}/${total}`, x + this.CW - 30, y + 2.5, statusColor);
 
-    // Progress mini-bar
-    const barX = x + 10;
-    const barY = y + 14;
-    const barW = this.CW - 20;
-    this.setFill(C.gray200);
-    this.roundRect(barX, barY, barW, 2, 1, 'F');
-    if (completedItems > 0) {
-      this.setFill(allDone ? C.emerald : C.cyan);
-      this.roundRect(barX, barY, barW * (completedItems / totalItems), 2, 1, 'F');
+    // Progress bar
+    const barX = x + 12;
+    const barY = y + 12;
+    const barW = this.CW - 24;
+    this.sf(P.gray200);
+    this.rr(barX, barY, barW, 2.5, 1, 'F');
+    if (pct > 0) {
+      this.sf(allDone ? P.emerald : P.cyan);
+      this.rr(barX, barY, barW * (pct / 100), 2.5, 1, 'F');
     }
 
-    // Items in 2 columns
-    const colW = (this.CW - 24) / 2;
+    // Items
     section.items.forEach((item, idx) => {
-      const col = idx % 2;
-      const row = Math.floor(idx / 2);
-      const ix = x + 10 + col * (colW + 4);
-      const iy = y + 22 + row * 9;
+      const iy = y + headerH + idx * itemH + 3;
+
+      // Alternating row bg
+      if (idx % 2 === 0) {
+        this.sf(P.gray50);
+        this.pdf.rect(x + 4, iy - 3.5, this.CW - 8, itemH, 'F');
+      }
 
       // Checkbox
       if (item.completed) {
-        this.setFill(C.emerald);
-        this.roundRect(ix, iy - 3, 4, 4, 1, 'F');
-        this.setColor(C.white);
-        this.pdf.setFontSize(7);
-        this.text('✓', ix + 0.7, iy + 0.5);
+        this.sf(P.emerald);
+        this.rr(x + 12, iy - 2.5, 5, 5, 1.5, 'F');
+        this.sc(P.white);
+        this.pdf.setFontSize(8);
+        this.pdf.setFont('helvetica', 'bold');
+        this.pdf.text('✓', x + 13.2, iy + 1.5);
       } else {
-        this.setDraw(C.gray400);
+        this.sd(P.gray400);
         this.pdf.setLineWidth(0.4);
-        this.roundRect(ix, iy - 3, 4, 4, 1, 'S');
+        this.rr(x + 12, iy - 2.5, 5, 5, 1.5, 'S');
       }
 
       // Label
-      this.pdf.setFont('helvetica', item.completed ? 'normal' : 'normal');
-      this.pdf.setFontSize(8);
-      this.setColor(item.completed ? C.gray700 : C.gray500);
-      const lbl = item.label.length > 32 ? item.label.substring(0, 30) + '…' : item.label;
-      this.text(lbl, ix + 7, iy);
+      this.sc(item.completed ? P.gray700 : P.gray500);
+      this.pdf.setFont('helvetica', 'normal');
+      this.pdf.setFontSize(8.5);
+      const maxLabelW = this.CW - 55;
+      const lbl = this.pdf.getTextWidth(item.label) > maxLabelW
+        ? item.label.substring(0, 38) + '…' : item.label;
+      this.pdf.text(lbl, x + 21, iy + 1);
 
       // Photo indicator
       if (item.photoRequired) {
+        if (item.photoUrl) {
+          this.badge('📷 OK', x + this.CW - 30, iy - 2, P.emerald);
+        } else {
+          this.badge('📷', x + this.CW - 22, iy - 2, P.gray300, P.gray600);
+        }
+      }
+
+      // Completed indicator
+      if (item.completed) {
+        this.sc(P.emerald);
         this.pdf.setFontSize(6);
-        this.setColor(item.photoUrl ? C.cyan : C.gray400);
-        this.text('📷', ix + colW - 4, iy);
+        this.pdf.setFont('helvetica', 'bold');
+        this.pdf.text('FEITO', x + this.CW - 14, iy + 1, { align: 'right' });
       }
     });
 
-    this.y = y + cardH + 4;
+    this.y = y + cardH + 5;
   }
 
-  // ─── Checklist Verification Photos ────────────
+  // ─── Verification Photos Grid ──────────────────
   private drawVerificationPhotos(section: ChecklistSection) {
     const items = section.items.filter(i => i.photoUrl);
     if (items.length === 0) return;
 
-    this.pageBreak(35);
+    this.pageBreak(40);
 
-    this.setFill(C.gray50);
-    const photoW = 28;
-    const photoH = 22;
-    const gap = 3;
-    const perRow = Math.floor((this.CW - 10) / (photoW + gap));
+    const photoW = 30;
+    const photoH = 24;
+    const gap = 4;
+    const perRow = Math.floor((this.CW - 12) / (photoW + gap));
     const rows = Math.ceil(items.length / perRow);
-    const blockH = 14 + rows * (photoH + 12);
+    const blockH = 16 + rows * (photoH + 14);
 
-    this.roundRect(this.M, this.y, this.CW, blockH, 3, 'F');
+    this.card(this.M, this.y, this.CW, blockH);
 
-    this.setColor(C.gray500);
+    // Header
+    this.sc(P.gray600);
     this.pdf.setFont('helvetica', 'bold');
-    this.pdf.setFontSize(7);
-    this.text(`FOTOS DE VERIFICAÇÃO — ${section.title.toUpperCase()}`, this.M + 6, this.y + 8);
+    this.pdf.setFontSize(7.5);
+    this.pdf.text(`📷 VERIFICAÇÃO FOTOGRÁFICA — ${section.title.toUpperCase()}`, this.M + 8, this.y + 9);
 
     items.forEach((item, idx) => {
       const col = idx % perRow;
       const row = Math.floor(idx / perRow);
       const px = this.M + 6 + col * (photoW + gap);
-      const py = this.y + 12 + row * (photoH + 12);
+      const py = this.y + 14 + row * (photoH + 14);
 
-      this.setDraw(C.cyan);
+      // Photo frame with shadow
+      this.sf(P.gray200);
+      this.rr(px + 0.5, py + 0.5, photoW, photoH, 2, 'F');
+      this.sf(P.white);
+      this.sd(P.cyan);
       this.pdf.setLineWidth(0.5);
-      this.roundRect(px, py, photoW, photoH, 2, 'S');
+      this.rr(px, py, photoW, photoH, 2, 'FD');
 
       if (item.photoUrl) {
         this.addImg(item.photoUrl, px + 0.5, py + 0.5, photoW - 1, photoH - 1);
       }
 
-      this.setColor(C.gray700);
+      // Label
+      this.sc(P.gray700);
       this.pdf.setFont('helvetica', 'normal');
       this.pdf.setFontSize(5.5);
-      const lbl = item.label.length > 18 ? item.label.substring(0, 16) + '…' : item.label;
-      this.text(lbl, px + photoW / 2, py + photoH + 4, { align: 'center' });
+      const lbl = item.label.length > 20 ? item.label.substring(0, 18) + '…' : item.label;
+      this.pdf.text(lbl, px + photoW / 2, py + photoH + 5, { align: 'center' });
+
+      // Status dot
+      this.sf(P.emerald);
+      this.pdf.circle(px + photoW / 2, py + photoH + 9, 1.5, 'F');
     });
 
     this.y += blockH + 5;
   }
 
-  // ─── Damages Section ──────────────────────────
-  private drawDamagesSection(damages: DamageReport[]) {
+  // ─── Damages Section ───────────────────────────
+  private drawDamages(damages: DamageReport[]) {
     if (!damages || damages.length === 0) return;
 
-    this.drawSectionTitle('REGISTRO DE AVARIAS E MANUTENÇÃO');
+    this.sectionTitle('REGISTRO DE AVARIAS E MANUTENÇÃO', '⚠️');
 
     damages.forEach((damage, idx) => {
-      this.pageBreak(40);
+      const hasPhoto = !!damage.photoUrl;
+      const cardH = hasPhoto ? 42 : 26;
+      this.pageBreak(cardH + 5);
 
       const x = this.M;
       const y = this.y;
-      const hasPhoto = !!damage.photoUrl;
-      const cardH = hasPhoto ? 38 : 22;
 
-      // Card with rose left accent
-      this.setFill(C.white);
-      this.setDraw(C.gray200);
-      this.pdf.setLineWidth(0.3);
-      this.roundRect(x, y, this.CW, cardH, 3, 'FD');
-      this.setFill(C.rose);
-      this.pdf.rect(x, y + 2, 3, cardH - 4, 'F');
+      this.card(x, y, this.CW, cardH, P.rose);
+
+      // Number circle
+      this.sf(P.rose);
+      this.pdf.circle(x + 14, y + 10, 5, 'F');
+      this.sc(P.white);
+      this.pdf.setFont('helvetica', 'bold');
+      this.pdf.setFontSize(10);
+      this.pdf.text(`${idx + 1}`, x + 14, y + 12, { align: 'center' });
 
       // Severity badge
       const sevMap: Record<string, { label: string; color: RGB }> = {
-        high: { label: 'URGENTE', color: C.rose },
-        medium: { label: 'ATENÇÃO', color: C.amber },
-        low: { label: 'BAIXA', color: C.emerald },
+        high: { label: 'URGENTE', color: P.rose },
+        medium: { label: 'ATENÇÃO', color: P.amber },
+        low: { label: 'BAIXA', color: P.emerald },
       };
       const sev = sevMap[damage.severity] || sevMap.medium;
-      this.badge(sev.label, x + this.CW - 28, y + 3, sev.color);
+      this.pillBadge(sev.label, x + this.CW - 32, y + 3, sev.color);
 
       // Type badge
       const typeMap: Record<string, string> = {
-        furniture: 'MOBILIÁRIO',
-        electronics: 'ELETRÔNICOS',
-        stain: 'MANCHA',
-        other: 'OUTRO',
+        furniture: 'MOBILIÁRIO', electronics: 'ELETRÔNICOS', stain: 'MANCHA', other: 'OUTRO',
       };
-      this.badge(typeMap[damage.type] || 'OUTRO', x + this.CW - 52, y + 3, C.gray500);
-
-      // Number
-      this.setColor(C.rose);
-      this.pdf.setFont('helvetica', 'bold');
-      this.pdf.setFontSize(14);
-      this.text(`#${idx + 1}`, x + 10, y + 11);
+      this.badge(typeMap[damage.type] || 'OUTRO', x + this.CW - 56, y + 4, P.gray500);
 
       // Description
-      this.setColor(C.gray700);
-      this.pdf.setFont('helvetica', 'normal');
+      this.sc(P.gray800);
+      this.pdf.setFont('helvetica', 'bold');
       this.pdf.setFontSize(9);
-      const descLines = this.pdf.splitTextToSize(damage.description, hasPhoto ? this.CW - 55 : this.CW - 20);
-      this.text(descLines.slice(0, 2), x + 10, y + 18);
+      const maxW = hasPhoto ? this.CW - 60 : this.CW - 28;
+      const descLines = this.pdf.splitTextToSize(damage.description, maxW);
+      this.pdf.text(descLines.slice(0, 3), x + 22, y + 20);
 
       // Photo
       if (hasPhoto && damage.photoUrl) {
-        const photoX = x + this.CW - 40;
-        const photoY = y + 13;
-        this.setDraw(C.rose);
+        const pw = 32; const ph = 28;
+        const photoX = x + this.CW - pw - 6;
+        const photoY = y + 10;
+        this.sf(P.gray200);
+        this.rr(photoX + 0.5, photoY + 0.5, pw, ph, 2, 'F');
+        this.sd(P.rose);
         this.pdf.setLineWidth(0.5);
-        this.roundRect(photoX, photoY, 30, 22, 2, 'S');
-        this.addImg(damage.photoUrl, photoX + 0.5, photoY + 0.5, 29, 21);
+        this.rr(photoX, photoY, pw, ph, 2, 'S');
+        this.addImg(damage.photoUrl, photoX + 0.5, photoY + 0.5, pw - 1, ph - 1);
       }
 
       this.y = y + cardH + 4;
@@ -601,294 +668,283 @@ class PremiumReportGenerator {
   }
 
   // ─── Lost & Found Section ─────────────────────
-  private drawLostAndFoundSection(items: LostAndFoundItem[]) {
+  private drawLostFound(items: LostAndFoundItem[]) {
     if (!items || items.length === 0) return;
 
-    this.drawSectionTitle('ACHADOS E PERDIDOS');
+    this.sectionTitle('ACHADOS E PERDIDOS', '🔍');
 
     items.forEach((item, idx) => {
-      this.pageBreak(35);
+      const hasPhoto = !!item.photoUrl;
+      const cardH = hasPhoto ? 38 : 24;
+      this.pageBreak(cardH + 5);
 
       const x = this.M;
       const y = this.y;
-      const hasPhoto = !!item.photoUrl;
-      const cardH = hasPhoto ? 35 : 22;
 
-      this.setFill(C.white);
-      this.setDraw(C.gray200);
-      this.pdf.setLineWidth(0.3);
-      this.roundRect(x, y, this.CW, cardH, 3, 'FD');
-      this.setFill(C.amber);
-      this.pdf.rect(x, y + 2, 3, cardH - 4, 'F');
+      this.card(x, y, this.CW, cardH, P.amberDark);
 
-      // Number
-      this.setColor(C.amber);
+      // Number circle
+      this.sf(P.amberDark);
+      this.pdf.circle(x + 14, y + 10, 5, 'F');
+      this.sc(P.white);
       this.pdf.setFont('helvetica', 'bold');
-      this.pdf.setFontSize(14);
-      this.text(`#${idx + 1}`, x + 10, y + 11);
+      this.pdf.setFontSize(10);
+      this.pdf.text(`${idx + 1}`, x + 14, y + 12, { align: 'center' });
 
       // Description
-      this.setColor(C.gray700);
+      this.sc(P.gray800);
       this.pdf.setFont('helvetica', 'bold');
-      this.pdf.setFontSize(9);
-      this.text(item.description, x + 28, y + 10);
+      this.pdf.setFontSize(9.5);
+      this.pdf.text(item.description, x + 24, y + 11);
 
       // Location & Date
+      this.sc(P.gray500);
       this.pdf.setFont('helvetica', 'normal');
       this.pdf.setFontSize(8);
-      this.setColor(C.gray500);
-      this.text(`📍 ${item.location}`, x + 28, y + 17);
-      this.text(`📅 ${item.date}`, x + 28, y + 23);
+      this.pdf.text(`📍 ${item.location}`, x + 24, y + 18);
+      this.pdf.text(`📅 ${item.date}`, x + 24, y + 24);
 
       // Photo
       if (hasPhoto && item.photoUrl) {
-        const photoX = x + this.CW - 35;
-        const photoY = y + 5;
-        this.setDraw(C.amber);
+        const pw = 28; const ph = 24;
+        const photoX = x + this.CW - pw - 6;
+        const photoY = y + 6;
+        this.sf(P.gray200);
+        this.rr(photoX + 0.5, photoY + 0.5, pw, ph, 2, 'F');
+        this.sd(P.amberDark);
         this.pdf.setLineWidth(0.5);
-        this.roundRect(photoX, photoY, 26, 22, 2, 'S');
-        this.addImg(item.photoUrl, photoX + 0.5, photoY + 0.5, 25, 21);
+        this.rr(photoX, photoY, pw, ph, 2, 'S');
+        this.addImg(item.photoUrl, photoX + 0.5, photoY + 0.5, pw - 1, ph - 1);
       }
 
       this.y = y + cardH + 4;
     });
   }
 
-  // ─── Photo Gallery ────────────────────────────
-  private drawPhotoGallery(title: string, photos: string[], accentColor: RGB) {
+  // ─── Photo Gallery ─────────────────────────────
+  private drawGallery(title: string, photos: string[], accent: RGB) {
     if (!photos || photos.length === 0) return;
 
     this.pageBreak(50);
 
-    const photoW = 32;
-    const photoH = 25;
+    const pw = 35; const ph = 28;
     const gap = 4;
-    const perRow = Math.floor((this.CW - 8) / (photoW + gap));
-    const rows = Math.ceil(Math.min(photos.length, 12) / perRow);
-    const blockH = 16 + rows * (photoH + gap);
+    const perRow = Math.floor((this.CW - 12) / (pw + gap));
+    const maxPhotos = Math.min(photos.length, 12);
+    const rows = Math.ceil(maxPhotos / perRow);
+    const blockH = 16 + rows * (ph + gap);
 
-    this.setFill(C.white);
-    this.setDraw(accentColor);
-    this.pdf.setLineWidth(0.5);
-    this.roundRect(this.M, this.y, this.CW, blockH, 3, 'FD');
+    // Container
+    this.card(this.M, this.y, this.CW, blockH);
 
     // Title bar
-    this.setFill(accentColor);
-    this.roundRect(this.M, this.y, this.CW, 10, 3, 'F');
-    // Fix bottom corners
-    this.pdf.rect(this.M, this.y + 7, this.CW, 3, 'F');
+    this.sf(accent);
+    this.rr(this.M, this.y, this.CW, 11, 3, 'F');
+    this.pdf.rect(this.M, this.y + 8, this.CW, 3, 'F');
 
-    this.setColor(C.white);
+    this.sc(P.white);
     this.pdf.setFont('helvetica', 'bold');
     this.pdf.setFontSize(8);
-    this.text(`${title}  (${photos.length})`, this.M + 8, this.y + 7);
+    this.pdf.text(`${title}  (${photos.length})`, this.M + 8, this.y + 7.5);
 
-    photos.slice(0, 12).forEach((photo, idx) => {
+    photos.slice(0, maxPhotos).forEach((photo, idx) => {
       const col = idx % perRow;
       const row = Math.floor(idx / perRow);
-      const px = this.M + 4 + col * (photoW + gap);
-      const py = this.y + 13 + row * (photoH + gap);
+      const px = this.M + 6 + col * (pw + gap);
+      const py = this.y + 14 + row * (ph + gap);
 
-      this.setDraw(C.gray200);
+      // Photo frame
+      this.sf(P.gray100);
+      this.rr(px, py, pw, ph, 2, 'F');
+      this.sd(P.gray300);
       this.pdf.setLineWidth(0.3);
-      this.roundRect(px, py, photoW, photoH, 2, 'S');
-      this.addImg(photo, px + 0.5, py + 0.5, photoW - 1, photoH - 1);
+      this.rr(px, py, pw, ph, 2, 'S');
+      this.addImg(photo, px + 0.5, py + 0.5, pw - 1, ph - 1);
+
+      // Photo number
+      this.sf(accent);
+      this.rr(px + 1, py + 1, 8, 5, 1, 'F');
+      this.sc(P.white);
+      this.pdf.setFontSize(5.5);
+      this.pdf.setFont('helvetica', 'bold');
+      this.pdf.text(`${idx + 1}`, px + 5, py + 4.5, { align: 'center' });
     });
 
     this.y += blockH + 6;
   }
 
-  // ─── Inventory Section ────────────────────────
-  private drawInventorySection(inventory: InventoryItem[], used: { itemId: string; quantityUsed: number }[]) {
+  // ─── Inventory ─────────────────────────────────
+  private drawInventory(inventory: InventoryItem[], used: { itemId: string; quantityUsed: number }[]) {
     if (!inventory || inventory.length === 0) return;
 
     const usedItems = used.filter(u => u.quantityUsed > 0);
     const lowStock = inventory.filter(item => {
-      const usage = used.find(u => u.itemId === item.id);
-      const remaining = item.quantity - (usage?.quantityUsed || 0);
-      return remaining <= item.threshold;
+      const u = used.find(x => x.itemId === item.id);
+      return (item.quantity - (u?.quantityUsed || 0)) <= item.threshold;
     });
-
     if (usedItems.length === 0 && lowStock.length === 0) return;
 
-    this.drawSectionTitle('INVENTÁRIO E SUPRIMENTOS');
+    this.sectionTitle('INVENTÁRIO E SUPRIMENTOS', '📦');
 
-    // Used items table
     if (usedItems.length > 0) {
-      this.pageBreak(20 + usedItems.length * 8);
+      const rowH = 8;
+      const tableH = 14 + usedItems.length * rowH;
+      this.pageBreak(tableH + 5);
 
-      const x = this.M;
-      const y = this.y;
-      const rowH = 7;
-      const tableH = 12 + usedItems.length * rowH;
+      this.card(this.M, this.y, this.CW, tableH);
 
-      this.setFill(C.white);
-      this.setDraw(C.gray200);
-      this.pdf.setLineWidth(0.3);
-      this.roundRect(x, y, this.CW, tableH, 3, 'FD');
+      // Header row
+      this.sf(P.navy);
+      this.rr(this.M, this.y, this.CW, 11, 3, 'F');
+      this.pdf.rect(this.M, this.y + 8, this.CW, 3, 'F');
 
-      // Header
-      this.setFill(C.navy);
-      this.roundRect(x, y, this.CW, 10, 3, 'F');
-      this.pdf.rect(x, y + 7, this.CW, 3, 'F');
-
-      this.setColor(C.white);
+      this.sc(P.white);
       this.pdf.setFont('helvetica', 'bold');
       this.pdf.setFontSize(7);
-      this.text('PRODUTO', x + 8, y + 7);
-      this.text('QTDE USADA', x + this.CW / 2, y + 7, { align: 'center' });
-      this.text('ESTOQUE', x + this.CW - 8, y + 7, { align: 'right' });
+      this.pdf.text('PRODUTO', this.M + 10, this.y + 7.5);
+      this.pdf.text('QTDE USADA', this.M + this.CW / 2, this.y + 7.5, { align: 'center' });
+      this.pdf.text('ESTOQUE', this.M + this.CW - 10, this.y + 7.5, { align: 'right' });
 
       usedItems.forEach((u, idx) => {
         const item = inventory.find(i => i.id === u.itemId);
         if (!item) return;
-        const ry = y + 14 + idx * rowH;
+        const ry = this.y + 17 + idx * rowH;
         const remaining = item.quantity - u.quantityUsed;
         const isLow = remaining <= item.threshold;
 
         if (idx % 2 === 0) {
-          this.setFill(C.gray50);
-          this.pdf.rect(x + 1, ry - 4, this.CW - 2, rowH, 'F');
+          this.sf(P.gray50);
+          this.pdf.rect(this.M + 1, ry - 4, this.CW - 2, rowH, 'F');
         }
 
-        this.setColor(C.gray700);
+        this.sc(P.gray700);
         this.pdf.setFont('helvetica', 'normal');
         this.pdf.setFontSize(8);
-        this.text(item.name, x + 8, ry);
-        this.text(`${u.quantityUsed} ${item.unit}`, x + this.CW / 2, ry, { align: 'center' });
+        this.pdf.text(item.name, this.M + 10, ry);
+        this.pdf.text(`${u.quantityUsed} ${item.unit}`, this.M + this.CW / 2, ry, { align: 'center' });
 
-        this.setColor(isLow ? C.rose : C.gray700);
+        this.sc(isLow ? P.rose : P.gray700);
         this.pdf.setFont('helvetica', isLow ? 'bold' : 'normal');
-        this.text(`${remaining} ${item.unit}`, x + this.CW - 8, ry, { align: 'right' });
+        this.pdf.text(`${remaining} ${item.unit}`, this.M + this.CW - 10, ry, { align: 'right' });
 
         if (isLow) {
-          this.badge('BAIXO', x + this.CW - 38, ry - 4, C.rose, C.white, 16);
+          this.badge('⚠ BAIXO', this.M + this.CW - 42, ry - 3.5, P.rose, P.white, 18);
         }
       });
 
-      this.y = y + tableH + 5;
+      this.y += tableH + 5;
     }
 
-    // Low stock alerts
+    // Low stock alert
     if (lowStock.length > 0) {
-      this.pageBreak(20);
-      const alertH = 12 + lowStock.length * 7;
-      this.setFill(C.white);
-      this.setDraw(C.rose);
-      this.pdf.setLineWidth(0.5);
-      this.roundRect(this.M, this.y, this.CW, alertH, 3, 'FD');
-      this.setFill(C.rose);
-      this.pdf.rect(this.M, this.y + 2, 3, alertH - 4, 'F');
+      this.pageBreak(22);
+      const alertH = 14 + lowStock.length * 7;
+      this.card(this.M, this.y, this.CW, alertH, P.rose);
 
-      this.setColor(C.rose);
+      this.sc(P.rose);
       this.pdf.setFont('helvetica', 'bold');
       this.pdf.setFontSize(8);
-      this.text('⚠ ALERTA: REPOSIÇÃO NECESSÁRIA', this.M + 10, this.y + 8);
+      this.pdf.text('⚠ ALERTA: REPOSIÇÃO NECESSÁRIA', this.M + 12, this.y + 9);
 
       lowStock.forEach((item, i) => {
-        const usage = used.find(u => u.itemId === item.id);
-        const remaining = item.quantity - (usage?.quantityUsed || 0);
-        this.setColor(C.gray700);
+        const u = used.find(x => x.itemId === item.id);
+        const rem = item.quantity - (u?.quantityUsed || 0);
+        this.sc(P.gray700);
         this.pdf.setFont('helvetica', 'normal');
         this.pdf.setFontSize(8);
-        this.text(`• ${item.name} — Estoque: ${remaining} ${item.unit} (Mín: ${item.threshold})`, this.M + 10, this.y + 15 + i * 7);
+        this.pdf.text(`• ${item.name} — Estoque: ${rem} ${item.unit} (Mín: ${item.threshold})`, this.M + 12, this.y + 17 + i * 7);
       });
 
       this.y += alertH + 5;
     }
   }
 
-  // ─── Footer ───────────────────────────────────
-  private drawFooter() {
-    const footerH = 28;
-    const fy = this.H - footerH;
+  // ─── Footer ────────────────────────────────────
+  private drawFooter(pageNum: number, totalPages: number) {
+    const fy = this.H - 22;
 
     // Background
-    this.setFill(C.navy);
-    this.pdf.rect(0, fy, this.W, footerH, 'F');
-    this.setFill(C.cyan);
-    this.pdf.rect(0, fy, this.W, 1.5, 'F');
+    this.sf(P.navy);
+    this.pdf.rect(0, fy, this.W, 22, 'F');
+    this.sf(P.cyan);
+    this.pdf.rect(0, fy, this.W, 1, 'F');
 
-    // Logo mini
+    // Logo
     if (this.logoLoaded && this.logoDataUrl) {
-      try { this.pdf.addImage(this.logoDataUrl, 'PNG', this.M, fy + 6, 12, 12); } catch {}
+      try { this.pdf.addImage(this.logoDataUrl, 'PNG', this.M, fy + 5, 10, 10); } catch {}
     }
 
     // Brand
-    this.setColor(C.white);
+    this.sc(P.white);
     this.pdf.setFont('helvetica', 'bold');
-    this.pdf.setFontSize(10);
-    this.text('MAISON PUR', this.M + 16, fy + 12);
-
-    this.setColor(C.gray400);
+    this.pdf.setFontSize(8);
+    this.pdf.text('MAISON PUR', this.M + 14, fy + 10);
+    this.sc(P.gray400);
     this.pdf.setFont('helvetica', 'normal');
-    this.pdf.setFontSize(6);
-    this.text('Excelência em Gestão de Propriedades', this.M + 16, fy + 17);
+    this.pdf.setFontSize(5.5);
+    this.pdf.text('Excelência em Gestão de Propriedades', this.M + 14, fy + 14);
 
     // Verified badge
-    this.badge('✓ VERIFICADO', this.W / 2 - 14, fy + 8, C.emerald, C.white, 28);
+    this.pillBadge('✓ VERIFICADO', this.W / 2 - 14, fy + 6, P.emerald);
 
-    // Signature area
-    const sigX = this.W - this.M - 50;
-    this.setDraw(C.gray400);
-    this.pdf.setLineWidth(0.4);
-    this.pdf.line(sigX, fy + 14, sigX + 45, fy + 14);
-    this.setColor(C.gray400);
-    this.pdf.setFontSize(6);
+    // Page number
+    this.sc(P.gray400);
+    this.pdf.setFontSize(7);
     this.pdf.setFont('helvetica', 'normal');
-    this.text('ASSINATURA DO RESPONSÁVEL', sigX + 22.5, fy + 19, { align: 'center' });
+    this.pdf.text(`${pageNum} / ${totalPages}`, this.W - this.M, fy + 10, { align: 'right' });
+
+    // Signature line
+    this.sd(P.gray500);
+    this.pdf.setLineWidth(0.3);
+    const sigX = this.W - this.M - 45;
+    this.pdf.line(sigX, fy + 14, sigX + 40, fy + 14);
+    this.sc(P.gray500);
+    this.pdf.setFontSize(5.5);
+    this.pdf.text('ASSINATURA DO RESPONSÁVEL', sigX + 20, fy + 18, { align: 'center' });
   }
 
-  // ─── Main Generate ────────────────────────────
+  // ─── Generate ──────────────────────────────────
   public async generate(data: ReportData): Promise<Blob> {
     await this.loadLogo();
-
-    // Pre-convert all image URLs to base64 for PDF embedding
-    const processedData = await this.preloadImages(data);
-    const { job, inventory, lostAndFound } = processedData;
+    const processed = await this.preloadImages(data);
+    const { job, inventory, lostAndFound } = processed;
 
     // Page 1: Cover
-    this.drawCoverPage(processedData);
+    this.drawCover(processed);
 
     // Page 2+: Content
     this.pdf.addPage();
-    this.y = this.M;
-    this.drawPageAccent();
+    this.y = 18;
+    this.drawPageHeader();
 
     // Executive summary
-    this.drawExecutiveSummary(job);
+    this.drawSummary(job);
 
     // Checklist sections
-    this.drawSectionTitle('CHECKLIST DE INSPEÇÃO');
+    this.sectionTitle('CHECKLIST DE INSPEÇÃO', '✅');
     job.checklist.forEach(section => {
-      this.drawChecklistSection(section);
+      this.drawChecklist(section);
       this.drawVerificationPhotos(section);
     });
 
     // Damages
-    this.drawDamagesSection(job.damages || []);
+    this.drawDamages(job.damages || []);
 
     // Lost & Found
-    this.drawLostAndFoundSection(lostAndFound || job.lostAndFound || []);
+    this.drawLostFound(lostAndFound || job.lostAndFound || []);
 
     // Photo galleries
-    this.drawPhotoGallery('📷 FOTOS ANTES DA LIMPEZA', job.photosBefore, C.gray500);
-    this.drawPhotoGallery('✨ FOTOS APÓS A LIMPEZA', job.photosAfter, C.cyan);
+    this.drawGallery('📷 FOTOS ANTES DA LIMPEZA', job.photosBefore, P.gray600);
+    this.drawGallery('✨ FOTOS APÓS A LIMPEZA', job.photosAfter, P.cyan);
 
     // Inventory
-    this.drawInventorySection(inventory, job.inventoryUsed || []);
+    this.drawInventory(inventory, job.inventoryUsed || []);
 
-    // Footer on all pages
-    const totalPages = this.pdf.getNumberOfPages();
-    for (let i = 1; i <= totalPages; i++) {
+    // Add footers to all pages
+    const total = this.pdf.getNumberOfPages();
+    for (let i = 2; i <= total; i++) {
       this.pdf.setPage(i);
-      if (i > 1) this.drawFooter();
-
-      // Page number
-      this.pdf.setFontSize(7);
-      this.setColor(C.gray400);
-      this.pdf.setFont('helvetica', 'normal');
-      this.text(`${i} / ${totalPages}`, this.W / 2, this.H - 4, { align: 'center' });
+      this.drawFooter(i, total);
     }
 
     return this.pdf.output('blob');
@@ -896,8 +952,8 @@ class PremiumReportGenerator {
 }
 
 export const generateCleaningReport = async (data: ReportData): Promise<Blob> => {
-  const generator = new PremiumReportGenerator();
-  return await generator.generate(data);
+  const gen = new PremiumReportGenerator();
+  return await gen.generate(data);
 };
 
 export const downloadPdf = (blob: Blob, filename: string) => {
