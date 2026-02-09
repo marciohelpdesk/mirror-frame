@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, Camera, ChevronDown, ChevronUp, ArrowRight } from 'lucide-react';
+import { Check, Camera, ChevronDown, ChevronUp, ArrowRight, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ChecklistSection, ChecklistItem } from '@/types';
-import { Progress } from '@/components/ui/progress';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { LiquidProgressBubble } from '@/components/LiquidProgressBubble';
 
 interface ChecklistStepProps {
   checklist: ChecklistSection[];
@@ -13,7 +13,6 @@ interface ChecklistStepProps {
   onBack: () => void;
 }
 
-// Demo photo for items requiring photos
 const DEMO_TASK_PHOTO = 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=300&fit=crop';
 
 export const ChecklistStep = ({
@@ -24,34 +23,30 @@ export const ChecklistStep = ({
 }: ChecklistStepProps) => {
   const { t } = useLanguage();
   const [expandedSections, setExpandedSections] = useState<string[]>(
-    checklist.length > 0 ? [checklist[0].id] : []
+    checklist.map(s => s.id)
   );
   const [capturingPhoto, setCapturingPhoto] = useState<string | null>(null);
 
-  // Calculate progress
-  const totalItems = checklist.reduce((acc, section) => acc + section.items.length, 0);
+  const totalItems = checklist.reduce((acc, s) => acc + s.items.length, 0);
   const completedItems = checklist.reduce(
-    (acc, section) => acc + section.items.filter(item => item.completed).length,
-    0
+    (acc, s) => acc + s.items.filter(i => i.completed).length, 0
   );
-  const progress = totalItems > 0 ? (completedItems / totalItems) * 100 : 0;
+  const progress = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
+  const allCompleted = completedItems === totalItems;
 
-  const toggleSection = (sectionId: string) => {
+  const toggleSection = (id: string) => {
     setExpandedSections(prev =>
-      prev.includes(sectionId)
-        ? prev.filter(id => id !== sectionId)
-        : [...prev, sectionId]
+      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
     );
   };
 
   const toggleItem = (sectionId: string, itemId: string) => {
-    const updatedChecklist = checklist.map(section => {
+    const updated = checklist.map(section => {
       if (section.id === sectionId) {
         return {
           ...section,
           items: section.items.map(item => {
             if (item.id === itemId) {
-              // If item requires photo and being completed, we need photo first
               if (item.photoRequired && !item.completed && !item.photoUrl) {
                 setCapturingPhoto(itemId);
                 return item;
@@ -64,23 +59,18 @@ export const ChecklistStep = ({
       }
       return section;
     });
-    onChecklistChange(updatedChecklist);
+    onChecklistChange(updated);
   };
 
   const handlePhotoCapture = (sectionId: string, itemId: string) => {
-    // Simulate photo capture
     setTimeout(() => {
-      const updatedChecklist = checklist.map(section => {
+      const updated = checklist.map(section => {
         if (section.id === sectionId) {
           return {
             ...section,
             items: section.items.map(item => {
               if (item.id === itemId) {
-                return {
-                  ...item,
-                  photoUrl: `${DEMO_TASK_PHOTO}&t=${Date.now()}`,
-                  completed: true,
-                };
+                return { ...item, photoUrl: `${DEMO_TASK_PHOTO}&t=${Date.now()}`, completed: true };
               }
               return item;
             }),
@@ -88,17 +78,10 @@ export const ChecklistStep = ({
         }
         return section;
       });
-      onChecklistChange(updatedChecklist);
+      onChecklistChange(updated);
       setCapturingPhoto(null);
     }, 500);
   };
-
-  const getSectionProgress = (section: ChecklistSection) => {
-    const completed = section.items.filter(item => item.completed).length;
-    return { completed, total: section.items.length };
-  };
-
-  const allCompleted = completedItems === totalItems;
 
   return (
     <motion.div
@@ -107,63 +90,45 @@ export const ChecklistStep = ({
       exit={{ opacity: 0, y: -20 }}
       className="flex flex-col h-full"
     >
-      {/* Header with Progress */}
-      <div className="px-4 py-3">
-        <div className="flex items-center justify-between mb-2">
-          <h2 className="text-xl font-semibold text-foreground">{t('exec.checklist.title')}</h2>
-          <span className="text-sm font-medium text-primary">
-            {completedItems}/{totalItems}
-          </span>
-        </div>
-        <Progress value={progress} className="h-2" />
-      </div>
-
-      {/* Checklist Sections */}
-      <div className="flex-1 px-4 overflow-y-auto hide-scrollbar pb-4">
+      {/* Scrollable checklist */}
+      <div className="flex-1 px-4 pt-2 overflow-y-auto hide-scrollbar pb-4">
         {checklist.map(section => {
-          const { completed, total } = getSectionProgress(section);
+          const done = section.items.filter(i => i.completed).length;
+          const total = section.items.length;
           const isExpanded = expandedSections.includes(section.id);
-          const isComplete = completed === total;
+          const isComplete = done === total;
 
           return (
-            <motion.div
-              key={section.id}
-              className="mb-3"
-              layout
-            >
-              {/* Section Header */}
+            <div key={section.id} className="mb-4">
+              {/* Section Header - Breezeway style */}
               <button
                 onClick={() => toggleSection(section.id)}
-                className={`
-                  w-full glass-panel p-3 flex items-center justify-between
-                  ${isComplete ? 'border-l-4 border-l-primary' : ''}
-                `}
+                className="w-full flex items-center justify-between py-2 px-1"
               >
-                <div className="flex items-center gap-3">
-                  <div className={`
-                    w-8 h-8 rounded-full flex items-center justify-center
-                    ${isComplete ? 'bg-primary' : 'bg-muted'}
-                  `}>
-                    {isComplete ? (
-                      <Check className="w-4 h-4 text-primary-foreground" />
-                    ) : (
-                      <span className="text-xs font-bold text-muted-foreground">
-                        {completed}
-                      </span>
-                    )}
-                  </div>
-                  <div className="text-left">
-                    <h3 className="font-medium text-foreground">{section.title}</h3>
-                    <p className="text-xs text-muted-foreground">
-                      {completed} {t('exec.checklist.of')} {total} {t('exec.checklist.tasks')}
-                    </p>
-                  </div>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-sm font-bold tracking-wide text-primary uppercase">
+                    {section.title}
+                  </h3>
+                  {isComplete && (
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      className="w-5 h-5 rounded-full bg-primary/15 flex items-center justify-center"
+                    >
+                      <Check className="w-3.5 h-3.5 text-primary" />
+                    </motion.div>
+                  )}
                 </div>
-                {isExpanded ? (
-                  <ChevronUp className="w-5 h-5 text-muted-foreground" />
-                ) : (
-                  <ChevronDown className="w-5 h-5 text-muted-foreground" />
-                )}
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-medium text-muted-foreground">
+                    {done}/{total}
+                  </span>
+                  {isExpanded ? (
+                    <ChevronUp className="w-4 h-4 text-muted-foreground" />
+                  ) : (
+                    <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                  )}
+                </div>
               </button>
 
               {/* Section Items */}
@@ -176,11 +141,12 @@ export const ChecklistStep = ({
                     transition={{ duration: 0.2 }}
                     className="overflow-hidden"
                   >
-                    <div className="pt-2 space-y-2">
-                      {section.items.map(item => (
-                        <ChecklistItemRow
+                    <div className="space-y-2.5">
+                      {section.items.map((item, idx) => (
+                        <ChecklistItemCard
                           key={item.id}
                           item={item}
+                          index={idx}
                           isCapturing={capturingPhoto === item.id}
                           onToggle={() => toggleItem(section.id, item.id)}
                           onCapturePhoto={() => handlePhotoCapture(section.id, item.id)}
@@ -190,26 +156,36 @@ export const ChecklistStep = ({
                   </motion.div>
                 )}
               </AnimatePresence>
-            </motion.div>
+            </div>
           );
         })}
       </div>
 
-      {/* Actions */}
-      <div className="p-4 flex gap-3">
+      {/* Bottom Bar - Progress + Finalize */}
+      <div className="px-4 py-3 flex items-center gap-3 border-t border-border/30 bg-background/80 backdrop-blur-sm">
+        <div className="flex items-center gap-3 flex-1 min-w-0">
+          <LiquidProgressBubble percentage={progress} size={48} showPercentage />
+          <div className="min-w-0">
+            <p className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase">
+              {t('exec.checklist.title')}
+            </p>
+            <p className="text-sm font-semibold text-foreground truncate">
+              {allCompleted
+                ? t('exec.checklist.allDone') || 'Tudo pronto!'
+                : `${totalItems - completedItems} ${t('exec.checklist.remaining')}`}
+            </p>
+          </div>
+        </div>
         <Button
-          variant="outline"
-          onClick={onBack}
-          className="flex-1 h-12 rounded-xl"
-        >
-          {t('common.back')}
-        </Button>
-        <Button
-          onClick={onNext}
+          onClick={allCompleted ? onNext : undefined}
           disabled={!allCompleted}
-          className="flex-1 h-12 rounded-xl bg-primary text-primary-foreground gap-2"
+          className={`h-12 px-6 rounded-2xl text-sm font-semibold gap-2 transition-all ${
+            allCompleted
+              ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/30'
+              : 'bg-muted text-muted-foreground'
+          }`}
         >
-          {allCompleted ? t('common.continue') : `${totalItems - completedItems} ${t('exec.checklist.remaining')}`}
+          {allCompleted ? (t('exec.checklist.finalize') || 'Finalizar') : `${completedItems}/${totalItems}`}
           {allCompleted && <ArrowRight className="w-4 h-4" />}
         </Button>
       </div>
@@ -217,66 +193,99 @@ export const ChecklistStep = ({
   );
 };
 
-interface ChecklistItemRowProps {
+// ─── Item Card Component ─────────────────────────
+
+interface ChecklistItemCardProps {
   item: ChecklistItem;
+  index: number;
   isCapturing: boolean;
   onToggle: () => void;
   onCapturePhoto: () => void;
 }
 
-const ChecklistItemRow = ({ item, isCapturing, onToggle, onCapturePhoto }: ChecklistItemRowProps) => {
+const ChecklistItemCard = ({ item, index, isCapturing, onToggle, onCapturePhoto }: ChecklistItemCardProps) => {
   return (
     <motion.div
-      layout
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.03 }}
       className={`
-        ml-4 p-3 rounded-xl bg-card/50 flex items-center gap-3
-        ${item.completed ? 'opacity-60' : ''}
+        relative rounded-2xl border px-4 py-4 flex items-center gap-3
+        transition-all duration-200
+        ${item.completed
+          ? 'bg-primary/[0.04] border-primary/20'
+          : 'bg-card/60 border-border/40 hover:border-border/60'
+        }
       `}
     >
       {/* Checkbox */}
       <button
         onClick={item.photoRequired && !item.photoUrl ? onCapturePhoto : onToggle}
         className={`
-          w-6 h-6 rounded-lg flex items-center justify-center shrink-0 transition-colors
+          w-9 h-9 rounded-full flex items-center justify-center shrink-0 transition-all duration-200
           ${item.completed
-            ? 'bg-primary'
-            : 'border-2 border-muted-foreground/30 hover:border-primary'
+            ? 'bg-primary shadow-md shadow-primary/25'
+            : 'border-2 border-muted-foreground/25 hover:border-primary/50 hover:bg-primary/5'
           }
         `}
       >
-        {item.completed && <Check className="w-4 h-4 text-primary-foreground" />}
+        {item.completed && (
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ type: 'spring', stiffness: 500, damping: 25 }}
+          >
+            <Check className="w-5 h-5 text-primary-foreground" strokeWidth={3} />
+          </motion.div>
+        )}
       </button>
 
       {/* Label */}
-      <span className={`flex-1 text-sm ${item.completed ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
+      <span
+        className={`
+          flex-1 text-sm transition-all duration-200
+          ${item.completed
+            ? 'line-through text-muted-foreground/60'
+            : 'text-foreground font-medium'
+          }
+        `}
+      >
         {item.label}
       </span>
 
-      {/* Photo indicator/button */}
-      {item.photoRequired && (
-        <div className="shrink-0">
-          {isCapturing ? (
-            <motion.div
-              animate={{ rotate: 360 }}
-              transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-              className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center"
-            >
-              <Camera className="w-4 h-4 text-primary" />
-            </motion.div>
-          ) : item.photoUrl ? (
-            <div className="w-8 h-8 rounded-lg overflow-hidden">
-              <img src={item.photoUrl} alt="" className="w-full h-full object-cover" />
-            </div>
-          ) : (
-            <button
-              onClick={onCapturePhoto}
-              className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center"
-            >
-              <Camera className="w-4 h-4 text-amber-600" />
-            </button>
-          )}
+      {/* Action Icons */}
+      <div className="flex items-center gap-2 shrink-0">
+        {/* Photo icon */}
+        {item.photoRequired && (
+          <>
+            {isCapturing ? (
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center"
+              >
+                <Camera className="w-4 h-4 text-primary" />
+              </motion.div>
+            ) : item.photoUrl ? (
+              <div className="w-8 h-8 rounded-xl overflow-hidden ring-2 ring-primary/20">
+                <img src={item.photoUrl} alt="" className="w-full h-full object-cover" />
+              </div>
+            ) : (
+              <button
+                onClick={onCapturePhoto}
+                className="w-8 h-8 rounded-xl bg-muted/60 flex items-center justify-center hover:bg-muted transition-colors"
+              >
+                <Camera className="w-4 h-4 text-muted-foreground/60" />
+              </button>
+            )}
+          </>
+        )}
+
+        {/* Warning/report icon */}
+        <div className="w-8 h-8 rounded-xl bg-muted/40 flex items-center justify-center">
+          <AlertTriangle className="w-4 h-4 text-muted-foreground/40" />
         </div>
-      )}
+      </div>
     </motion.div>
   );
 };
