@@ -1,4 +1,4 @@
-import { Home, Calendar, Building2, Settings } from 'lucide-react';
+import { Home, Calendar, Building2, Settings, FileText } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLayoutEffect, useState, useRef, useCallback } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
@@ -22,6 +22,7 @@ export const BottomNavRouter = () => {
   const navItems: NavItem[] = [
     { path: '/dashboard', icon: Home, labelKey: 'nav.dashboard' },
     { path: '/agenda', icon: Calendar, labelKey: 'nav.agenda' },
+    { path: '/reports', icon: FileText, labelKey: 'nav.reports' },
     { path: '/properties', icon: Building2, labelKey: 'nav.properties' },
     { path: '/settings', icon: Settings, labelKey: 'nav.settings' },
   ];
@@ -142,7 +143,7 @@ export const BottomNavRouter = () => {
               onClick={(e) => handleClick(e, item.path)}
               onMouseEnter={() => setHoveredItem(item.path)}
               onMouseLeave={() => setHoveredItem(null)}
-              className="relative flex flex-col items-center justify-center gap-1.5 min-w-[72px] min-h-[56px] py-2 px-3 rounded-xl transition-colors overflow-hidden"
+              className="relative flex flex-col items-center justify-center gap-1.5 min-w-[60px] min-h-[56px] py-2 px-2 rounded-xl transition-colors overflow-hidden"
             >
               {/* Ripple effects */}
               <AnimatePresence>

@@ -235,6 +235,22 @@ const translations: Record<Language, Record<string, string>> = {
     'finance.thisMonth': 'This Month',
     'finance.jobs': 'Jobs',
     
+    // Reports
+    'nav.reports': 'Reports',
+    'reports.subtitle': 'Client Dossiers',
+    'reports.pendingGeneration': 'Pending Generation',
+    'reports.generate': 'Generate',
+    'reports.generated': 'Report generated successfully!',
+    'reports.errorGenerating': 'Error generating report',
+    'reports.published': 'Report published! Share the link with your client.',
+    'reports.linkCopied': 'Link copied to clipboard!',
+    'reports.deleted': 'Report deleted',
+    'reports.empty': 'No reports yet. Complete a cleaning job to generate your first report.',
+    'reports.statusPublished': 'Published',
+    'reports.statusDraft': 'Draft',
+    'reports.publish': 'Publish',
+    'reports.copyLink': 'Copy Link',
+    
     // Job Form
     'jobForm.title': 'New Job',
     'jobForm.property': 'Property',
@@ -580,6 +596,22 @@ const translations: Record<Language, Record<string, string>> = {
     'finance.total': 'Ganhos Totais',
     'finance.thisMonth': 'Este Mês',
     'finance.jobs': 'Trabalhos',
+    
+    // Reports
+    'nav.reports': 'Relatórios',
+    'reports.subtitle': 'Dossiês do Cliente',
+    'reports.pendingGeneration': 'Pendentes de Geração',
+    'reports.generate': 'Gerar',
+    'reports.generated': 'Relatório gerado com sucesso!',
+    'reports.errorGenerating': 'Erro ao gerar relatório',
+    'reports.published': 'Relatório publicado! Compartilhe o link com seu cliente.',
+    'reports.linkCopied': 'Link copiado!',
+    'reports.deleted': 'Relatório excluído',
+    'reports.empty': 'Nenhum relatório ainda. Complete uma limpeza para gerar seu primeiro relatório.',
+    'reports.statusPublished': 'Publicado',
+    'reports.statusDraft': 'Rascunho',
+    'reports.publish': 'Publicar',
+    'reports.copyLink': 'Copiar Link',
     
     // Job Form
     'jobForm.title': 'Novo Trabalho',
