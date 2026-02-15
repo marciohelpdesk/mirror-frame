@@ -14,6 +14,90 @@ export type Database = {
   }
   public: {
     Tables: {
+      cleaning_reports: {
+        Row: {
+          cleaner_name: string
+          cleaning_date: string
+          completed_tasks: number
+          created_at: string
+          end_time: number | null
+          id: string
+          job_id: string | null
+          language: string
+          notes: string | null
+          property_address: string
+          property_id: string | null
+          property_name: string
+          public_token: string
+          service_type: string
+          start_time: number | null
+          status: string
+          total_photos: number
+          total_tasks: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cleaner_name?: string
+          cleaning_date?: string
+          completed_tasks?: number
+          created_at?: string
+          end_time?: number | null
+          id?: string
+          job_id?: string | null
+          language?: string
+          notes?: string | null
+          property_address: string
+          property_id?: string | null
+          property_name: string
+          public_token?: string
+          service_type?: string
+          start_time?: number | null
+          status?: string
+          total_photos?: number
+          total_tasks?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cleaner_name?: string
+          cleaning_date?: string
+          completed_tasks?: number
+          created_at?: string
+          end_time?: number | null
+          id?: string
+          job_id?: string | null
+          language?: string
+          notes?: string | null
+          property_address?: string
+          property_id?: string | null
+          property_name?: string
+          public_token?: string
+          service_type?: string
+          start_time?: number | null
+          status?: string
+          total_photos?: number
+          total_tasks?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cleaning_reports_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cleaning_reports_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       employees: {
         Row: {
           avatar_url: string | null
@@ -285,6 +369,104 @@ export type Database = {
           wifi_password?: string | null
         }
         Relationships: []
+      }
+      report_photos: {
+        Row: {
+          caption: string | null
+          created_at: string
+          display_order: number
+          id: string
+          photo_type: string
+          photo_url: string
+          report_id: string
+          room_id: string | null
+        }
+        Insert: {
+          caption?: string | null
+          created_at?: string
+          display_order?: number
+          id?: string
+          photo_type?: string
+          photo_url: string
+          report_id: string
+          room_id?: string | null
+        }
+        Update: {
+          caption?: string | null
+          created_at?: string
+          display_order?: number
+          id?: string
+          photo_type?: string
+          photo_url?: string
+          report_id?: string
+          room_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_photos_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "cleaning_reports"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "report_photos_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "report_rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      report_rooms: {
+        Row: {
+          checklist: Json
+          created_at: string
+          damages: Json
+          display_order: number
+          id: string
+          lost_and_found: Json
+          name: string
+          report_id: string
+          room_type: string
+          tasks_completed: number
+          tasks_total: number
+        }
+        Insert: {
+          checklist?: Json
+          created_at?: string
+          damages?: Json
+          display_order?: number
+          id?: string
+          lost_and_found?: Json
+          name: string
+          report_id: string
+          room_type?: string
+          tasks_completed?: number
+          tasks_total?: number
+        }
+        Update: {
+          checklist?: Json
+          created_at?: string
+          damages?: Json
+          display_order?: number
+          id?: string
+          lost_and_found?: Json
+          name?: string
+          report_id?: string
+          room_type?: string
+          tasks_completed?: number
+          tasks_total?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_rooms_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "cleaning_reports"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
