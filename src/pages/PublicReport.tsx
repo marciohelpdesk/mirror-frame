@@ -1,494 +1,441 @@
 import { useParams } from 'react-router-dom';
 import { usePublicReport, ReportRoom, ReportPhoto } from '@/hooks/useReports';
 import { useState, useCallback, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  CheckCircle, XCircle, Camera, AlertTriangle, Search, 
-  ChevronLeft, ChevronRight, X, ZoomIn, Clock, MapPin,
-  Sparkles, Shield, Eye
-} from 'lucide-react';
 import { format } from 'date-fns';
+import { enUS, ptBR, ko, th, es } from 'date-fns/locale';
 import purLogo from '@/assets/pur-logo.png';
 
-const translations: Record<string, Record<string, any>> = {
+// ─── Translations (matches reference HTML) ───
+const translations: Record<string, Record<string, string>> = {
   en: {
-    title: 'Cleaning Report',
-    verified: 'VERIFIED',
-    verifiedBy: 'Verified by',
-    completedTasks: 'Completed Tasks',
-    photosCollected: 'Photos Collected',
-    issuesFound: 'Issues Found',
-    itemsFound: 'Items Found',
-    duration: 'Duration',
-    rooms: 'Rooms',
-    checklist: 'Checklist',
-    damages: 'Damages',
-    lostFound: 'Lost & Found',
-    beforePhotos: 'Before',
-    afterPhotos: 'After',
-    photoGallery: 'Photo Gallery',
-    noPhotos: 'No photos available',
-    notes: 'Notes',
+    subtitle: 'YOUR TIME MATTERS, WE HANDLE CLEANING',
+    rooms: 'Rooms', date: 'Date', visitReport: 'Visit Report',
+    messenger: 'iMessage', website: 'Website', bookNext: 'Book Next',
+    checklist: 'Checklist', damages: 'Damages Reported', lostFound: 'Lost & Found',
+    footerQuote: 'Your time matters, we handle cleaning',
     notFound: 'Report not found',
     notFoundDesc: 'This link may be invalid or the report has not been published yet.',
-    poweredBy: 'Powered by',
-    severity: { low: 'Low', medium: 'Medium', high: 'High' },
-    all: 'All',
+    severity: 'Severity', location: 'Location',
   },
   pt: {
-    title: 'Relatório de Limpeza',
-    verified: 'VERIFICADO',
-    verifiedBy: 'Verificado por',
-    completedTasks: 'Tarefas Concluídas',
-    photosCollected: 'Fotos Coletadas',
-    issuesFound: 'Problemas Encontrados',
-    itemsFound: 'Itens Encontrados',
-    duration: 'Duração',
-    rooms: 'Ambientes',
-    checklist: 'Checklist',
-    damages: 'Danos',
-    lostFound: 'Achados e Perdidos',
-    beforePhotos: 'Antes',
-    afterPhotos: 'Depois',
-    photoGallery: 'Galeria de Fotos',
-    noPhotos: 'Nenhuma foto disponível',
-    notes: 'Observações',
+    subtitle: 'SEU TEMPO IMPORTA, NÓS CUIDAMOS DA LIMPEZA',
+    rooms: 'Cômodos', date: 'Data', visitReport: 'Relatório de Visita',
+    messenger: 'iMessage', website: 'Website', bookNext: 'Agendar Próxima',
+    checklist: 'Checklist', damages: 'Danos Reportados', lostFound: 'Achados e Perdidos',
+    footerQuote: 'Seu tempo importa, nós cuidamos da limpeza',
     notFound: 'Relatório não encontrado',
     notFoundDesc: 'Este link pode ser inválido ou o relatório ainda não foi publicado.',
-    poweredBy: 'Desenvolvido por',
-    severity: { low: 'Baixa', medium: 'Média', high: 'Alta' },
-    all: 'Todos',
+    severity: 'Severidade', location: 'Localização',
   },
   ko: {
-    title: '청소 보고서',
-    verified: '검증됨',
-    verifiedBy: '검증자',
-    completedTasks: '완료된 작업',
-    photosCollected: '수집된 사진',
-    issuesFound: '발견된 문제',
-    itemsFound: '발견된 물품',
-    duration: '소요 시간',
-    rooms: '공간',
-    checklist: '체크리스트',
-    damages: '손상',
-    lostFound: '분실물',
-    beforePhotos: '이전',
-    afterPhotos: '이후',
-    photoGallery: '사진 갤러리',
-    noPhotos: '사진 없음',
-    notes: '메모',
+    subtitle: '당신의 시간은 소중합니다',
+    rooms: '방', date: '날짜', visitReport: '방문 보고서',
+    messenger: 'iMessage', website: '웹사이트', bookNext: '다음 예약',
+    checklist: '체크리스트', damages: '보고된 손상', lostFound: '분실물',
+    footerQuote: '당신의 시간은 소중합니다',
     notFound: '보고서를 찾을 수 없습니다',
     notFoundDesc: '이 링크가 유효하지 않거나 보고서가 아직 게시되지 않았습니다.',
-    poweredBy: 'Powered by',
-    severity: { low: '낮음', medium: '중간', high: '높음' },
-    all: '전체',
+    severity: '심각도', location: '위치',
   },
   th: {
-    title: 'รายงานการทำความสะอาด',
-    verified: 'ยืนยันแล้ว',
-    verifiedBy: 'ยืนยันโดย',
-    completedTasks: 'งานที่เสร็จสมบูรณ์',
-    photosCollected: 'ภาพถ่ายที่เก็บรวบรวม',
-    issuesFound: 'ปัญหาที่พบ',
-    itemsFound: 'สิ่งของที่พบ',
-    duration: 'ระยะเวลา',
-    rooms: 'ห้อง',
-    checklist: 'รายการตรวจสอบ',
-    damages: 'ความเสียหาย',
-    lostFound: 'ของหายและพบ',
-    beforePhotos: 'ก่อน',
-    afterPhotos: 'หลัง',
-    photoGallery: 'แกลเลอรีภาพ',
-    noPhotos: 'ไม่มีภาพถ่าย',
-    notes: 'หมายเหตุ',
+    subtitle: 'เวลาของคุณมีค่า',
+    rooms: 'ห้อง', date: 'วันที่', visitReport: 'รายงานการเยี่ยมชม',
+    messenger: 'iMessage', website: 'เว็บไซต์', bookNext: 'จองครั้งต่อไป',
+    checklist: 'รายการ', damages: 'ความเสียหายที่รายงาน', lostFound: 'ของหายและพบ',
+    footerQuote: 'เวลาของคุณมีค่า',
     notFound: 'ไม่พบรายงาน',
     notFoundDesc: 'ลิงก์นี้อาจไม่ถูกต้องหรือรายงานยังไม่ได้เผยแพร่',
-    poweredBy: 'Powered by',
-    severity: { low: 'ต่ำ', medium: 'ปานกลาง', high: 'สูง' },
-    all: 'ทั้งหมด',
+    severity: 'ความรุนแรง', location: 'สถานที่',
+  },
+  es: {
+    subtitle: 'SU TIEMPO IMPORTA, NOSOTROS LIMPIAMOS',
+    rooms: 'Habitaciones', date: 'Fecha', visitReport: 'Reporte de Visita',
+    messenger: 'iMessage', website: 'Sitio Web', bookNext: 'Reservar Siguiente',
+    checklist: 'Checklist', damages: 'Daños Reportados', lostFound: 'Objetos Perdidos',
+    footerQuote: 'Su tiempo importa, nosotros nos encargamos de la limpieza',
+    notFound: 'Reporte no encontrado',
+    notFoundDesc: 'Este enlace puede ser inválido o el reporte aún no se ha publicado.',
+    severity: 'Severidad', location: 'Ubicación',
   },
 };
+
+const dateLocales: Record<string, any> = { en: enUS, pt: ptBR, ko, th, es };
 
 export default function PublicReport() {
   const { token } = useParams<{ token: string }>();
   const { report, rooms, photos, isLoading } = usePublicReport(token);
-  const [selectedRoom, setSelectedRoom] = useState<string | null>(null);
-  const [lightboxPhoto, setLightboxPhoto] = useState<string | null>(null);
-  const [lang, setLang] = useState<string>('en');
+  const [lang, setLang] = useState('en');
+  const [langMenuOpen, setLangMenuOpen] = useState(false);
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
 
-  const t = useCallback((key: string): any => {
-    const keys = key.split('.');
-    let val: any = translations[lang] || translations.en;
-    for (const k of keys) val = val?.[k];
-    return val || key;
+  const t = useCallback((key: string) => {
+    return translations[lang]?.[key] || translations.en?.[key] || key;
   }, [lang]);
 
-  // Set lang from report once loaded
   useEffect(() => {
-    if (report && translations[report.language]) {
-      setLang(report.language);
-    }
+    if (report?.language && translations[report.language]) setLang(report.language);
   }, [report]);
+
+  // Close lang menu on outside click
+  useEffect(() => {
+    const handler = () => setLangMenuOpen(false);
+    if (langMenuOpen) document.addEventListener('click', handler);
+    return () => document.removeEventListener('click', handler);
+  }, [langMenuOpen]);
+
+  const formatDate = useCallback((dateStr: string) => {
+    try {
+      return format(new Date(dateStr), 'PPPP', { locale: dateLocales[lang] || enUS });
+    } catch { return dateStr; }
+  }, [lang]);
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
-        <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}>
-          <Sparkles className="w-8 h-8 text-cyan-500" />
-        </motion.div>
+      <div className="min-h-screen bg-stone-50 flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-stone-300 border-t-stone-600 rounded-full animate-spin" />
       </div>
     );
   }
 
   if (!report) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-6">
+      <div className="min-h-screen bg-stone-50 flex items-center justify-center p-6">
         <div className="text-center max-w-sm">
-          <Shield className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-          <h1 className="text-xl font-bold text-slate-800 mb-2">{t('notFound')}</h1>
-          <p className="text-sm text-slate-500">{t('notFoundDesc')}</p>
+          <div className="w-16 h-16 rounded-full bg-stone-200 flex items-center justify-center mx-auto mb-4">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-stone-400"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg>
+          </div>
+          <h1 className="text-xl font-serif text-stone-800 mb-2">{t('notFound')}</h1>
+          <p className="text-sm text-stone-500">{t('notFoundDesc')}</p>
         </div>
       </div>
     );
   }
 
-  const filteredPhotos = selectedRoom
-    ? photos.filter(p => p.room_id === selectedRoom)
-    : photos;
-
-  const beforePhotos = filteredPhotos.filter(p => p.photo_type === 'before');
-  const afterPhotos = filteredPhotos.filter(p => p.photo_type === 'after');
-  const damagePhotos = filteredPhotos.filter(p => p.photo_type === 'damage');
-
   const allDamages = rooms.flatMap(r => (r.damages || []) as any[]);
   const allLostFound = rooms.flatMap(r => (r.lost_and_found || []) as any[]);
 
-  const formatDuration = (start: number | null, end: number | null) => {
-    if (!start || !end) return '—';
-    const mins = Math.floor((end - start) / 60000);
-    const hrs = Math.floor(mins / 60);
-    const m = mins % 60;
-    return hrs > 0 ? `${hrs}h ${m}m` : `${m}min`;
-  };
-
-  const completionPct = report.total_tasks > 0
-    ? Math.round((report.completed_tasks / report.total_tasks) * 100)
-    : 0;
+  // Get photos grouped by room
+  const getPhotosForRoom = (roomId: string) => photos.filter(p => p.room_id === roomId);
+  const generalPhotos = photos.filter(p => !p.room_id);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-cyan-50/30 to-slate-50">
-      {/* Language switcher */}
-      <div className="fixed top-4 right-4 z-50 flex gap-1 bg-white/80 backdrop-blur-lg rounded-full p-1 shadow-lg">
-        {['en', 'pt', 'ko', 'th'].map(l => (
+    <div className="min-h-screen bg-stone-50 text-stone-900 antialiased font-sans selection:bg-stone-200" style={{ fontFamily: "'Inter', sans-serif" }}>
+      {/* 1. Header: Gallery Wall Style */}
+      <div className="relative w-full h-[350px] md:h-[500px] overflow-hidden bg-stone-100">
+        <img
+          src="https://images.unsplash.com/photo-1513519245088-0e12902e5a38?q=80&w=1920&auto=format&fit=crop"
+          className="w-full h-full object-cover object-center"
+          alt="Background"
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-stone-50/90 md:to-stone-50/50" />
+
+        {/* Logo */}
+        <div className="absolute top-6 left-6 z-20">
+          <img src={purLogo} className="h-12 w-auto drop-shadow-md" alt="Logo" />
+        </div>
+
+        {/* Language Switcher */}
+        <div className="absolute top-6 right-6 z-20">
           <button
-            key={l}
-            onClick={() => setLang(l)}
-            className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
-              lang === l ? 'bg-cyan-500 text-white shadow-md' : 'text-slate-500 hover:text-slate-800'
-            }`}
+            onClick={(e) => { e.stopPropagation(); setLangMenuOpen(!langMenuOpen); }}
+            className="flex items-center gap-2 bg-white/80 backdrop-blur-md px-4 py-2 rounded-full shadow-sm hover:bg-white transition-all text-xs font-bold text-stone-800 uppercase tracking-wider"
           >
-            {l.toUpperCase()}
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+            {lang.toUpperCase()}
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 9l6 6 6-6"/></svg>
           </button>
-        ))}
-      </div>
-
-      {/* Hero Header */}
-      <header className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-cyan-900 text-white">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-0 left-0 w-96 h-96 bg-cyan-400 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2" />
-          <div className="absolute bottom-0 right-0 w-64 h-64 bg-cyan-300 rounded-full blur-3xl translate-x-1/4 translate-y-1/4" />
-        </div>
-
-        <div className="relative max-w-2xl mx-auto px-6 py-10 pb-8">
-          <div className="flex items-center gap-3 mb-6">
-            <img src={purLogo} alt="Logo" className="w-8 h-8 rounded-lg" />
-            <span className="text-sm font-semibold tracking-wider opacity-80">MAISON PUR</span>
-          </div>
-
-          <h1 className="text-2xl font-bold mb-2">{report.property_name}</h1>
-          <div className="flex items-center gap-2 text-cyan-200 text-sm mb-6">
-            <MapPin className="w-4 h-4" />
-            <span>{report.property_address}</span>
-          </div>
-
-          {/* Stats Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <StatCard value={`${completionPct}%`} label={t('completedTasks')} icon="✓" color="cyan" />
-            <StatCard value={String(report.total_photos)} label={t('photosCollected')} icon="📷" color="blue" />
-            <StatCard value={String(allDamages.length)} label={t('issuesFound')} icon="⚠" color="amber" />
-            <StatCard value={formatDuration(report.start_time, report.end_time)} label={t('duration')} icon="⏱" color="emerald" />
-          </div>
-
-          {/* Verified Badge */}
-          <div className="mt-6 flex items-center gap-2">
-            <div className="flex items-center gap-2 bg-emerald-500/20 border border-emerald-400/30 rounded-full px-4 py-2">
-              <Shield className="w-4 h-4 text-emerald-400" />
-              <span className="text-xs font-bold text-emerald-300 tracking-wider">{t('verified')}</span>
-            </div>
-            <span className="text-xs text-slate-400">
-              {t('verifiedBy')} {report.cleaner_name} • {format(new Date(report.cleaning_date), 'dd/MM/yyyy')}
-            </span>
-          </div>
-        </div>
-      </header>
-
-      {/* Room Filter Tabs */}
-      <div className="sticky top-0 z-40 bg-white/80 backdrop-blur-lg border-b border-slate-200/50">
-        <div className="max-w-2xl mx-auto px-6 py-3 flex gap-2 overflow-x-auto hide-scrollbar">
-          <button
-            onClick={() => setSelectedRoom(null)}
-            className={`shrink-0 px-4 py-2 rounded-full text-xs font-semibold transition-all ${
-              !selectedRoom ? 'bg-cyan-500 text-white shadow-md' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-            }`}
-          >
-            {t('all')}
-          </button>
-          {rooms.map(room => (
-            <button
-              key={room.id}
-              onClick={() => setSelectedRoom(room.id)}
-              className={`shrink-0 px-4 py-2 rounded-full text-xs font-semibold transition-all ${
-                selectedRoom === room.id ? 'bg-cyan-500 text-white shadow-md' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-              }`}
-            >
-              {room.name}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Content */}
-      <main className="max-w-2xl mx-auto px-6 py-8 space-y-8">
-        {/* Checklist by Room */}
-        {(selectedRoom ? rooms.filter(r => r.id === selectedRoom) : rooms).map(room => (
-          <section key={room.id}>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-bold text-slate-800">{room.name}</h2>
-              <span className="text-xs font-semibold text-cyan-600 bg-cyan-50 px-3 py-1 rounded-full">
-                {room.tasks_completed}/{room.tasks_total}
-              </span>
-            </div>
-
-            {/* Progress bar */}
-            <div className="w-full h-2 bg-slate-100 rounded-full mb-4 overflow-hidden">
-              <motion.div
-                className="h-full bg-gradient-to-r from-cyan-400 to-cyan-500 rounded-full"
-                initial={{ width: 0 }}
-                animate={{ width: `${room.tasks_total > 0 ? (room.tasks_completed / room.tasks_total) * 100 : 0}%` }}
-                transition={{ duration: 1, ease: 'easeOut' }}
-              />
-            </div>
-
-            {/* Checklist items */}
-            <div className="space-y-2">
-              {(room.checklist as any[]).map((item: any, idx: number) => (
-                <div
-                  key={idx}
-                  className={`flex items-center gap-3 p-3 rounded-xl transition-all ${
-                    item.completed ? 'bg-emerald-50/80' : 'bg-red-50/60'
-                  }`}
+          {langMenuOpen && (
+            <div className="absolute right-0 top-full mt-2 w-40 bg-white rounded-xl shadow-2xl border border-stone-100 py-2 overflow-hidden origin-top-right animate-scale-in z-50">
+              {Object.keys(translations).map(l => (
+                <button
+                  key={l}
+                  onClick={() => { setLang(l); setLangMenuOpen(false); }}
+                  className="w-full text-left px-4 py-3 text-xs font-medium uppercase hover:bg-stone-50 transition-colors"
                 >
-                  {item.completed ? (
-                    <CheckCircle className="w-5 h-5 text-emerald-500 shrink-0" />
-                  ) : (
-                    <XCircle className="w-5 h-5 text-red-400 shrink-0" />
-                  )}
-                  <span className={`text-sm flex-1 ${item.completed ? 'text-slate-700' : 'text-red-600'}`}>
-                    {item.label}
-                  </span>
-                  {item.photoUrl && (
-                    <button onClick={() => setLightboxPhoto(item.photoUrl)} className="shrink-0">
-                      <Camera className="w-4 h-4 text-cyan-500" />
-                    </button>
-                  )}
-                </div>
+                  {{ en: 'English', pt: 'Português', es: 'Español', th: 'Thai', ko: 'Korean' }[l] || l}
+                </button>
               ))}
             </div>
-          </section>
-        ))}
+          )}
+        </div>
+      </div>
 
-        {/* Photo Gallery */}
-        {(beforePhotos.length > 0 || afterPhotos.length > 0) && (
-          <section>
-            <h2 className="text-lg font-bold text-slate-800 mb-4">{t('photoGallery')}</h2>
-
-            {beforePhotos.length > 0 && (
-              <div className="mb-6">
-                <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">{t('beforePhotos')}</h3>
-                <div className="grid grid-cols-2 gap-3">
-                  {beforePhotos.map(p => (
-                    <motion.button
-                      key={p.id}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => setLightboxPhoto(p.photo_url)}
-                      className="relative aspect-[4/3] rounded-xl overflow-hidden shadow-md group"
-                    >
-                      <img src={p.photo_url} alt={p.caption || ''} className="w-full h-full object-cover" />
-                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all flex items-center justify-center">
-                        <ZoomIn className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
-                      </div>
-                    </motion.button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {afterPhotos.length > 0 && (
-              <div>
-                <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">{t('afterPhotos')}</h3>
-                <div className="grid grid-cols-2 gap-3">
-                  {afterPhotos.map(p => (
-                    <motion.button
-                      key={p.id}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => setLightboxPhoto(p.photo_url)}
-                      className="relative aspect-[4/3] rounded-xl overflow-hidden shadow-md group"
-                    >
-                      <img src={p.photo_url} alt={p.caption || ''} className="w-full h-full object-cover" />
-                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all flex items-center justify-center">
-                        <ZoomIn className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
-                      </div>
-                    </motion.button>
-                  ))}
-                </div>
-              </div>
-            )}
-          </section>
-        )}
-
-        {/* Damages */}
-        {allDamages.length > 0 && (
-          <section>
-            <h2 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
-              <AlertTriangle className="w-5 h-5 text-amber-500" />
-              {t('damages')} ({allDamages.length})
-            </h2>
-            <div className="space-y-3">
-              {allDamages.map((d: any, i: number) => (
-                <div key={i} className="bg-amber-50 border border-amber-200/50 rounded-xl p-4">
-                  <div className="flex items-start gap-3">
-                    {d.photoUrl && (
-                      <button
-                        onClick={() => setLightboxPhoto(d.photoUrl)}
-                        className="w-16 h-16 rounded-lg overflow-hidden shrink-0"
-                      >
-                        <img src={d.photoUrl} alt="" className="w-full h-full object-cover" />
-                      </button>
-                    )}
-                    <div>
-                      <p className="text-sm font-medium text-slate-800">{d.description}</p>
-                      <span className={`inline-block mt-1 px-2 py-0.5 rounded-full text-xs font-semibold ${
-                        d.severity === 'high' ? 'bg-red-100 text-red-700' :
-                        d.severity === 'medium' ? 'bg-amber-100 text-amber-700' :
-                        'bg-green-100 text-green-700'
-                      }`}>
-                        {(t('severity') as any)?.[d.severity] || d.severity}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* Lost & Found */}
-        {allLostFound.length > 0 && (
-          <section>
-            <h2 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
-              <Search className="w-5 h-5 text-cyan-500" />
-              {t('lostFound')} ({allLostFound.length})
-            </h2>
-            <div className="space-y-3">
-              {allLostFound.map((item: any, i: number) => (
-                <div key={i} className="bg-cyan-50 border border-cyan-200/50 rounded-xl p-4 flex items-start gap-3">
-                  {item.photoUrl && (
-                    <button
-                      onClick={() => setLightboxPhoto(item.photoUrl)}
-                      className="w-16 h-16 rounded-lg overflow-hidden shrink-0"
-                    >
-                      <img src={item.photoUrl} alt="" className="w-full h-full object-cover" />
-                    </button>
-                  )}
-                  <div>
-                    <p className="text-sm font-medium text-slate-800">{item.description}</p>
-                    <p className="text-xs text-slate-500 mt-1">{item.location}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* Notes */}
-        {report.notes && (
-          <section>
-            <h2 className="text-lg font-bold text-slate-800 mb-3">{t('notes')}</h2>
-            <div className="bg-white rounded-xl p-4 border border-slate-200/50 shadow-sm">
-              <p className="text-sm text-slate-600 leading-relaxed">{report.notes}</p>
-            </div>
-          </section>
-        )}
-
-        {/* Footer */}
-        <footer className="text-center pt-8 pb-12">
-          <div className="flex items-center justify-center gap-2 mb-2">
-            <img src={purLogo} alt="Logo" className="w-5 h-5 rounded" />
-            <span className="text-xs text-slate-400 font-medium">{t('poweredBy')} Maison Pur</span>
+      {/* 2. Overlapping Profile & Info Card */}
+      <div className="relative z-10 -mt-24 md:-mt-32 text-center px-4 animate-fade-in">
+        <div className="inline-block relative mb-6">
+          <div className="w-40 h-40 md:w-52 md:h-52 rounded-full border-[6px] border-white shadow-2xl overflow-hidden bg-stone-200 mx-auto flex items-center justify-center">
+            <img src={purLogo} className="w-20 h-20 object-contain opacity-60" alt="Profile" />
           </div>
-          <p className="text-[10px] text-slate-300">
-            © {new Date().getFullYear()} • Report ID: {report.public_token.slice(0, 8)}
-          </p>
-        </footer>
-      </main>
+        </div>
 
-      {/* Lightbox */}
-      <AnimatePresence>
-        {lightboxPhoto && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center p-4"
-            onClick={() => setLightboxPhoto(null)}
+        <h1 className="font-serif text-4xl md:text-5xl text-stone-900 mb-6 tracking-tight" style={{ fontFamily: "'Playfair Display', serif" }}>
+          {report.cleaner_name}
+        </h1>
+
+        {/* Info Card */}
+        <div className="max-w-3xl mx-auto bg-white border border-stone-100 shadow-xl shadow-stone-200/50 rounded-2xl overflow-hidden mb-12">
+          <div className="py-6 px-4 border-b border-stone-100 bg-stone-50/30">
+            <p className="text-xs font-bold text-[#717D62] uppercase tracking-[0.2em]">{t('subtitle')}</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-stone-100">
+            <div className="p-6 flex flex-col items-center justify-center hover:bg-stone-50 transition-colors">
+              <span className="text-3xl font-serif text-stone-800 mb-1" style={{ fontFamily: "'Playfair Display', serif" }}>{rooms.length}</span>
+              <span className="text-[10px] uppercase tracking-widest text-stone-400">{t('rooms')}</span>
+            </div>
+            <div className="p-6 flex flex-col items-center justify-center hover:bg-stone-50 transition-colors">
+              <span className="text-lg font-serif text-stone-800 mb-1" style={{ fontFamily: "'Playfair Display', serif" }}>{formatDate(report.cleaning_date)}</span>
+              <span className="text-[10px] uppercase tracking-widest text-stone-400">{t('date')}</span>
+            </div>
+            <div className="p-6 flex flex-col items-center justify-center hover:bg-stone-50 transition-colors text-center">
+              <div className="flex items-center gap-1 mb-1">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-stone-300"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              </div>
+              <span className="text-sm font-serif text-stone-600 line-clamp-1" style={{ fontFamily: "'Playfair Display', serif" }}>{report.property_name}</span>
+              <span className="text-[10px] uppercase tracking-widest text-stone-400 mt-1">{t('visitReport')}</span>
+            </div>
+          </div>
+          <div className="p-4 bg-stone-50 border-t border-stone-100 flex flex-col md:flex-row justify-center gap-3">
+            <a href="sms:" className="flex-1 flex justify-center items-center gap-2 bg-white hover:bg-stone-100 border border-stone-200 text-stone-600 px-5 py-3 rounded-lg text-xs font-bold uppercase tracking-wider transition-all">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>
+              {t('messenger')}
+            </a>
+            <a href="https://maisonpurusa.com" target="_blank" rel="noopener" className="flex-1 flex justify-center items-center gap-2 bg-white hover:bg-stone-100 border border-stone-200 text-stone-600 px-5 py-3 rounded-lg text-xs font-bold uppercase tracking-wider transition-all">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+              {t('website')}
+            </a>
+            <a href="mailto:contact@maisonpurusa.com" className="flex-1 flex justify-center items-center gap-2 bg-stone-800 hover:bg-stone-700 text-white px-5 py-3 rounded-lg text-xs font-bold uppercase tracking-wider shadow-md hover:shadow-lg transition-all">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              {t('bookNext')}
+            </a>
+          </div>
+        </div>
+      </div>
+
+      {/* 3. Main Content - Room by Room */}
+      <div className="max-w-7xl mx-auto px-6 pb-20">
+        {rooms.map((room, roomIdx) => {
+          const roomPhotos = getPhotosForRoom(room.id);
+          const roomGeneralPhotos = roomIdx === 0 ? generalPhotos : [];
+          const allRoomPhotos = [...roomPhotos, ...roomGeneralPhotos];
+          const roomDamages = (room.damages || []) as any[];
+          const roomLostFound = (room.lost_and_found || []) as any[];
+          const checklistItems = (room.checklist || []) as any[];
+
+          return (
+            <div key={room.id} className="mb-24 border-b border-stone-200 pb-16 last:border-0">
+              {/* Room Header */}
+              <div className="flex items-center gap-4 mb-8">
+                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-stone-900 font-serif text-lg font-bold text-white shadow-lg shadow-stone-200 flex-shrink-0" style={{ fontFamily: "'Playfair Display', serif" }}>
+                  {roomIdx + 1}
+                </span>
+                <h2 className="font-serif text-3xl md:text-4xl text-stone-800 break-words" style={{ fontFamily: "'Playfair Display', serif" }}>
+                  {room.name}
+                </h2>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
+                {/* Checklist Column */}
+                <div className="lg:col-span-4 order-2 lg:order-1 space-y-6">
+                  {/* Checklist Card */}
+                  {checklistItems.length > 0 && (
+                    <div className="bg-white rounded-xl border border-stone-100 shadow-sm overflow-hidden">
+                      <div className="bg-stone-50 px-4 py-3 border-b border-stone-100 flex justify-between items-center">
+                        <h4 className="font-bold text-stone-400 uppercase tracking-widest text-xs flex items-center gap-2">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                          {t('checklist')}
+                        </h4>
+                        <span className="text-[10px] font-mono bg-stone-200 text-stone-600 px-1.5 py-0.5 rounded">
+                          {room.tasks_completed}/{room.tasks_total}
+                        </span>
+                      </div>
+                      <div className="p-4 space-y-3">
+                        {checklistItems.map((item: any, idx: number) => (
+                          <div key={idx} className="flex items-start gap-3 text-sm group">
+                            <div className={`mt-0.5 flex-shrink-0 ${item.completed ? 'text-[#8A9679]' : 'text-stone-300'}`}>
+                              {item.completed ? (
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                              ) : (
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/></svg>
+                              )}
+                            </div>
+                            <div className="flex-1">
+                              <p className={item.completed ? 'text-stone-700' : 'text-stone-400'}>{item.label}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Damages Card */}
+                  {roomDamages.length > 0 && (
+                    <div className="bg-white rounded-xl border border-amber-200/60 shadow-sm overflow-hidden">
+                      <div className="bg-amber-50 px-4 py-3 border-b border-amber-100 flex justify-between items-center">
+                        <h4 className="font-bold text-amber-600 uppercase tracking-widest text-xs flex items-center gap-2">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                          {t('damages')}
+                        </h4>
+                        <span className="text-[10px] font-mono bg-amber-200 text-amber-700 px-1.5 py-0.5 rounded">
+                          {roomDamages.length}
+                        </span>
+                      </div>
+                      <div className="p-4 space-y-3">
+                        {roomDamages.map((d: any, idx: number) => (
+                          <div key={idx} className="flex items-start gap-3">
+                            {d.photoUrl && (
+                              <button onClick={() => setLightboxUrl(d.photoUrl)} className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 hover:opacity-80 transition-opacity">
+                                <img src={d.photoUrl} alt="" className="w-full h-full object-cover" />
+                              </button>
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm text-stone-800 font-medium">{d.description}</p>
+                              {d.severity && (
+                                <span className={`inline-block mt-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                                  d.severity === 'high' ? 'bg-red-100 text-red-700' :
+                                  d.severity === 'medium' ? 'bg-amber-100 text-amber-700' :
+                                  'bg-green-100 text-green-700'
+                                }`}>
+                                  {d.severity}
+                                </span>
+                              )}
+                              {d.location && <p className="text-xs text-stone-400 mt-1">{d.location}</p>}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Lost & Found Card */}
+                  {roomLostFound.length > 0 && (
+                    <div className="bg-white rounded-xl border border-blue-200/60 shadow-sm overflow-hidden">
+                      <div className="bg-blue-50 px-4 py-3 border-b border-blue-100 flex justify-between items-center">
+                        <h4 className="font-bold text-blue-600 uppercase tracking-widest text-xs flex items-center gap-2">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                          {t('lostFound')}
+                        </h4>
+                        <span className="text-[10px] font-mono bg-blue-200 text-blue-700 px-1.5 py-0.5 rounded">
+                          {roomLostFound.length}
+                        </span>
+                      </div>
+                      <div className="p-4 space-y-3">
+                        {roomLostFound.map((item: any, idx: number) => (
+                          <div key={idx} className="flex items-start gap-3">
+                            {item.photoUrl && (
+                              <button onClick={() => setLightboxUrl(item.photoUrl)} className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 hover:opacity-80 transition-opacity">
+                                <img src={item.photoUrl} alt="" className="w-full h-full object-cover" />
+                              </button>
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm text-stone-800 font-medium">{item.description}</p>
+                              {item.location && <p className="text-xs text-stone-400 mt-1">{item.location}</p>}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Photos Column */}
+                <div className="lg:col-span-8 order-1 lg:order-2">
+                  {allRoomPhotos.length > 0 ? (
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                      {allRoomPhotos.map((photo) => (
+                        <div
+                          key={photo.id}
+                          className="group relative cursor-pointer overflow-hidden rounded-xl bg-stone-100 shadow-md transition-all hover:-translate-y-1 hover:shadow-xl aspect-square"
+                          onClick={() => setLightboxUrl(photo.photo_url)}
+                        >
+                          <img
+                            src={photo.photo_url}
+                            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                            alt={photo.caption || room.name}
+                            loading="lazy"
+                          />
+                          <div className="absolute inset-0 bg-black/0 transition-colors group-hover:bg-black/10" />
+                          <div className="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div className="bg-white/90 p-2 rounded-full shadow-sm text-stone-800">
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+                            </div>
+                          </div>
+                          {photo.photo_type !== 'after' && photo.photo_type !== 'before' && (
+                            <div className="absolute top-3 left-3">
+                              <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-full backdrop-blur-md ${
+                                photo.photo_type === 'damage' ? 'bg-amber-500/80 text-white' :
+                                photo.photo_type === 'lost_found' ? 'bg-blue-500/80 text-white' :
+                                'bg-stone-800/60 text-white'
+                              }`}>
+                                {photo.photo_type === 'damage' ? '⚠' : photo.photo_type === 'lost_found' ? '🔍' : '📷'}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-center h-48 bg-stone-100 rounded-xl text-stone-400 text-sm">
+                      No photos
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+
+        {/* Standalone damages/lostfound that aren't room-specific */}
+        {rooms.length === 0 && (allDamages.length > 0 || allLostFound.length > 0) && (
+          <div className="space-y-6">
+            {allDamages.length > 0 && (
+              <div className="bg-white rounded-xl border border-amber-200/60 shadow-sm overflow-hidden p-4">
+                <h3 className="font-bold text-amber-600 uppercase tracking-widest text-xs mb-3">{t('damages')}</h3>
+                {allDamages.map((d: any, i: number) => (
+                  <div key={i} className="flex items-start gap-3 mb-2">
+                    <p className="text-sm text-stone-800">{d.description}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Footer */}
+      <div className="mt-24 text-center border-t border-stone-200 pt-12 pb-24">
+        <p className="font-serif italic text-stone-500" style={{ fontFamily: "'Playfair Display', serif" }}>
+          "{t('footerQuote')}"
+        </p>
+        <div className="mt-8 flex justify-center">
+          <img src={purLogo} className="h-8 w-auto opacity-50" alt="Logo" />
+        </div>
+        <p className="text-[10px] text-stone-300 mt-4">
+          © {new Date().getFullYear()} Maison Pur • Report ID: {report.public_token.slice(0, 8)}
+        </p>
+      </div>
+
+      {/* Lightbox Modal */}
+      {lightboxUrl && (
+        <div
+          className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/95 p-4 backdrop-blur-sm"
+          onClick={() => setLightboxUrl(null)}
+        >
+          <button
+            onClick={() => setLightboxUrl(null)}
+            className="fixed top-6 right-6 z-[100000] bg-stone-900/50 text-white hover:bg-stone-800 p-2 rounded-full backdrop-blur-md transition-colors"
           >
-            <button
-              onClick={() => setLightboxPhoto(null)}
-              className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 flex items-center justify-center"
-            >
-              <X className="w-6 h-6 text-white" />
-            </button>
-            <motion.img
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.8, opacity: 0 }}
-              src={lightboxPhoto}
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+          </button>
+          <div className="max-w-5xl max-h-[90vh] relative w-full flex justify-center items-center">
+            <img
+              src={lightboxUrl}
+              className="max-w-full max-h-[85vh] rounded-lg shadow-2xl object-contain"
               alt=""
-              className="max-w-full max-h-[85vh] rounded-xl object-contain"
               onClick={e => e.stopPropagation()}
             />
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-}
-
-function StatCard({ value, label, icon, color }: { value: string; label: string; icon: string; color: string }) {
-  const colorMap: Record<string, string> = {
-    cyan: 'bg-cyan-500/20 border-cyan-400/20',
-    blue: 'bg-blue-500/20 border-blue-400/20',
-    amber: 'bg-amber-500/20 border-amber-400/20',
-    emerald: 'bg-emerald-500/20 border-emerald-400/20',
-  };
-
-  return (
-    <div className={`rounded-xl p-3 border ${colorMap[color] || colorMap.cyan}`}>
-      <span className="text-lg">{icon}</span>
-      <p className="text-xl font-bold text-white mt-1">{value}</p>
-      <p className="text-[10px] text-slate-300 uppercase tracking-wider">{label}</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

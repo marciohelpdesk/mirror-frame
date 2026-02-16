@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useCallback, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, Camera, ChevronDown, ChevronUp, ArrowRight, AlertTriangle } from 'lucide-react';
+import { Check, Camera, ChevronDown, ChevronUp, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ChecklistSection, ChecklistItem } from '@/types';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -34,54 +34,46 @@ export const ChecklistStep = ({
   const progress = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
   const allCompleted = completedItems === totalItems;
 
-  const toggleSection = (id: string) => {
+  const toggleSection = useCallback((id: string) => {
     setExpandedSections(prev =>
       prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
     );
-  };
+  }, []);
 
-  const toggleItem = (sectionId: string, itemId: string) => {
+  const toggleItem = useCallback((sectionId: string, itemId: string) => {
     const updated = checklist.map(section => {
-      if (section.id === sectionId) {
+      if (section.id !== sectionId) return section;
+      return {
+        ...section,
+        items: section.items.map(item => {
+          if (item.id !== itemId) return item;
+          if (item.photoRequired && !item.completed && !item.photoUrl) {
+            setCapturingPhoto(itemId);
+            return item;
+          }
+          return { ...item, completed: !item.completed };
+        }),
+      };
+    });
+    onChecklistChange(updated);
+  }, [checklist, onChecklistChange]);
+
+  const handlePhotoCapture = useCallback((sectionId: string, itemId: string) => {
+    setTimeout(() => {
+      const updated = checklist.map(section => {
+        if (section.id !== sectionId) return section;
         return {
           ...section,
           items: section.items.map(item => {
-            if (item.id === itemId) {
-              if (item.photoRequired && !item.completed && !item.photoUrl) {
-                setCapturingPhoto(itemId);
-                return item;
-              }
-              return { ...item, completed: !item.completed };
-            }
-            return item;
+            if (item.id !== itemId) return item;
+            return { ...item, photoUrl: `${DEMO_TASK_PHOTO}&t=${Date.now()}`, completed: true };
           }),
         };
-      }
-      return section;
-    });
-    onChecklistChange(updated);
-  };
-
-  const handlePhotoCapture = (sectionId: string, itemId: string) => {
-    setTimeout(() => {
-      const updated = checklist.map(section => {
-        if (section.id === sectionId) {
-          return {
-            ...section,
-            items: section.items.map(item => {
-              if (item.id === itemId) {
-                return { ...item, photoUrl: `${DEMO_TASK_PHOTO}&t=${Date.now()}`, completed: true };
-              }
-              return item;
-            }),
-          };
-        }
-        return section;
       });
       onChecklistChange(updated);
       setCapturingPhoto(null);
-    }, 500);
-  };
+    }, 300);
+  }, [checklist, onChecklistChange]);
 
   return (
     <motion.div
@@ -100,7 +92,6 @@ export const ChecklistStep = ({
 
           return (
             <div key={section.id} className="mb-4">
-              {/* Section Header - Breezeway style */}
               <button
                 onClick={() => toggleSection(section.id)}
                 className="w-full flex items-center justify-between py-2 px-1"
@@ -110,13 +101,9 @@ export const ChecklistStep = ({
                     {section.title}
                   </h3>
                   {isComplete && (
-                    <motion.div
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      className="w-5 h-5 rounded-full bg-primary/15 flex items-center justify-center"
-                    >
+                    <div className="w-5 h-5 rounded-full bg-primary/15 flex items-center justify-center">
                       <Check className="w-3.5 h-3.5 text-primary" />
-                    </motion.div>
+                    </div>
                   )}
                 </div>
                 <div className="flex items-center gap-2">
@@ -131,17 +118,16 @@ export const ChecklistStep = ({
                 </div>
               </button>
 
-              {/* Section Items */}
               <AnimatePresence>
                 {isExpanded && (
                   <motion.div
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: 'auto', opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.2 }}
+                    transition={{ duration: 0.15 }}
                     className="overflow-hidden"
                   >
-                    <div className="space-y-2.5">
+                    <div className="space-y-2">
                       {section.items.map((item, idx) => (
                         <ChecklistItemCard
                           key={item.id}
@@ -161,7 +147,7 @@ export const ChecklistStep = ({
         })}
       </div>
 
-      {/* Bottom Bar - Progress + Finalize */}
+      {/* Bottom Bar */}
       <div className="px-4 py-3 flex items-center gap-3 border-t border-border/30 bg-background/80 backdrop-blur-sm">
         <div className="flex items-center gap-3 flex-1 min-w-0">
           <LiquidProgressBubble percentage={progress} size={48} showPercentage />
@@ -193,7 +179,7 @@ export const ChecklistStep = ({
   );
 };
 
-// ─── Item Card Component ─────────────────────────
+// ─── Memoized Item Card Component ─────────────────────────
 
 interface ChecklistItemCardProps {
   item: ChecklistItem;
@@ -203,18 +189,15 @@ interface ChecklistItemCardProps {
   onCapturePhoto: () => void;
 }
 
-const ChecklistItemCard = ({ item, index, isCapturing, onToggle, onCapturePhoto }: ChecklistItemCardProps) => {
+const ChecklistItemCard = memo(({ item, index, isCapturing, onToggle, onCapturePhoto }: ChecklistItemCardProps) => {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.03 }}
+    <div
       className={`
-        relative rounded-2xl border px-4 py-4 flex items-center gap-3
-        transition-all duration-200
+        relative rounded-2xl border px-4 py-3 flex items-center gap-3
+        transition-colors duration-100
         ${item.completed
           ? 'bg-primary/[0.04] border-primary/20'
-          : 'bg-card/60 border-border/40 hover:border-border/60'
+          : 'bg-card/60 border-border/40 active:bg-muted/60'
         }
       `}
     >
@@ -222,28 +205,22 @@ const ChecklistItemCard = ({ item, index, isCapturing, onToggle, onCapturePhoto 
       <button
         onClick={item.photoRequired && !item.photoUrl ? onCapturePhoto : onToggle}
         className={`
-          w-9 h-9 rounded-full flex items-center justify-center shrink-0 transition-all duration-200
+          w-9 h-9 rounded-full flex items-center justify-center shrink-0 transition-colors duration-100
           ${item.completed
             ? 'bg-primary shadow-md shadow-primary/25'
-            : 'border-2 border-muted-foreground/25 hover:border-primary/50 hover:bg-primary/5'
+            : 'border-2 border-muted-foreground/25 active:border-primary/50 active:bg-primary/5'
           }
         `}
       >
         {item.completed && (
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ type: 'spring', stiffness: 500, damping: 25 }}
-          >
-            <Check className="w-5 h-5 text-primary-foreground" strokeWidth={3} />
-          </motion.div>
+          <Check className="w-5 h-5 text-primary-foreground" strokeWidth={3} />
         )}
       </button>
 
       {/* Label */}
       <span
         className={`
-          flex-1 text-sm transition-all duration-200
+          flex-1 text-sm transition-colors duration-100
           ${item.completed
             ? 'line-through text-muted-foreground/60'
             : 'text-foreground font-medium'
@@ -253,39 +230,29 @@ const ChecklistItemCard = ({ item, index, isCapturing, onToggle, onCapturePhoto 
         {item.label}
       </span>
 
-      {/* Action Icons */}
-      <div className="flex items-center gap-2 shrink-0">
-        {/* Photo icon */}
-        {item.photoRequired && (
-          <>
-            {isCapturing ? (
-              <motion.div
-                animate={{ rotate: 360 }}
-                transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-                className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center"
-              >
-                <Camera className="w-4 h-4 text-primary" />
-              </motion.div>
-            ) : item.photoUrl ? (
-              <div className="w-8 h-8 rounded-xl overflow-hidden ring-2 ring-primary/20">
-                <img src={item.photoUrl} alt="" className="w-full h-full object-cover" />
-              </div>
-            ) : (
-              <button
-                onClick={onCapturePhoto}
-                className="w-8 h-8 rounded-xl bg-muted/60 flex items-center justify-center hover:bg-muted transition-colors"
-              >
-                <Camera className="w-4 h-4 text-muted-foreground/60" />
-              </button>
-            )}
-          </>
-        )}
-
-        {/* Warning/report icon */}
-        <div className="w-8 h-8 rounded-xl bg-muted/40 flex items-center justify-center">
-          <AlertTriangle className="w-4 h-4 text-muted-foreground/40" />
+      {/* Photo icon */}
+      {item.photoRequired && (
+        <div className="shrink-0">
+          {isCapturing ? (
+            <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center animate-spin">
+              <Camera className="w-4 h-4 text-primary" />
+            </div>
+          ) : item.photoUrl ? (
+            <div className="w-8 h-8 rounded-xl overflow-hidden ring-2 ring-primary/20">
+              <img src={item.photoUrl} alt="" className="w-full h-full object-cover" />
+            </div>
+          ) : (
+            <button
+              onClick={onCapturePhoto}
+              className="w-8 h-8 rounded-xl bg-muted/60 flex items-center justify-center active:bg-muted transition-colors"
+            >
+              <Camera className="w-4 h-4 text-muted-foreground/60" />
+            </button>
+          )}
         </div>
-      </div>
-    </motion.div>
+      )}
+    </div>
   );
-};
+});
+
+ChecklistItemCard.displayName = 'ChecklistItemCard';
