@@ -34,16 +34,40 @@ export default function Execution() {
 
     // Auto-generate report
     try {
-      const rooms = finalJob.checklist.map((section, i) => ({
-        name: section.title,
-        room_type: 'other',
-        display_order: i,
-        checklist: section.items,
-        tasks_total: section.items.length,
-        tasks_completed: section.items.filter(it => it.completed).length,
-        damages: [],
-        lost_and_found: [],
-      }));
+      // Distribute damages and lost&found across rooms (first room gets unmatched items)
+      const allDamages = finalJob.damages || [];
+      const allLostFound = finalJob.lostAndFound || [];
+
+      const rooms = finalJob.checklist.map((section, i) => {
+        const sectionTitle = section.title.toLowerCase();
+        const sectionDamages = allDamages.filter(d => 
+          d.description?.toLowerCase().includes(sectionTitle)
+        );
+        const sectionLostFound = allLostFound.filter(l => 
+          l.location?.toLowerCase().includes(sectionTitle) ||
+          l.description?.toLowerCase().includes(sectionTitle)
+        );
+        return {
+          name: section.title,
+          room_type: 'other',
+          display_order: i,
+          checklist: section.items,
+          tasks_total: section.items.length,
+          tasks_completed: section.items.filter(it => it.completed).length,
+          damages: i === 0 
+            ? [...sectionDamages, ...allDamages.filter(d => !finalJob.checklist.some(s => {
+                const t = s.title.toLowerCase();
+                return d.description?.toLowerCase().includes(t);
+              }))]
+            : sectionDamages,
+          lost_and_found: i === 0 
+            ? [...sectionLostFound, ...allLostFound.filter(l => !finalJob.checklist.some(s => {
+                const t = s.title.toLowerCase();
+                return l.location?.toLowerCase().includes(t) || l.description?.toLowerCase().includes(t);
+              }))]
+            : sectionLostFound,
+        };
+      });
 
       const photos = [
         ...finalJob.photosBefore.map((url, i) => ({ photo_url: url, photo_type: 'before' as const, display_order: i })),

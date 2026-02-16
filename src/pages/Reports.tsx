@@ -32,16 +32,26 @@ export default function Reports() {
     setGeneratingForJob(job.id);
     try {
       // Build rooms from checklist sections
-      const rooms = job.checklist.map((section, i) => ({
-        name: section.title,
-        room_type: 'other',
-        display_order: i,
-        checklist: section.items,
-        tasks_total: section.items.length,
-        tasks_completed: section.items.filter(it => it.completed).length,
-        damages: (job.damages || []).filter(d => d.description.toLowerCase().includes(section.title.toLowerCase())),
-        lost_and_found: (job.lostAndFound || []).filter(l => l.location?.toLowerCase().includes(section.title.toLowerCase())),
-      }));
+      const allDamages = job.damages || [];
+      const allLostFound = job.lostAndFound || [];
+      
+      const rooms = job.checklist.map((section, i) => {
+        const sTitle = section.title.toLowerCase();
+        const sectionDamages = allDamages.filter(d => d.description?.toLowerCase().includes(sTitle));
+        const sectionLostFound = allLostFound.filter(l => l.location?.toLowerCase().includes(sTitle) || l.description?.toLowerCase().includes(sTitle));
+        const unmatchedDamages = allDamages.filter(d => !job.checklist.some(s => d.description?.toLowerCase().includes(s.title.toLowerCase())));
+        const unmatchedLost = allLostFound.filter(l => !job.checklist.some(s => l.location?.toLowerCase().includes(s.title.toLowerCase()) || l.description?.toLowerCase().includes(s.title.toLowerCase())));
+        return {
+          name: section.title,
+          room_type: 'other',
+          display_order: i,
+          checklist: section.items,
+          tasks_total: section.items.length,
+          tasks_completed: section.items.filter(it => it.completed).length,
+          damages: i === 0 ? [...sectionDamages, ...unmatchedDamages] : sectionDamages,
+          lost_and_found: i === 0 ? [...sectionLostFound, ...unmatchedLost] : sectionLostFound,
+        };
+      });
 
       // Build photos
       const photos = [
