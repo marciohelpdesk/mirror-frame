@@ -1,14 +1,14 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight, Calendar, CalendarDays, CalendarRange, Plus } from 'lucide-react';
+import { 
+  ChevronLeft, ChevronRight, Calendar, CalendarDays, CalendarRange, Plus,
+  MapPin, Bed, Bath, Play, Clock, Check, AlertTriangle, Car
+} from 'lucide-react';
 import { Job, JobStatus, Property, Employee } from '@/types';
-import { PageHeader } from '@/components/PageHeader';
 import { DayView } from '@/components/calendar/DayView';
 import { WeekView } from '@/components/calendar/WeekView';
 import { MonthView } from '@/components/calendar/MonthView';
-import { CalendarJobItem } from '@/components/calendar/CalendarJobItem';
 import { AddJobModal } from '@/components/AddJobModal';
-import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { 
   format, 
@@ -53,7 +53,6 @@ export const AgendaView = ({ jobs, properties, employees = [], onStartJob, onVie
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData('text/plain', job.id);
     
-    // Create a custom drag image
     const dragImage = document.createElement('div');
     dragImage.textContent = job.clientName;
     dragImage.style.cssText = 'position: absolute; top: -1000px; padding: 8px 12px; background: white; border-radius: 8px; font-size: 12px;';
@@ -114,33 +113,58 @@ export const AgendaView = ({ jobs, properties, employees = [], onStartJob, onVie
     }
   };
 
-  const viewButtons: { view: CalendarView; icon: typeof Calendar; label: string }[] = [
-    { view: 'day', icon: Calendar, label: t('agenda.day') },
-    { view: 'week', icon: CalendarDays, label: t('agenda.week') },
-    { view: 'month', icon: CalendarRange, label: t('agenda.month') },
+  const viewButtons: { view: CalendarView; label: string }[] = [
+    { view: 'day', label: t('agenda.day') },
+    { view: 'week', label: t('agenda.week') },
+    { view: 'month', label: t('agenda.month') },
   ];
 
-  // Get selected date jobs for the list below
-  const selectedDateJobs = jobs.filter(j => 
-    j.date === format(selectedDate, 'yyyy-MM-dd')
+  // Get selected date jobs for the timeline
+  const selectedDateJobs = useMemo(() => 
+    jobs.filter(j => j.date === format(selectedDate, 'yyyy-MM-dd'))
+      .sort((a, b) => a.time.localeCompare(b.time)),
+    [jobs, selectedDate]
   );
+
+  // Day summary
+  const daySummary = useMemo(() => {
+    const total = selectedDateJobs.length;
+    const totalEarnings = selectedDateJobs.reduce((sum, j) => sum + (j.price || 0), 0);
+    return { total, totalEarnings };
+  }, [selectedDateJobs]);
 
   return (
     <div className="flex flex-col h-full relative z-10 overflow-y-auto hide-scrollbar pb-32">
-      <PageHeader 
-        title={t('agenda.title')}
-        subtitle={t('agenda.subtitle')}
-        rightElement={
-          <Button
-            size="sm"
-            className="gap-1.5"
+      {/* Header */}
+      <header className="sticky top-0 z-20 bg-card border-b border-border/30 px-6 py-4">
+        <div className="flex items-center justify-between mb-4">
+          <h1 className="font-bold text-foreground text-2xl">{t('agenda.title')}</h1>
+          <button
             onClick={() => setShowAddJobModal(true)}
+            className="px-4 py-2 bg-gradient-to-r from-primary to-teal-600 text-white rounded-full text-sm font-semibold flex items-center gap-2 shadow-lg shadow-primary/30"
           >
-            <Plus size={16} />
-            {t('agenda.addJob')}
-          </Button>
-        }
-      />
+            <Plus size={14} /> {t('agenda.addJob')}
+          </button>
+        </div>
+        
+        {/* View Toggle */}
+        <div className="bg-muted p-1 rounded-xl flex">
+          {viewButtons.map(({ view, label }) => (
+            <button
+              key={view}
+              onClick={() => setCalendarView(view)}
+              className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all
+                ${calendarView === view 
+                  ? 'bg-card text-foreground shadow-sm' 
+                  : 'text-muted-foreground hover:text-foreground'
+                }
+              `}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </header>
 
       <AddJobModal
         open={showAddJobModal}
@@ -150,48 +174,25 @@ export const AgendaView = ({ jobs, properties, employees = [], onStartJob, onVie
         onAddJob={handleAddJob}
       />
       
-      <div className="px-4 relative z-10">
-        {/* View Toggle */}
-        <div className="glass-panel p-1 mb-4 flex gap-1">
-          {viewButtons.map(({ view, icon: Icon, label }) => (
-            <button
-              key={view}
-              onClick={() => setCalendarView(view)}
-              className={`
-                flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-medium transition-all
-                ${calendarView === view 
-                  ? 'bg-primary text-primary-foreground' 
-                  : 'text-muted-foreground hover:bg-muted'
-                }
-              `}
-            >
-              <Icon size={14} />
-              {label}
-            </button>
-          ))}
-        </div>
-
+      <div className="px-6 py-4 space-y-6">
         {/* Calendar Navigation */}
-        <div className="glass-panel p-4 mb-4">
-          <div className="flex justify-between items-center mb-4">
+        <div className="bg-card rounded-2xl shadow-sm border border-border/50 p-4">
+          <div className="flex items-center justify-between mb-4">
             <button 
               onClick={() => navigate('prev')}
-              className="liquid-btn w-10 h-10 text-muted-foreground"
+              className="w-8 h-8 rounded-full hover:bg-muted flex items-center justify-center text-muted-foreground"
             >
-              <ChevronLeft size={20} />
+              <ChevronLeft size={18} />
             </button>
-            <h3 className="font-medium text-foreground">
-              {getHeaderTitle()}
-            </h3>
+            <h2 className="font-semibold text-foreground">{getHeaderTitle()}</h2>
             <button 
               onClick={() => navigate('next')}
-              className="liquid-btn w-10 h-10 text-muted-foreground"
+              className="w-8 h-8 rounded-full hover:bg-muted flex items-center justify-center text-muted-foreground"
             >
-              <ChevronRight size={20} />
+              <ChevronRight size={18} />
             </button>
           </div>
           
-          {/* Calendar Views */}
           <AnimatePresence mode="wait">
             <motion.div
               key={calendarView}
@@ -236,74 +237,157 @@ export const AgendaView = ({ jobs, properties, employees = [], onStartJob, onVie
             </motion.div>
           </AnimatePresence>
         </div>
-        
-        {/* Selected Day Jobs List */}
+
+        {/* Day Timeline */}
         {calendarView !== 'day' && (
-          <div>
-            <div className="flex justify-between items-center mb-3">
-              <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
-                {format(selectedDate, 'EEEE, MMMM d')}
-              </h2>
-              <span className="text-xs text-muted-foreground">
-                {selectedDateJobs.length} {t('agenda.jobs') || 'jobs'}
-              </span>
+          <section>
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h2 className="font-bold text-foreground text-lg">
+                  {format(selectedDate, 'EEEE, d MMM')}
+                </h2>
+                <p className="text-xs text-muted-foreground">
+                  {daySummary.total} jobs • ${daySummary.totalEarnings} previsto
+                </p>
+              </div>
+              {selectedDateJobs.length > 0 && (
+                <span className="text-xs font-medium text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full">
+                  <Check size={10} className="inline mr-1" />
+                  {selectedDateJobs.filter(j => j.status === JobStatus.COMPLETED).length}/{selectedDateJobs.length}
+                </span>
+              )}
             </div>
-            
-            <div className="space-y-3">
-              <AnimatePresence>
-                {selectedDateJobs.map((job, idx) => (
+
+            <div className="relative space-y-6">
+              {selectedDateJobs.map((job, idx) => {
+                const isInProgress = job.status === JobStatus.IN_PROGRESS;
+                const isCompleted = job.status === JobStatus.COMPLETED;
+                const property = properties.find(p => p.id === job.propertyId);
+
+                return (
                   <motion.div
                     key={job.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    transition={{ delay: idx * 0.05 }}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: idx * 0.08 }}
+                    className="relative pl-14"
                   >
-                    <CalendarJobItem
-                      job={job}
-                      onView={onViewJob}
-                      onDragStart={handleDragStart}
-                      draggable={false}
-                    />
+                    {/* Timeline connector */}
+                    {idx < selectedDateJobs.length - 1 && (
+                      <div className="absolute left-[44px] top-12 bottom-[-24px] w-0.5 bg-gradient-to-b from-primary/40 to-border/30" />
+                    )}
+
+                    {/* Time label */}
+                    <div className="absolute left-0 top-0 w-12 text-center">
+                      <p className="text-xs font-bold text-foreground">{job.time}</p>
+                      {job.checkinDeadline && (
+                        <p className="text-[10px] text-muted-foreground">{job.checkinDeadline}</p>
+                      )}
+                    </div>
+
+                    {/* Timeline dot */}
+                    <div className={`absolute left-[38px] top-1 w-5 h-5 rounded-full border-4 border-card shadow flex items-center justify-center z-10
+                      ${isCompleted ? 'bg-emerald-500' : isInProgress ? 'bg-primary animate-pulse' : 'bg-muted-foreground/30'}
+                    `}>
+                      {isCompleted && <Check size={8} className="text-white" />}
+                      {isInProgress && <Play size={8} className="text-white fill-white" />}
+                    </div>
+
+                    {/* Job Card */}
+                    <div 
+                      className={`bg-card rounded-2xl p-4 shadow-sm cursor-pointer transition-all
+                        ${isInProgress 
+                          ? 'border-2 border-primary shadow-lg' 
+                          : 'border border-border/50'
+                        }
+                        ${isCompleted ? 'opacity-75' : ''}
+                      `}
+                      onClick={() => onViewJob(job.id)}
+                    >
+                      <div className="flex items-start justify-between mb-2">
+                        <div>
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full
+                              ${isCompleted ? 'text-emerald-600 bg-emerald-50' : 
+                                isInProgress ? 'text-white bg-gradient-to-r from-primary to-teal-600' : 
+                                'text-muted-foreground bg-muted'}
+                            `}>
+                              {isCompleted ? 'CONCLUÍDO' : isInProgress ? 'EM ANDAMENTO' : 'AGENDADO'}
+                            </span>
+                          </div>
+                          <h3 className="font-bold text-foreground text-lg">{job.clientName}</h3>
+                          <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                            <MapPin size={10} /> {job.address}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          {job.price && <p className="font-bold text-primary text-xl">${job.price}</p>}
+                        </div>
+                      </div>
+
+                      {/* Progress bar for in-progress */}
+                      {isInProgress && (
+                        <div className="mt-3">
+                          <div className="bg-muted rounded-full h-2 mb-1 overflow-hidden">
+                            <div className="h-full bg-gradient-to-r from-primary to-teal-600 rounded-full relative" style={{ width: '65%' }}>
+                              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent animate-pulse" />
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Property details */}
+                      <div className="flex items-center justify-between mt-3">
+                        <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                          {property?.bedrooms && <span className="flex items-center gap-1"><Bed size={12} /> {property.bedrooms}</span>}
+                          {property?.bathrooms && <span className="flex items-center gap-1"><Bath size={12} /> {property.bathrooms}</span>}
+                        </div>
+                        {isInProgress && onStartJob && (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); onStartJob(job.id); }}
+                            className="px-4 py-2 bg-gradient-to-r from-primary to-teal-600 text-white rounded-xl text-sm font-semibold shadow-md shadow-primary/20"
+                          >
+                            Continuar
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Scheduled actions */}
+                      {job.status === JobStatus.SCHEDULED && (
+                        <div className="mt-3 pt-3 border-t border-border/30 flex gap-2">
+                          <button 
+                            onClick={(e) => { e.stopPropagation(); onStartJob?.(job.id); }}
+                            className="flex-1 py-2 bg-gradient-to-r from-primary to-teal-600 text-white rounded-lg text-xs font-medium"
+                          >
+                            <Play size={10} className="inline mr-1 fill-white" /> Iniciar
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Travel time between jobs */}
+                    {idx < selectedDateJobs.length - 1 && (
+                      <div className="flex items-center gap-3 text-xs text-muted-foreground ml-4 mt-3">
+                        <Car size={12} />
+                        <span>~15 min</span>
+                      </div>
+                    )}
                   </motion.div>
-                ))}
-              </AnimatePresence>
-              
+                );
+              })}
+
               {selectedDateJobs.length === 0 && (
                 <motion.div 
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  className="glass-panel p-6 text-center"
+                  className="bg-card rounded-2xl p-6 text-center shadow-sm border border-border/50"
                 >
                   <p className="text-muted-foreground text-sm">{t('agenda.noJobs')}</p>
                 </motion.div>
               )}
             </div>
-          </div>
+          </section>
         )}
-
-        {/* Status Legend */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="glass-panel p-4 mt-4"
-        >
-          <p className="text-xs font-bold text-muted-foreground mb-3">{t('agenda.legend') || 'Legenda'}</p>
-          <div className="flex flex-wrap gap-4">
-            {[
-              { color: 'bg-status-pending', label: t('agenda.pending') || 'Pendente' },
-              { color: 'bg-status-active', label: t('agenda.inProgress') || 'Em andamento' },
-              { color: 'bg-status-done', label: t('agenda.completed') || 'Concluído' },
-              { color: 'bg-status-scheduled', label: t('agenda.scheduled') || 'Agendado' },
-            ].map((item) => (
-              <div key={item.label} className="flex items-center gap-2">
-                <div className={`w-3 h-3 rounded-full ${item.color}`} />
-                <span className="text-xs text-muted-foreground">{item.label}</span>
-              </div>
-            ))}
-          </div>
-        </motion.div>
       </div>
     </div>
   );

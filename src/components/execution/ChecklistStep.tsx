@@ -1,6 +1,6 @@
-import { useState, useCallback, memo } from 'react';
+import { useState, useCallback, memo, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, Camera, ChevronDown, ChevronUp, ArrowRight } from 'lucide-react';
+import { Check, Camera, ChevronDown, ChevronUp, ArrowRight, AlertTriangle, Utensils, Sofa, BedDouble, Bath as BathIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ChecklistSection, ChecklistItem } from '@/types';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -15,6 +15,25 @@ interface ChecklistStepProps {
 
 const DEMO_TASK_PHOTO = 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=300&fit=crop';
 
+const ROOM_ICONS: Record<string, typeof Utensils> = {
+  kitchen: Utensils,
+  cozinha: Utensils,
+  living: Sofa,
+  sala: Sofa,
+  bedroom: BedDouble,
+  quarto: BedDouble,
+  bathroom: BathIcon,
+  banheiro: BathIcon,
+};
+
+const getRoomIcon = (title: string) => {
+  const lower = title.toLowerCase();
+  for (const [key, Icon] of Object.entries(ROOM_ICONS)) {
+    if (lower.includes(key)) return Icon;
+  }
+  return null;
+};
+
 export const ChecklistStep = ({
   checklist,
   onChecklistChange,
@@ -22,9 +41,7 @@ export const ChecklistStep = ({
   onBack,
 }: ChecklistStepProps) => {
   const { t } = useLanguage();
-  const [expandedSections, setExpandedSections] = useState<string[]>(
-    checklist.map(s => s.id)
-  );
+  const [activeRoomIdx, setActiveRoomIdx] = useState(0);
   const [capturingPhoto, setCapturingPhoto] = useState<string | null>(null);
 
   const totalItems = checklist.reduce((acc, s) => acc + s.items.length, 0);
@@ -34,11 +51,9 @@ export const ChecklistStep = ({
   const progress = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
   const allCompleted = completedItems === totalItems;
 
-  const toggleSection = useCallback((id: string) => {
-    setExpandedSections(prev =>
-      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
-    );
-  }, []);
+  const activeSection = checklist[activeRoomIdx] || checklist[0];
+  const sectionDone = activeSection?.items.filter(i => i.completed).length || 0;
+  const sectionTotal = activeSection?.items.length || 0;
 
   const toggleItem = useCallback((sectionId: string, itemId: string) => {
     const updated = checklist.map(section => {
@@ -75,6 +90,9 @@ export const ChecklistStep = ({
     }, 300);
   }, [checklist, onChecklistChange]);
 
+  const canGoNextRoom = activeRoomIdx < checklist.length - 1;
+  const isLastRoom = activeRoomIdx === checklist.length - 1;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -82,98 +100,95 @@ export const ChecklistStep = ({
       exit={{ opacity: 0, y: -20 }}
       className="flex flex-col h-full"
     >
-      {/* Scrollable checklist */}
-      <div className="flex-1 px-4 pt-2 overflow-y-auto hide-scrollbar pb-4">
-        {checklist.map(section => {
-          const done = section.items.filter(i => i.completed).length;
-          const total = section.items.length;
-          const isExpanded = expandedSections.includes(section.id);
-          const isComplete = done === total;
+      {/* Room Tabs - Scrollable */}
+      <div className="sticky top-0 z-40 bg-card border-b border-border/30">
+        <div className="flex gap-2 p-4 overflow-x-auto hide-scrollbar">
+          {checklist.map((section, idx) => {
+            const done = section.items.filter(i => i.completed).length;
+            const total = section.items.length;
+            const isActive = idx === activeRoomIdx;
+            const isComplete = done === total;
+            const RoomIcon = getRoomIcon(section.title);
 
-          return (
-            <div key={section.id} className="mb-4">
+            return (
               <button
-                onClick={() => toggleSection(section.id)}
-                className="w-full flex items-center justify-between py-2 px-1"
+                key={section.id}
+                onClick={() => setActiveRoomIdx(idx)}
+                className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap flex items-center gap-2 transition-all duration-200
+                  ${isActive
+                    ? 'bg-gradient-to-r from-primary to-teal-600 text-white scale-105 shadow-md shadow-primary/20'
+                    : isComplete
+                      ? 'bg-emerald-100 text-emerald-700'
+                      : 'bg-muted text-muted-foreground'
+                  }
+                `}
               >
-                <div className="flex items-center gap-2">
-                  <h3 className="text-sm font-bold tracking-wide text-primary uppercase">
-                    {section.title}
-                  </h3>
-                  {isComplete && (
-                    <div className="w-5 h-5 rounded-full bg-primary/15 flex items-center justify-center">
-                      <Check className="w-3.5 h-3.5 text-primary" />
-                    </div>
-                  )}
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-medium text-muted-foreground">
-                    {done}/{total}
-                  </span>
-                  {isExpanded ? (
-                    <ChevronUp className="w-4 h-4 text-muted-foreground" />
-                  ) : (
-                    <ChevronDown className="w-4 h-4 text-muted-foreground" />
-                  )}
-                </div>
+                {RoomIcon && <RoomIcon size={14} />}
+                {section.title}
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold
+                  ${isActive ? 'bg-white/30' : 'bg-muted'}
+                `}>
+                  {done}/{total}
+                </span>
               </button>
+            );
+          })}
+        </div>
+      </div>
 
-              <AnimatePresence>
-                {isExpanded && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: 'auto', opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.15 }}
-                    className="overflow-hidden"
-                  >
-                    <div className="space-y-2">
-                      {section.items.map((item, idx) => (
-                        <ChecklistItemCard
-                          key={item.id}
-                          item={item}
-                          index={idx}
-                          isCapturing={capturingPhoto === item.id}
-                          onToggle={() => toggleItem(section.id, item.id)}
-                          onCapturePhoto={() => handlePhotoCapture(section.id, item.id)}
-                        />
-                      ))}
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+      {/* Scrollable checklist */}
+      <div className="flex-1 p-4 overflow-y-auto hide-scrollbar pb-4">
+        {activeSection && (
+          <>
+            {/* Section header */}
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-bold text-foreground">Checklist - {activeSection.title}</h2>
             </div>
-          );
-        })}
+
+            {/* Checklist items */}
+            <div className="space-y-3">
+              {activeSection.items.map((item, idx) => (
+                <ChecklistItemCard
+                  key={item.id}
+                  item={item}
+                  index={idx}
+                  sectionId={activeSection.id}
+                  isCapturing={capturingPhoto === item.id}
+                  onToggle={() => toggleItem(activeSection.id, item.id)}
+                  onCapturePhoto={() => handlePhotoCapture(activeSection.id, item.id)}
+                />
+              ))}
+            </div>
+          </>
+        )}
       </div>
 
       {/* Bottom Bar */}
-      <div className="px-4 py-3 flex items-center gap-3 border-t border-border/30 bg-background/80 backdrop-blur-sm">
-        <div className="flex items-center gap-3 flex-1 min-w-0">
-          <LiquidProgressBubble percentage={progress} size={48} showPercentage />
-          <div className="min-w-0">
-            <p className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase">
-              {t('exec.checklist.title')}
-            </p>
-            <p className="text-sm font-semibold text-foreground truncate">
-              {allCompleted
-                ? t('exec.checklist.allDone') || 'Tudo pronto!'
-                : `${totalItems - completedItems} ${t('exec.checklist.remaining')}`}
-            </p>
-          </div>
-        </div>
-        <Button
-          onClick={allCompleted ? onNext : undefined}
-          disabled={!allCompleted}
-          className={`h-12 px-6 rounded-2xl text-sm font-semibold gap-2 transition-all ${
-            allCompleted
-              ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/30'
-              : 'bg-muted text-muted-foreground'
-          }`}
+      <div className="px-4 py-3 flex gap-3 border-t border-border/30 bg-card">
+        <button
+          onClick={onBack}
+          className="flex-1 py-3 bg-muted text-muted-foreground rounded-xl font-semibold flex items-center justify-center gap-2"
         >
-          {allCompleted ? (t('exec.checklist.finalize') || 'Finalizar') : `${completedItems}/${totalItems}`}
-          {allCompleted && <ArrowRight className="w-4 h-4" />}
-        </Button>
+          {t('exec.checklist.pause') || 'Pausar'}
+        </button>
+        <button
+          onClick={canGoNextRoom ? () => setActiveRoomIdx(prev => prev + 1) : allCompleted ? onNext : undefined}
+          disabled={isLastRoom && !allCompleted}
+          className={`flex-[2] py-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all
+            ${(canGoNextRoom || allCompleted)
+              ? 'bg-gradient-to-r from-primary to-teal-600 text-white shadow-md shadow-primary/20'
+              : 'bg-muted text-muted-foreground'
+            }
+          `}
+        >
+          {canGoNextRoom ? (
+            <>{t('exec.checklist.nextRoom') || 'Próxima Sala'} <ArrowRight size={16} /></>
+          ) : allCompleted ? (
+            <>{t('exec.checklist.finalize') || 'Finalizar'} <ArrowRight size={16} /></>
+          ) : (
+            `${completedItems}/${totalItems}`
+          )}
+        </button>
       </div>
     </motion.div>
   );
@@ -184,51 +199,64 @@ export const ChecklistStep = ({
 interface ChecklistItemCardProps {
   item: ChecklistItem;
   index: number;
+  sectionId: string;
   isCapturing: boolean;
   onToggle: () => void;
   onCapturePhoto: () => void;
 }
 
-const ChecklistItemCard = memo(({ item, index, isCapturing, onToggle, onCapturePhoto }: ChecklistItemCardProps) => {
+const ChecklistItemCard = memo(({ item, index, sectionId, isCapturing, onToggle, onCapturePhoto }: ChecklistItemCardProps) => {
   return (
-    <div
+    <label
       className={`
-        relative rounded-2xl border px-4 py-3 flex items-center gap-3
-        transition-colors duration-100
+        flex items-center gap-4 p-4 bg-card border-2 rounded-2xl cursor-pointer transition-all duration-100
         ${item.completed
-          ? 'bg-primary/[0.04] border-primary/20'
-          : 'bg-card/60 border-border/40 active:bg-muted/60'
+          ? 'border-emerald-200 bg-emerald-50/50'
+          : 'border-border/50 hover:border-primary/30 hover:bg-primary/[0.02] active:bg-muted/60'
         }
       `}
+      onClick={(e) => {
+        e.preventDefault();
+        if (item.photoRequired && !item.photoUrl && !item.completed) {
+          onCapturePhoto();
+        } else {
+          onToggle();
+        }
+      }}
     >
       {/* Checkbox */}
-      <button
-        onClick={item.photoRequired && !item.photoUrl ? onCapturePhoto : onToggle}
+      <div
         className={`
-          w-9 h-9 rounded-full flex items-center justify-center shrink-0 transition-colors duration-100
+          w-6 h-6 rounded-full flex items-center justify-center shrink-0 transition-colors duration-100
           ${item.completed
-            ? 'bg-primary shadow-md shadow-primary/25'
-            : 'border-2 border-muted-foreground/25 active:border-primary/50 active:bg-primary/5'
+            ? 'bg-emerald-500 shadow-sm'
+            : 'border-2 border-muted-foreground/25'
           }
         `}
       >
         {item.completed && (
-          <Check className="w-5 h-5 text-primary-foreground" strokeWidth={3} />
+          <Check className="w-4 h-4 text-white" strokeWidth={3} />
         )}
-      </button>
+      </div>
 
       {/* Label */}
-      <span
-        className={`
-          flex-1 text-sm transition-colors duration-100
-          ${item.completed
-            ? 'line-through text-muted-foreground/60'
-            : 'text-foreground font-medium'
-          }
-        `}
-      >
-        {item.label}
-      </span>
+      <div className="flex-1 min-w-0">
+        <p className={`font-medium text-sm transition-colors duration-100
+          ${item.completed ? 'line-through text-muted-foreground/60' : 'text-foreground'}
+        `}>
+          {item.label}
+        </p>
+        {item.photoRequired && !item.completed && (
+          <span className="inline-block mt-1 text-[10px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">
+            📷 Foto obrigatória
+          </span>
+        )}
+      </div>
+
+      {/* Completion time or photo */}
+      {item.completed && (
+        <span className="text-xs text-emerald-600 font-medium shrink-0">✓</span>
+      )}
 
       {/* Photo icon */}
       {item.photoRequired && (
@@ -243,15 +271,15 @@ const ChecklistItemCard = memo(({ item, index, isCapturing, onToggle, onCaptureP
             </div>
           ) : (
             <button
-              onClick={onCapturePhoto}
-              className="w-8 h-8 rounded-xl bg-muted/60 flex items-center justify-center active:bg-muted transition-colors"
+              onClick={(e) => { e.stopPropagation(); onCapturePhoto(); }}
+              className="w-8 h-8 rounded-xl bg-muted/60 flex items-center justify-center"
             >
               <Camera className="w-4 h-4 text-muted-foreground/60" />
             </button>
           )}
         </div>
       )}
-    </div>
+    </label>
   );
 });
 
