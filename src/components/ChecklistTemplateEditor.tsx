@@ -101,7 +101,7 @@ const SortableItem = ({
     <div
       ref={setNodeRef}
       style={style}
-      className={`flex items-center gap-2 p-2 bg-card/50 rounded-lg ${isDragging ? 'shadow-lg' : ''}`}
+      className={`flex items-center gap-3 p-3 rounded-xl transition-all duration-200 hover:bg-primary/5 ${isDragging ? 'shadow-lg bg-card' : 'bg-card/50'}`}
     >
       {isEditing && (
         <button
