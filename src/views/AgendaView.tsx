@@ -141,7 +141,7 @@ export const AgendaView = ({ jobs, properties, employees = [], onStartJob, onVie
           <h1 className="font-bold text-foreground text-2xl">{t('agenda.title')}</h1>
           <button
             onClick={() => setShowAddJobModal(true)}
-            className="px-4 py-2 bg-gradient-to-r from-primary to-teal-600 text-white rounded-full text-sm font-semibold flex items-center gap-2 shadow-lg shadow-primary/30"
+            className="px-4 py-2 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground rounded-full text-sm font-semibold flex items-center gap-2 shadow-lg shadow-primary/30"
           >
             <Plus size={14} /> {t('agenda.addJob')}
           </button>
@@ -251,7 +251,7 @@ export const AgendaView = ({ jobs, properties, employees = [], onStartJob, onVie
                 </p>
               </div>
               {selectedDateJobs.length > 0 && (
-                <span className="text-xs font-medium text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full">
+                <span className="text-xs font-medium text-success bg-success/10 px-3 py-1 rounded-full">
                   <Check size={10} className="inline mr-1" />
                   {selectedDateJobs.filter(j => j.status === JobStatus.COMPLETED).length}/{selectedDateJobs.length}
                 </span>
@@ -287,10 +287,10 @@ export const AgendaView = ({ jobs, properties, employees = [], onStartJob, onVie
 
                     {/* Timeline dot */}
                     <div className={`absolute left-[38px] top-1 w-5 h-5 rounded-full border-4 border-card shadow flex items-center justify-center z-10
-                      ${isCompleted ? 'bg-emerald-500' : isInProgress ? 'bg-primary animate-pulse' : 'bg-muted-foreground/30'}
+                      ${isCompleted ? 'bg-success' : isInProgress ? 'bg-primary animate-pulse' : 'bg-muted-foreground/30'}
                     `}>
-                      {isCompleted && <Check size={8} className="text-white" />}
-                      {isInProgress && <Play size={8} className="text-white fill-white" />}
+                      {isCompleted && <Check size={8} className="text-success-foreground" />}
+                      {isInProgress && <Play size={8} className="text-primary-foreground fill-primary-foreground" />}
                     </div>
 
                     {/* Job Card */}
@@ -308,8 +308,8 @@ export const AgendaView = ({ jobs, properties, employees = [], onStartJob, onVie
                         <div>
                           <div className="flex items-center gap-2 mb-1">
                             <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full
-                              ${isCompleted ? 'text-emerald-600 bg-emerald-50' : 
-                                isInProgress ? 'text-white bg-gradient-to-r from-primary to-teal-600' : 
+                              ${isCompleted ? 'text-success bg-success/10' : 
+                                isInProgress ? 'text-primary-foreground bg-gradient-to-r from-primary to-primary/80' : 
                                 'text-muted-foreground bg-muted'}
                             `}>
                               {isCompleted ? 'CONCLUÍDO' : isInProgress ? 'EM ANDAMENTO' : 'AGENDADO'}
@@ -329,7 +329,7 @@ export const AgendaView = ({ jobs, properties, employees = [], onStartJob, onVie
                       {isInProgress && (
                         <div className="mt-3">
                           <div className="bg-muted rounded-full h-2 mb-1 overflow-hidden">
-                            <div className="h-full bg-gradient-to-r from-primary to-teal-600 rounded-full relative" style={{ width: '65%' }}>
+                            <div className="h-full bg-gradient-to-r from-primary to-primary/70 rounded-full relative" style={{ width: '65%' }}>
                               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent animate-pulse" />
                             </div>
                           </div>
@@ -345,7 +345,7 @@ export const AgendaView = ({ jobs, properties, employees = [], onStartJob, onVie
                         {isInProgress && onStartJob && (
                           <button
                             onClick={(e) => { e.stopPropagation(); onStartJob(job.id); }}
-                            className="px-4 py-2 bg-gradient-to-r from-primary to-teal-600 text-white rounded-xl text-sm font-semibold shadow-md shadow-primary/20"
+                            className="px-4 py-2 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground rounded-xl text-sm font-semibold shadow-md shadow-primary/20"
                           >
                             Continuar
                           </button>
@@ -357,9 +357,9 @@ export const AgendaView = ({ jobs, properties, employees = [], onStartJob, onVie
                         <div className="mt-3 pt-3 border-t border-border/30 flex gap-2">
                           <button 
                             onClick={(e) => { e.stopPropagation(); onStartJob?.(job.id); }}
-                            className="flex-1 py-2 bg-gradient-to-r from-primary to-teal-600 text-white rounded-lg text-xs font-medium"
+                            className="flex-1 py-2 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground rounded-lg text-xs font-medium"
                           >
-                            <Play size={10} className="inline mr-1 fill-white" /> Iniciar
+                            <Play size={10} className="inline mr-1 fill-primary-foreground" /> Iniciar
                           </button>
                         </div>
                       )}
