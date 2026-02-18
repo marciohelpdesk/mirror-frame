@@ -11,9 +11,9 @@ interface PropertyCardProps {
 export const PropertyCard = forwardRef<HTMLDivElement, PropertyCardProps>(
   ({ property, onClick }, ref) => {
     const statusConfig: Record<string, { label: string; color: string; icon: string }> = {
-      READY: { label: 'Ativa', color: 'bg-emerald-500', icon: '✓' },
-      NEEDS_CLEANING: { label: 'Manutenção', color: 'bg-amber-500', icon: '⚠' },
-      OCCUPIED: { label: 'Ocupada', color: 'bg-rose-500', icon: '●' },
+      READY: { label: 'Ativa', color: 'bg-success', icon: '✓' },
+      NEEDS_CLEANING: { label: 'Manutenção', color: 'bg-warning', icon: '⚠' },
+      OCCUPIED: { label: 'Ocupada', color: 'bg-destructive', icon: '●' },
     };
 
     const status = statusConfig[property.status] || statusConfig.READY;
@@ -47,7 +47,7 @@ export const PropertyCard = forwardRef<HTMLDivElement, PropertyCardProps>(
           
           {/* Status Badge */}
           <div className="absolute top-4 left-4">
-            <span className={`px-3 py-1.5 rounded-full ${status.color} text-white text-xs font-semibold shadow-lg flex items-center gap-1`}>
+            <span className={`px-3 py-1.5 rounded-full ${status.color} text-primary-foreground text-xs font-semibold shadow-lg flex items-center gap-1`}>
               {status.icon} {status.label}
             </span>
           </div>
@@ -87,7 +87,7 @@ export const PropertyCard = forwardRef<HTMLDivElement, PropertyCardProps>(
 
           {/* Next cleaning info */}
           <div className="flex items-center gap-3 p-3 rounded-2xl bg-gradient-to-r from-primary/5 to-success/5 border border-primary/10 mb-4">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-teal-600 flex items-center justify-center text-white shrink-0">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center text-primary-foreground shrink-0">
               <CalendarCheck size={18} />
             </div>
             <div className="flex-1 min-w-0">

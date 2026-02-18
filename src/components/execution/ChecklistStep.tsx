@@ -116,9 +116,9 @@ export const ChecklistStep = ({
                 onClick={() => setActiveRoomIdx(idx)}
                 className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap flex items-center gap-2 transition-all duration-200
                   ${isActive
-                    ? 'bg-gradient-to-r from-primary to-teal-600 text-white scale-105 shadow-md shadow-primary/20'
+                    ? 'bg-gradient-to-r from-primary to-primary/80 text-primary-foreground scale-105 shadow-md shadow-primary/20'
                     : isComplete
-                      ? 'bg-emerald-100 text-emerald-700'
+                      ? 'bg-success/15 text-success'
                       : 'bg-muted text-muted-foreground'
                   }
                 `}
@@ -176,7 +176,7 @@ export const ChecklistStep = ({
           disabled={isLastRoom && !allCompleted}
           className={`flex-[2] py-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all
             ${(canGoNextRoom || allCompleted)
-              ? 'bg-gradient-to-r from-primary to-teal-600 text-white shadow-md shadow-primary/20'
+              ? 'bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-md shadow-primary/20'
               : 'bg-muted text-muted-foreground'
             }
           `}
@@ -211,7 +211,7 @@ const ChecklistItemCard = memo(({ item, index, sectionId, isCapturing, onToggle,
       className={`
         flex items-center gap-4 p-4 bg-card border-2 rounded-2xl cursor-pointer transition-all duration-100
         ${item.completed
-          ? 'border-emerald-200 bg-emerald-50/50'
+          ? 'border-success/30 bg-success/5'
           : 'border-border/50 hover:border-primary/30 hover:bg-primary/[0.02] active:bg-muted/60'
         }
       `}
@@ -229,13 +229,13 @@ const ChecklistItemCard = memo(({ item, index, sectionId, isCapturing, onToggle,
         className={`
           w-6 h-6 rounded-full flex items-center justify-center shrink-0 transition-colors duration-100
           ${item.completed
-            ? 'bg-emerald-500 shadow-sm'
+            ? 'bg-success shadow-sm'
             : 'border-2 border-muted-foreground/25'
           }
         `}
       >
         {item.completed && (
-          <Check className="w-4 h-4 text-white" strokeWidth={3} />
+          <Check className="w-4 h-4 text-success-foreground" strokeWidth={3} />
         )}
       </div>
 
@@ -247,7 +247,7 @@ const ChecklistItemCard = memo(({ item, index, sectionId, isCapturing, onToggle,
           {item.label}
         </p>
         {item.photoRequired && !item.completed && (
-          <span className="inline-block mt-1 text-[10px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">
+          <span className="inline-block mt-1 text-[10px] bg-warning/15 text-warning px-2 py-0.5 rounded-full">
             📷 Foto obrigatória
           </span>
         )}
@@ -255,7 +255,7 @@ const ChecklistItemCard = memo(({ item, index, sectionId, isCapturing, onToggle,
 
       {/* Completion time or photo */}
       {item.completed && (
-        <span className="text-xs text-emerald-600 font-medium shrink-0">✓</span>
+        <span className="text-xs text-success font-medium shrink-0">✓</span>
       )}
 
       {/* Photo icon */}

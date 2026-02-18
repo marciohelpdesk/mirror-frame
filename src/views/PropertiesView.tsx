@@ -61,7 +61,7 @@ export const PropertiesView = ({ properties, onViewProperty, onAddProperty }: Pr
             </button>
             <button 
               onClick={() => setShowAddModal(true)}
-              className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-teal-600 flex items-center justify-center text-white shadow-lg shadow-primary/30 hover:shadow-xl transition"
+              className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center text-primary-foreground shadow-lg shadow-primary/30 hover:shadow-xl transition"
             >
               <Plus size={18} />
             </button>
@@ -118,7 +118,7 @@ export const PropertiesView = ({ properties, onViewProperty, onAddProperty }: Pr
               onClick={() => setActiveFilter(filter.key)}
               className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200
                 ${activeFilter === filter.key
-                  ? 'bg-gradient-to-r from-primary to-teal-600 text-white scale-105 shadow-md shadow-primary/20'
+                  ? 'bg-gradient-to-r from-primary to-primary/80 text-primary-foreground scale-105 shadow-md shadow-primary/20'
                   : 'bg-muted text-muted-foreground hover:bg-muted/80'
                 }
               `}
@@ -157,7 +157,7 @@ export const PropertiesView = ({ properties, onViewProperty, onAddProperty }: Pr
             <p className="text-muted-foreground text-sm mb-6">Tente ajustar os filtros ou adicione uma nova propriedade.</p>
             <button
               onClick={() => setShowAddModal(true)}
-              className="px-6 py-3 rounded-xl bg-gradient-to-r from-primary to-teal-600 text-white font-semibold shadow-lg shadow-primary/30"
+              className="px-6 py-3 rounded-xl bg-gradient-to-r from-primary to-primary/80 text-primary-foreground font-semibold shadow-lg shadow-primary/30"
             >
               <Plus size={16} className="inline mr-2" /> Adicionar Propriedade
             </button>

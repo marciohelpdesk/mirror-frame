@@ -164,7 +164,7 @@ export default function PublicReport() {
       <div className="relative z-10 -mt-24 md:-mt-32 text-center px-4 animate-fade-in">
         <div className="inline-block relative mb-6">
           <div className="w-40 h-40 md:w-52 md:h-52 rounded-full border-[6px] border-white shadow-2xl overflow-hidden bg-stone-200 mx-auto flex items-center justify-center">
-            <img src={purLogo} className="w-20 h-20 object-contain opacity-60" alt="Profile" />
+            <img src="https://i.ibb.co/bg9ZNvSk/Captura-de-Tela-2026-01-01-s-01-33-28.png" className="w-full h-full object-cover" alt="Profile" />
           </div>
         </div>
 

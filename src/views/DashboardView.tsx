@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { 
   DollarSign, Briefcase, Star, Clock, 
   MapPin, Bed, Bath, Play, ChevronRight,
@@ -22,6 +23,7 @@ interface DashboardViewProps {
 }
 
 export const DashboardView = ({ jobs, properties = [], onStartJob, onViewJob, userProfile }: DashboardViewProps) => {
+  const navigate = useNavigate();
   const { t } = useLanguage();
   const [currentTime, setCurrentTime] = useState(new Date());
   
@@ -57,20 +59,20 @@ export const DashboardView = ({ jobs, properties = [], onStartJob, onViewJob, us
       icon: DollarSign,
       value: `$${monthEarnings.toLocaleString()}`,
       label: t('dashboard.thisMonth') || 'Este mês',
-      gradient: 'from-teal-400 to-teal-600',
+      gradient: 'from-primary to-primary/70',
       trend: '+12%',
-      trendColor: 'text-emerald-600 bg-emerald-100',
+      trendColor: 'text-primary bg-primary/10',
       progress: 75,
     },
     {
       icon: Briefcase,
       value: String(todayJobs.length),
       label: 'Total jobs',
-      gradient: 'from-indigo-400 to-indigo-600',
+      gradient: 'from-primary to-primary/70',
       badge: `${scheduledJobs.length} jobs`,
       segments: [
-        { width: completedJobs.length, color: 'bg-emerald-400' },
-        { width: inProgressJobs.length, color: 'bg-amber-400' },
+        { width: completedJobs.length, color: 'bg-success' },
+        { width: inProgressJobs.length, color: 'bg-warning' },
         { width: scheduledJobs.length, color: 'bg-muted' },
       ],
     },
@@ -78,16 +80,16 @@ export const DashboardView = ({ jobs, properties = [], onStartJob, onViewJob, us
       icon: Star,
       value: `${todayProgress}%`,
       label: t('dashboard.satisfaction') || 'Satisfação',
-      gradient: 'from-amber-400 to-amber-600',
+      gradient: 'from-warning to-warning/70',
       stars: true,
     },
     {
       icon: Clock,
       value: `${scheduledJobs.length + inProgressJobs.length}`,
       label: t('dashboard.pending') || 'Pendentes',
-      gradient: 'from-rose-400 to-rose-600',
+      gradient: 'from-destructive to-destructive/70',
       trend: completedJobs.length > 0 ? `${completedJobs.length} done` : undefined,
-      trendColor: 'text-emerald-600 bg-emerald-100',
+      trendColor: 'text-primary bg-primary/10',
       progress: todayProgress,
     },
   ];
@@ -182,7 +184,7 @@ export const DashboardView = ({ jobs, properties = [], onStartJob, onViewJob, us
               {card.stars && (
                 <div className="mt-3 flex gap-0.5">
                   {[1,2,3,4,5].map(i => (
-                    <Star key={i} size={12} className={i <= 4 ? 'text-amber-400 fill-amber-400' : 'text-amber-400 fill-amber-400/50'} />
+                    <Star key={i} size={12} className={i <= 4 ? 'text-warning fill-warning' : 'text-warning fill-warning/50'} />
                   ))}
                 </div>
               )}
@@ -196,7 +198,10 @@ export const DashboardView = ({ jobs, properties = [], onStartJob, onViewJob, us
             <h2 className="text-lg font-bold text-foreground">
               {t('dashboard.today') || 'Hoje'}, {currentTime.toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' })}
             </h2>
-            <button className="text-primary text-sm font-medium flex items-center gap-1">
+            <button 
+              onClick={() => navigate('/agenda')}
+              className="text-primary text-sm font-medium flex items-center gap-1"
+            >
               {t('dashboard.viewAgenda') || 'Ver agenda'} <ChevronRight size={14} />
             </button>
           </div>
@@ -232,7 +237,7 @@ export const DashboardView = ({ jobs, properties = [], onStartJob, onViewJob, us
                     >
                       {/* Timeline dot */}
                       <div className={`absolute left-4 top-4 w-4 h-4 rounded-full border-4 border-card shadow z-10
-                        ${isCompleted ? 'bg-emerald-500' : isInProgress ? 'bg-primary animate-pulse' : 'bg-muted-foreground/30'}
+                        ${isCompleted ? 'bg-success' : isInProgress ? 'bg-primary animate-pulse' : 'bg-muted-foreground/30'}
                       `} />
 
                       {/* Job card */}
@@ -250,7 +255,7 @@ export const DashboardView = ({ jobs, properties = [], onStartJob, onViewJob, us
                         <div className="flex items-start justify-between mb-2">
                           <div className="flex items-center gap-2">
                             <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full
-                              ${isCompleted ? 'text-emerald-600 bg-emerald-100' : 
+                              ${isCompleted ? 'text-success bg-success/10' : 
                                 isInProgress ? 'text-primary bg-primary/10' : 
                                 'text-muted-foreground bg-muted'}
                             `}>
@@ -315,9 +320,9 @@ export const DashboardView = ({ jobs, properties = [], onStartJob, onViewJob, us
                         {(isInProgress || job.status === JobStatus.SCHEDULED) && (
                           <button
                             onClick={(e) => { e.stopPropagation(); onStartJob(job.id); }}
-                            className="mt-4 w-full py-3 bg-gradient-to-r from-primary to-teal-600 text-white rounded-xl font-semibold flex items-center justify-center gap-2 shadow-md shadow-primary/20 active:scale-[0.98] transition-transform"
+                            className="mt-4 w-full py-3 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground rounded-xl font-semibold flex items-center justify-center gap-2 shadow-md shadow-primary/20 active:scale-[0.98] transition-transform"
                           >
-                            <Play size={16} className="fill-white" />
+                            <Play size={16} className="fill-primary-foreground" />
                             {isInProgress ? (t('dashboard.continue') || 'Continuar Limpeza') : (t('jobs.startChecklist') || 'Iniciar Checklist')}
                           </button>
                         )}
@@ -354,16 +359,17 @@ export const DashboardView = ({ jobs, properties = [], onStartJob, onViewJob, us
           </h2>
           <div className="grid grid-cols-4 gap-3">
             {[
-              { icon: Plus, label: t('dashboard.newJob') || 'Novo Job', gradient: 'from-teal-400 to-teal-600' },
-              { icon: Home, label: t('dashboard.property') || 'Propriedade', gradient: 'from-indigo-400 to-indigo-600' },
-              { icon: FileText, label: t('dashboard.report') || 'Relatório', gradient: 'from-amber-400 to-amber-600' },
-              { icon: Users, label: t('dashboard.team') || 'Equipe', gradient: 'from-rose-400 to-rose-600' },
+              { icon: Plus, label: t('dashboard.newJob') || 'Novo Job', gradient: 'from-primary to-primary/80', action: () => navigate('/agenda') },
+              { icon: Home, label: t('dashboard.property') || 'Propriedade', gradient: 'from-primary to-primary/80', action: () => navigate('/properties') },
+              { icon: FileText, label: t('dashboard.report') || 'Relatório', gradient: 'from-primary to-primary/80', action: () => navigate('/reports') },
+              { icon: Users, label: t('dashboard.team') || 'Equipe', gradient: 'from-primary to-primary/80', action: () => navigate('/settings') },
             ].map((action, idx) => (
               <motion.button
                 key={idx}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 + idx * 0.05 }}
+                onClick={action.action}
                 className="flex flex-col items-center gap-2 p-3 bg-card rounded-2xl shadow-sm border border-border/50 hover:scale-105 transition-transform active:scale-95"
               >
                 <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${action.gradient} flex items-center justify-center shadow-md`}>
