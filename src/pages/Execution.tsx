@@ -69,11 +69,33 @@ export default function Execution() {
         };
       });
 
+      // Collect all photos including room-specific photos
       const photos = [
         ...finalJob.photosBefore.map((url, i) => ({ photo_url: url, photo_type: 'before' as const, display_order: i })),
         ...finalJob.photosAfter.map((url, i) => ({ photo_url: url, photo_type: 'after' as const, display_order: i })),
         ...(finalJob.damages || []).filter(d => d.photoUrl).map((d, i) => ({ photo_url: d.photoUrl!, photo_type: 'damage' as const, display_order: i, caption: d.description })),
         ...(finalJob.lostAndFound || []).filter(l => l.photoUrl).map((l, i) => ({ photo_url: l.photoUrl!, photo_type: 'lost_found' as const, display_order: i, caption: l.description })),
+        // Room-specific photos from checklist sections
+        ...finalJob.checklist.flatMap((section, sIdx) => {
+          const roomPhotos = (section as any).roomPhotos || [];
+          return roomPhotos.map((url: string, pIdx: number) => ({
+            photo_url: url,
+            photo_type: 'verification' as const,
+            display_order: pIdx,
+            caption: section.title,
+          }));
+        }),
+        // Checklist item verification photos
+        ...finalJob.checklist.flatMap(section =>
+          section.items
+            .filter(item => item.photoUrl)
+            .map((item, idx) => ({
+              photo_url: item.photoUrl!,
+              photo_type: 'verification' as const,
+              display_order: idx,
+              caption: `${section.title}: ${item.label}`,
+            }))
+        ),
       ];
 
       const totalTasks = finalJob.checklist.reduce((acc, s) => acc + s.items.length, 0);

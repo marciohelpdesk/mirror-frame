@@ -1,29 +1,26 @@
-import { useState, useCallback, memo, useMemo } from 'react';
+import { useState, useCallback, memo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, Camera, ChevronDown, ChevronUp, ArrowRight, AlertTriangle, Utensils, Sofa, BedDouble, Bath as BathIcon } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Check, Camera, ArrowRight, AlertTriangle, Utensils, Sofa, BedDouble, Bath as BathIcon, X, Upload, Loader2 } from 'lucide-react';
 import { ChecklistSection, ChecklistItem } from '@/types';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { LiquidProgressBubble } from '@/components/LiquidProgressBubble';
+import { usePhotoUpload } from '@/hooks/usePhotoUpload';
+import { useToast } from '@/hooks/use-toast';
+import { compressForDisplay } from '@/lib/imageUtils';
 
 interface ChecklistStepProps {
   checklist: ChecklistSection[];
   onChecklistChange: (checklist: ChecklistSection[]) => void;
   onNext: () => void;
   onBack: () => void;
+  userId?: string;
+  jobId?: string;
 }
 
-const DEMO_TASK_PHOTO = 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=300&fit=crop';
-
 const ROOM_ICONS: Record<string, typeof Utensils> = {
-  kitchen: Utensils,
-  cozinha: Utensils,
-  living: Sofa,
-  sala: Sofa,
-  bedroom: BedDouble,
-  quarto: BedDouble,
-  bathroom: BathIcon,
-  banheiro: BathIcon,
+  kitchen: Utensils, cozinha: Utensils,
+  living: Sofa, sala: Sofa,
+  bedroom: BedDouble, quarto: BedDouble,
+  bathroom: BathIcon, banheiro: BathIcon,
 };
 
 const getRoomIcon = (title: string) => {
@@ -39,6 +36,8 @@ export const ChecklistStep = ({
   onChecklistChange,
   onNext,
   onBack,
+  userId,
+  jobId,
 }: ChecklistStepProps) => {
   const { t } = useLanguage();
   const [activeRoomIdx, setActiveRoomIdx] = useState(0);
@@ -73,21 +72,19 @@ export const ChecklistStep = ({
     onChecklistChange(updated);
   }, [checklist, onChecklistChange]);
 
-  const handlePhotoCapture = useCallback((sectionId: string, itemId: string) => {
-    setTimeout(() => {
-      const updated = checklist.map(section => {
-        if (section.id !== sectionId) return section;
-        return {
-          ...section,
-          items: section.items.map(item => {
-            if (item.id !== itemId) return item;
-            return { ...item, photoUrl: `${DEMO_TASK_PHOTO}&t=${Date.now()}`, completed: true };
-          }),
-        };
-      });
-      onChecklistChange(updated);
-      setCapturingPhoto(null);
-    }, 300);
+  const handlePhotoCapture = useCallback((sectionId: string, itemId: string, photoUrl?: string) => {
+    const updated = checklist.map(section => {
+      if (section.id !== sectionId) return section;
+      return {
+        ...section,
+        items: section.items.map(item => {
+          if (item.id !== itemId) return item;
+          return { ...item, photoUrl: photoUrl || `https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&t=${Date.now()}`, completed: true };
+        }),
+      };
+    });
+    onChecklistChange(updated);
+    setCapturingPhoto(null);
   }, [checklist, onChecklistChange]);
 
   const canGoNextRoom = activeRoomIdx < checklist.length - 1;
@@ -100,9 +97,36 @@ export const ChecklistStep = ({
       exit={{ opacity: 0, y: -20 }}
       className="flex flex-col h-full"
     >
+      {/* Property Info & Progress */}
+      <div className="px-4 py-3 border-b border-border/30 bg-card">
+        <div className="flex items-center justify-between mb-2">
+          <div>
+            <p className="text-xs text-muted-foreground uppercase tracking-wide font-semibold">
+              {t('exec.checklist.title') || 'Checklist'}
+            </p>
+            <p className="text-sm font-bold text-foreground">{activeSection?.title}</p>
+          </div>
+          <div className="text-right">
+            <p className="text-xl font-bold text-primary tabular-nums">{progress}%</p>
+            <p className="text-[10px] text-muted-foreground">{completedItems}/{totalItems} tarefas</p>
+          </div>
+        </div>
+        {/* Overall Progress Bar */}
+        <div className="bg-muted rounded-full h-2 overflow-hidden">
+          <motion.div
+            className="h-full bg-gradient-to-r from-primary to-primary/80 rounded-full relative"
+            initial={{ width: 0 }}
+            animate={{ width: `${progress}%` }}
+            transition={{ duration: 0.3 }}
+          >
+            <div className="absolute right-0 top-0 bottom-0 w-2 bg-white/50 animate-pulse" />
+          </motion.div>
+        </div>
+      </div>
+
       {/* Room Tabs - Scrollable */}
       <div className="sticky top-0 z-40 bg-card border-b border-border/30">
-        <div className="flex gap-2 p-4 overflow-x-auto hide-scrollbar">
+        <div className="flex gap-2 p-3 overflow-x-auto hide-scrollbar">
           {checklist.map((section, idx) => {
             const done = section.items.filter(i => i.completed).length;
             const total = section.items.length;
@@ -143,6 +167,7 @@ export const ChecklistStep = ({
             {/* Section header */}
             <div className="flex items-center justify-between mb-4">
               <h2 className="font-bold text-foreground">Checklist - {activeSection.title}</h2>
+              <span className="text-xs text-muted-foreground font-medium">{sectionDone}/{sectionTotal}</span>
             </div>
 
             {/* Checklist items */}
@@ -156,9 +181,23 @@ export const ChecklistStep = ({
                   isCapturing={capturingPhoto === item.id}
                   onToggle={() => toggleItem(activeSection.id, item.id)}
                   onCapturePhoto={() => handlePhotoCapture(activeSection.id, item.id)}
+                  userId={userId}
+                  jobId={jobId}
+                  onPhotoUploaded={(url) => handlePhotoCapture(activeSection.id, item.id, url)}
                 />
               ))}
             </div>
+
+            {/* Room Photos Section */}
+            <RoomPhotosSection
+              sectionId={activeSection.id}
+              sectionTitle={activeSection.title}
+              userId={userId}
+              jobId={jobId}
+              checklist={checklist}
+              onChecklistChange={onChecklistChange}
+              activeRoomIdx={activeRoomIdx}
+            />
           </>
         )}
       </div>
@@ -194,6 +233,126 @@ export const ChecklistStep = ({
   );
 };
 
+// ─── Room Photos Section (photos per room) ─────────────────
+interface RoomPhotosSectionProps {
+  sectionId: string;
+  sectionTitle: string;
+  userId?: string;
+  jobId?: string;
+  checklist: ChecklistSection[];
+  onChecklistChange: (checklist: ChecklistSection[]) => void;
+  activeRoomIdx: number;
+}
+
+const RoomPhotosSection = ({ sectionId, sectionTitle, userId, jobId, checklist, onChecklistChange, activeRoomIdx }: RoomPhotosSectionProps) => {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const { uploadPhoto, isUploading } = usePhotoUpload();
+  const { toast } = useToast();
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  // Store room photos in section metadata - use a convention: section.roomPhotos
+  const section = checklist[activeRoomIdx];
+  const roomPhotos: string[] = (section as any)?.roomPhotos || [];
+
+  const processAndUpload = useCallback(async (file: File) => {
+    if (!file.type.startsWith('image/')) return;
+    if (!userId || !jobId) return;
+
+    setIsProcessing(true);
+    let fileToUpload: File | Blob = file;
+    try {
+      const compressed = await compressForDisplay(file);
+      if (compressed.size < file.size) fileToUpload = compressed;
+    } catch {}
+
+    const url = await uploadPhoto(fileToUpload, {
+      userId,
+      category: `jobs-room-${sectionId}`,
+      entityId: jobId,
+    });
+    setIsProcessing(false);
+
+    if (url) {
+      const updated = checklist.map((s, idx) => {
+        if (idx !== activeRoomIdx) return s;
+        return { ...s, roomPhotos: [...roomPhotos, url] } as any;
+      });
+      onChecklistChange(updated);
+      toast({ title: 'Foto adicionada', description: `Foto do ${sectionTitle} salva` });
+    }
+  }, [userId, jobId, sectionId, activeRoomIdx, checklist, roomPhotos, onChecklistChange, uploadPhoto, toast, sectionTitle]);
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+    for (const file of Array.from(files)) {
+      await processAndUpload(file);
+    }
+    if (e.target) e.target.value = '';
+  };
+
+  const handleRemovePhoto = (index: number) => {
+    const updated = checklist.map((s, idx) => {
+      if (idx !== activeRoomIdx) return s;
+      const photos = [...roomPhotos];
+      photos.splice(index, 1);
+      return { ...s, roomPhotos: photos } as any;
+    });
+    onChecklistChange(updated);
+  };
+
+  const isLoading = isUploading || isProcessing;
+
+  return (
+    <div className="mt-6">
+      <input ref={fileInputRef} type="file" accept="image/*" multiple onChange={handleFileSelect} className="hidden" disabled={isLoading} />
+      <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" onChange={handleFileSelect} className="hidden" disabled={isLoading} />
+
+      <h3 className="font-bold text-foreground mb-3 flex items-center gap-2">
+        <Camera size={16} className="text-primary" />
+        Fotos do Ambiente - {sectionTitle}
+      </h3>
+      <div className="grid grid-cols-3 gap-3">
+        {roomPhotos.map((photo, idx) => (
+          <div key={`${photo}-${idx}`} className="aspect-square rounded-xl bg-muted overflow-hidden relative group">
+            <img src={photo} alt={`${sectionTitle} ${idx + 1}`} className="w-full h-full object-cover" />
+            <button
+              onClick={() => handleRemovePhoto(idx)}
+              className="absolute top-1 right-1 w-6 h-6 bg-destructive/90 rounded-full flex items-center justify-center text-destructive-foreground text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+            >
+              <X size={12} />
+            </button>
+          </div>
+        ))}
+        {isLoading ? (
+          <div className="aspect-square rounded-xl border-2 border-dashed border-muted-foreground/30 flex flex-col items-center justify-center gap-1">
+            <Loader2 className="w-6 h-6 animate-spin text-primary" />
+            <span className="text-[10px] text-muted-foreground">Enviando...</span>
+          </div>
+        ) : (
+          <div className="aspect-square rounded-xl border-2 border-dashed border-muted-foreground/30 flex items-center justify-center gap-2">
+            <button
+              onClick={() => cameraInputRef.current?.click()}
+              className="flex flex-col items-center gap-1 p-1"
+            >
+              <Camera className="w-5 h-5 text-muted-foreground" />
+              <span className="text-[9px] text-muted-foreground">Câmera</span>
+            </button>
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="flex flex-col items-center gap-1 p-1"
+            >
+              <Upload className="w-5 h-5 text-muted-foreground" />
+              <span className="text-[9px] text-muted-foreground">Galeria</span>
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
 // ─── Memoized Item Card Component ─────────────────────────
 
 interface ChecklistItemCardProps {
@@ -203,83 +362,139 @@ interface ChecklistItemCardProps {
   isCapturing: boolean;
   onToggle: () => void;
   onCapturePhoto: () => void;
+  userId?: string;
+  jobId?: string;
+  onPhotoUploaded?: (url: string) => void;
 }
 
-const ChecklistItemCard = memo(({ item, index, sectionId, isCapturing, onToggle, onCapturePhoto }: ChecklistItemCardProps) => {
+const ChecklistItemCard = memo(({ item, index, sectionId, isCapturing, onToggle, onCapturePhoto, userId, jobId, onPhotoUploaded }: ChecklistItemCardProps) => {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { uploadPhoto, isUploading } = usePhotoUpload();
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  const handlePhotoFile = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !userId || !jobId || !onPhotoUploaded) return;
+
+    setIsProcessing(true);
+    let fileToUpload: File | Blob = file;
+    try {
+      const compressed = await compressForDisplay(file);
+      if (compressed.size < file.size) fileToUpload = compressed;
+    } catch {}
+
+    const url = await uploadPhoto(fileToUpload, {
+      userId,
+      category: 'jobs-checklist',
+      entityId: jobId,
+    });
+    setIsProcessing(false);
+
+    if (url) {
+      onPhotoUploaded(url);
+    }
+    if (e.target) e.target.value = '';
+  }, [userId, jobId, uploadPhoto, onPhotoUploaded]);
+
+  const isLoading = isUploading || isProcessing;
+
   return (
-    <label
-      className={`
-        flex items-center gap-4 p-4 bg-card border-2 rounded-2xl cursor-pointer transition-all duration-100
-        ${item.completed
-          ? 'border-success/30 bg-success/5'
-          : 'border-border/50 hover:border-primary/30 hover:bg-primary/[0.02] active:bg-muted/60'
-        }
-      `}
-      onClick={(e) => {
-        e.preventDefault();
-        if (item.photoRequired && !item.photoUrl && !item.completed) {
-          onCapturePhoto();
-        } else {
-          onToggle();
-        }
-      }}
-    >
-      {/* Checkbox */}
-      <div
+    <>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        onChange={handlePhotoFile}
+        className="hidden"
+      />
+      <label
         className={`
-          w-6 h-6 rounded-full flex items-center justify-center shrink-0 transition-colors duration-100
+          flex items-center gap-4 p-4 bg-card border-2 rounded-2xl cursor-pointer transition-all duration-100
           ${item.completed
-            ? 'bg-success shadow-sm'
-            : 'border-2 border-muted-foreground/25'
+            ? 'border-success/30 bg-success/5'
+            : item.photoRequired
+              ? 'border-primary/20 bg-primary/[0.02]'
+              : 'border-border/50 hover:border-primary/30 active:bg-muted/60'
           }
         `}
+        onClick={(e) => {
+          e.preventDefault();
+          if (item.photoRequired && !item.photoUrl && !item.completed) {
+            if (userId && jobId) {
+              fileInputRef.current?.click();
+            } else {
+              onCapturePhoto();
+            }
+          } else {
+            onToggle();
+          }
+        }}
       >
-        {item.completed && (
-          <Check className="w-4 h-4 text-success-foreground" strokeWidth={3} />
-        )}
-      </div>
-
-      {/* Label */}
-      <div className="flex-1 min-w-0">
-        <p className={`font-medium text-sm transition-colors duration-100
-          ${item.completed ? 'line-through text-muted-foreground/60' : 'text-foreground'}
-        `}>
-          {item.label}
-        </p>
-        {item.photoRequired && !item.completed && (
-          <span className="inline-block mt-1 text-[10px] bg-warning/15 text-warning px-2 py-0.5 rounded-full">
-            📷 Foto obrigatória
-          </span>
-        )}
-      </div>
-
-      {/* Completion time or photo */}
-      {item.completed && (
-        <span className="text-xs text-success font-medium shrink-0">✓</span>
-      )}
-
-      {/* Photo icon */}
-      {item.photoRequired && (
-        <div className="shrink-0">
-          {isCapturing ? (
-            <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center animate-spin">
-              <Camera className="w-4 h-4 text-primary" />
-            </div>
-          ) : item.photoUrl ? (
-            <div className="w-8 h-8 rounded-xl overflow-hidden ring-2 ring-primary/20">
-              <img src={item.photoUrl} alt="" className="w-full h-full object-cover" />
-            </div>
-          ) : (
-            <button
-              onClick={(e) => { e.stopPropagation(); onCapturePhoto(); }}
-              className="w-8 h-8 rounded-xl bg-muted/60 flex items-center justify-center"
-            >
-              <Camera className="w-4 h-4 text-muted-foreground/60" />
-            </button>
+        {/* Checkbox */}
+        <div
+          className={`
+            w-6 h-6 rounded-full flex items-center justify-center shrink-0 transition-colors duration-100
+            ${item.completed
+              ? 'bg-success shadow-sm'
+              : 'border-2 border-muted-foreground/25'
+            }
+          `}
+        >
+          {item.completed && (
+            <Check className="w-4 h-4 text-success-foreground" strokeWidth={3} />
           )}
         </div>
-      )}
-    </label>
+
+        {/* Label */}
+        <div className="flex-1 min-w-0">
+          <p className={`font-medium text-sm transition-colors duration-100
+            ${item.completed ? 'line-through text-muted-foreground/60' : 'text-foreground'}
+          `}>
+            {item.label}
+          </p>
+          {item.photoRequired && !item.completed && (
+            <span className="inline-block mt-1 text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium">
+              📷 Foto obrigatória
+            </span>
+          )}
+        </div>
+
+        {/* Status indicator */}
+        {item.completed && (
+          <span className="text-xs text-success font-medium shrink-0">✓</span>
+        )}
+
+        {/* Photo icon */}
+        {item.photoRequired && (
+          <div className="shrink-0">
+            {isLoading || isCapturing ? (
+              <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center">
+                <Loader2 className="w-4 h-4 text-primary animate-spin" />
+              </div>
+            ) : item.photoUrl ? (
+              <div className="w-8 h-8 rounded-xl overflow-hidden ring-2 ring-primary/20">
+                <img src={item.photoUrl} alt="" className="w-full h-full object-cover" />
+              </div>
+            ) : (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (userId && jobId) {
+                    fileInputRef.current?.click();
+                  } else {
+                    onCapturePhoto();
+                  }
+                }}
+                className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center hover:bg-primary/20 transition-colors"
+              >
+                <Camera className="w-4 h-4 text-primary" />
+              </button>
+            )}
+          </div>
+        )}
+      </label>
+    </>
   );
 });
 

@@ -5,7 +5,7 @@ import { usePhotoUpload } from '@/hooks/usePhotoUpload';
 import { useToast } from '@/hooks/use-toast';
 import { compressForDisplay } from '@/lib/imageUtils';
 
-type PhotoCategory = 'profile' | 'properties' | 'jobs-before' | 'jobs-after' | 'jobs-damages' | 'jobs-lost-found';
+type PhotoCategory = 'profile' | 'properties' | 'jobs-before' | 'jobs-after' | 'jobs-damages' | 'jobs-lost-found' | 'jobs-checklist' | `jobs-room-${string}`;
 
 interface PhotoUploaderProps {
   userId: string;

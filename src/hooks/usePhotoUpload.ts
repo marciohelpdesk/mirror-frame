@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
-type PhotoCategory = 'profile' | 'properties' | 'jobs-before' | 'jobs-after' | 'jobs-damages' | 'jobs-lost-found';
+type PhotoCategory = 'profile' | 'properties' | 'jobs-before' | 'jobs-after' | 'jobs-damages' | 'jobs-lost-found' | 'jobs-checklist' | `jobs-room-${string}`;
 
 interface UploadOptions {
   userId: string;

@@ -170,6 +170,8 @@ export const ExecutionView = ({ job, inventory, userId, onUpdateJob, onComplete,
               onChecklistChange={handleChecklistChange}
               onNext={goToNextStep}
               onBack={goToPrevStep}
+              userId={userId}
+              jobId={job.id}
             />
           )}
 
