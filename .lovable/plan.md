@@ -1,60 +1,91 @@
 
 
-## Plano: Corrigir layout do perfil, filtros das propriedades, traduções e uniformizar headers
+## Plano: Corrigir branding dos links compartilhados e tornar 100% externos
 
-### Problemas identificados
+### Problema identificado
 
-1. **Perfil (EditProfileModal)**: O PhotoUploader com `aspect-square` dentro de um container `w-28` com `rounded-full` faz os botões Camera/Gallery ficarem apertados dentro do circulo do avatar, cortados visualmente.
+Quando um link de relatório é compartilhado via iMessage/WhatsApp, o preview mostra **branding da Lovable** ("Build apps and websites by chatting with AI") ao invés da marca Pur. Isso acontece porque:
 
-2. **Properties - Traduções faltando**: As chaves `properties.manage`, `properties.active`, `properties.today` não existem no `LanguageContext.tsx`, mostrando o texto bruto da chave (ex: "PROPERTIES.MANAGE", "properties.active").
-
-3. **Properties - Filtros escondidos**: Os filter chips estão parcialmente escondidos atrás do header sticky com os stats.
-
-4. **Headers inconsistentes**: Cada página tem um header diferente:
-   - Dashboard: header custom com greeting + logo + avatar
-   - Agenda: header custom com titulo bold + botão add
-   - Properties: header custom com subtitle uppercase + titulo + stats
-   - Reports: usa PageHeader com titulo + subtitle
-   - Settings: usa PageHeader com titulo + subtitle
+1. **Crawlers não executam JavaScript** — os meta tags OG dinâmicos definidos no `PublicReport.tsx` via `useEffect` nunca são lidos pelos crawlers do iMessage/WhatsApp
+2. **O domínio do link é `lovableproject.com`** — que tem seus próprios meta tags padrão da plataforma Lovable
+3. **O link `window.location.origin/r/TOKEN`** aponta para o domínio Lovable, exigindo que o app SPA carregue primeiro
 
 ### Solução
 
-#### 1. PhotoUploader no perfil - Separar botões do circulo
+Criar uma **backend function** (`share-report`) que serve HTML server-side com os meta tags OG corretos da Pur. O link compartilhado passará a ser uma URL externa do backend, não do domínio Lovable.
 
-**`src/components/EditProfileModal.tsx`**: Mudar o layout do avatar para que o circulo mostre apenas a foto/placeholder, e os botões Camera/Gallery fiquem **abaixo** do circulo, fora dele. Remover o uso do PhotoUploader dentro do circulo e usar um avatar simples com botões separados.
+#### 1. Nova backend function: `share-report`
 
-#### 2. Adicionar traduções faltantes
+**Arquivo:** `supabase/functions/share-report/index.ts`
 
-**`src/contexts/LanguageContext.tsx`**: Adicionar as chaves:
-- `properties.manage` → EN: "Manage" / PT: "Gerenciar"
-- `properties.active` → EN: "Active" / PT: "Ativas"  
-- `properties.today` → EN: "Today" / PT: "Hoje"
+A function:
+- Recebe o token como query param (`?token=XXX`)
+- Busca os dados do relatório no banco (nome da propriedade, nome da cleaner, data)
+- Retorna uma página HTML completa com:
+  - OG title: `Pur | {Nome da Propriedade}`
+  - OG description: `Visit Report — {Nome da Cleaner}`
+  - OG image: a imagem `og-image.png` da Pur (hospedada no domínio publicado `mirror-frame.lovable.app/og-image.png`)
+  - Meta refresh + redirect JavaScript para a página do relatório no app publicado (`https://mirror-frame.lovable.app/r/TOKEN`)
+- Não requer autenticação (público)
+- Usa `SUPABASE_SERVICE_ROLE_KEY` para acessar os dados
 
-#### 3. Corrigir filtros cortados nas Properties
+#### 2. Atualizar o link de compartilhamento
 
-**`src/views/PropertiesView.tsx`**: Mover os filter chips para **dentro** do bloco sticky do header (antes do fechamento do div sticky), para que não fiquem escondidos atrás dele.
+**Arquivo:** `src/pages/Reports.tsx`
 
-#### 4. Uniformizar headers de todas as páginas
+Mudar `handleCopyLink` para gerar a URL da backend function ao invés do domínio SPA:
 
-Padronizar todos os headers com o mesmo formato:
-- Linha 1: subtitle em uppercase pequeno (`text-[10px] font-bold uppercase tracking-wider text-muted-foreground`)
-- Linha 2: titulo em `text-2xl font-bold`
-- Direita: ações relevantes da página
+```text
+// Antes:
+const url = `${window.location.origin}/r/${report.public_token}`;
 
-Arquivos a ajustar:
-- **DashboardView.tsx**: Já tem o padrão correto (subtitle "Painel" + greeting bold). Manter.
-- **AgendaView.tsx**: Adicionar subtitle `t('agenda.subtitle')` acima do titulo.
-- **Reports.tsx**: Mudar para usar o mesmo padrão sticky dos outros (bg-card + border-b), não o PageHeader solto.
-- **SettingsView.tsx**: Mudar para usar o mesmo padrão sticky dos outros.
+// Depois:
+const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/share-report?token=${report.public_token}`;
+```
 
-### Arquivos a editar
+Também atualizar o botão "View" que abre em nova aba para continuar abrindo via `/r/TOKEN` (já que é visualização direta, não compartilhamento).
+
+#### 3. Atualizar o fluxo de auto-share pós-execução
+
+Verificar se existe algum outro lugar no código que gere links de compartilhamento e atualizar para usar a mesma URL externa.
+
+### Fluxo resultante
+
+```text
+Cliente recebe link → Backend function serve HTML com OG tags Pur
+                    → Crawler lê meta tags corretos (preview com branding Pur)
+                    → Browser redireciona para mirror-frame.lovable.app/r/TOKEN
+                    → Página pública carrega sem login
+```
+
+### Detalhes técnicos
+
+**Edge function HTML response (simplificado):**
+```text
+<html>
+<head>
+  <meta property="og:title" content="Pur | {property_name}" />
+  <meta property="og:description" content="Visit Report — {cleaner_name}" />
+  <meta property="og:image" content="https://mirror-frame.lovable.app/og-image.png" />
+  <meta http-equiv="refresh" content="0;url=https://mirror-frame.lovable.app/r/{token}" />
+</head>
+<body>
+  <script>window.location.href = "https://mirror-frame.lovable.app/r/{token}";</script>
+</body>
+</html>
+```
+
+**Config (verify_jwt = false para acesso público):**
+```text
+[functions.share-report]
+verify_jwt = false
+```
+
+### Arquivos a editar/criar
 
 | Arquivo | Mudança |
 |---|---|
-| `src/contexts/LanguageContext.tsx` | Adicionar chaves `properties.manage`, `properties.active`, `properties.today` |
-| `src/components/EditProfileModal.tsx` | Separar botões de foto do circulo do avatar |
-| `src/views/PropertiesView.tsx` | Mover filter chips para dentro do sticky header |
-| `src/views/AgendaView.tsx` | Adicionar subtitle acima do titulo para consistência |
-| `src/pages/Reports.tsx` | Uniformizar header com padrão sticky |
-| `src/views/SettingsView.tsx` | Uniformizar header com padrão sticky |
+| `supabase/functions/share-report/index.ts` | Nova function que serve HTML com OG tags da Pur |
+| `supabase/config.toml` | Adicionar `[functions.share-report] verify_jwt = false` |
+| `src/pages/Reports.tsx` | Atualizar `handleCopyLink` para usar URL da backend function |
 
