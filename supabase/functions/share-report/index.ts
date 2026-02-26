@@ -6,7 +6,7 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-const APP_URL = "https://mirror-frame.lovable.app";
+const APP_URL = "https://maisonpur.lovable.app";
 const OG_IMAGE = `${APP_URL}/og-image.png`;
 
 Deno.serve(async (req) => {
