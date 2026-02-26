@@ -1,58 +1,89 @@
 
 
-## Diagnostic Results
+## Diagnostico e Plano de Correcao
 
-### What IS working
-- Database: All 9 tables are correctly provisioned (profiles, properties, jobs, employees, inventory, cleaning_reports, report_rooms, report_photos, user_roles)
-- Storage: Both buckets (cleaning-photos, report-photos) exist and are public
-- Triggers: `on_auth_user_created` is active on auth.users, auto-creating profile + role on signup
-- RLS: All policies are correctly applied
-- The migration ran successfully -- the database is complete
+### Problema 1: Todas as fotos vao para a Cozinha (primeiro ambiente)
 
-### Root Cause of Login Failure
+**Causa raiz identificada:** O fluxo de criacao do relatorio em `Execution.tsx` coleta as fotos de cada sala mas **nao associa nenhum `room_id`** a elas. Isso acontece porque os rooms do relatorio sao criados no banco ao mesmo tempo que as fotos, e nao ha um passo para vincular os IDs gerados.
 
-Both registered accounts (`kamila13petters@gmail.com` and `marcioasoliveira@hotmail.com`) have **`email_confirmed_at = NULL`**. The authentication system requires email confirmation before allowing login. This is why every login attempt returns "Invalid login credentials" or "Email not confirmed".
+No `PublicReport.tsx` linha 118-119:
+```text
+getPhotosForRoom(roomId)  → filtra por room_id (que e null em todas as fotos)
+generalPhotos             → fotos sem room_id vao TODAS para roomIdx === 0 (Cozinha)
+```
 
-This is NOT a database or migration issue -- the schema is fully intact.
+Resultado: todas as fotos aparecem na Cozinha, e as outras salas ficam vazias.
 
-### Secondary Issue
+**Correcao:** Modificar `useReports.ts` para:
+1. Criar os rooms primeiro e capturar os IDs gerados (`.select()`)
+2. Antes de inserir as fotos, associar cada foto ao `room_id` correto usando um identificador temporario (`_room_index`) que mapeia a posicao da sala
+3. Inserir as fotos ja com o `room_id` correto
 
-`CalendarSyncSection.tsx` still references the old project URL (`okgqcakjjkbijcuaevgx`) instead of the current one (`ebafqcanwdqomqcrifrj`).
+Em `Execution.tsx`, adicionar `_room_index` nas fotos de cada sala para identificar a qual room pertencem.
 
----
+### Problema 2: Relatorio criado como "draft" -- cliente nao consegue ver
 
-## Plan
+O relatorio e criado com `status: 'draft'` (Execution.tsx linha 114), mas o `PublicReport.tsx` filtra apenas `status = 'published'`. O cliente recebe o link mas ve "Relatorio nao encontrado".
 
-### Step 1 -- Enable auto-confirm for email signups
+**Correcao:** Mudar `status: 'draft'` para `status: 'published'` em `Execution.tsx` linha 114, para que o relatorio fique imediatamente acessivel ao cliente via link publico `/r/{token}`.
 
-Use the `configure-auth` tool to enable automatic email confirmation. This will:
-- Allow existing unconfirmed users to sign in immediately after re-registering or resetting password
-- Allow future signups to work without email verification delays
+### Problema 3: Link publico ja esta desvinculado de login
 
-### Step 2 -- Confirm existing users via SQL
-
-Run an UPDATE on `auth.users` to set `email_confirmed_at = now()` for the two existing unconfirmed accounts so they can log in immediately with their current passwords.
-
-### Step 3 -- Fix CalendarSyncSection URL
-
-Update `src/components/CalendarSyncSection.tsx` to use `import.meta.env.VITE_SUPABASE_URL` instead of the hardcoded old project URL.
-
-### Step 4 -- Improve login error messages
-
-Update `src/pages/auth/Login.tsx` to translate common backend error codes (`email_not_confirmed`, `invalid_credentials`) into clear Portuguese messages instead of showing raw English error text.
+A rota `/r/:token` ja e publica (sem `RequireAuth`), e as RLS policies permitem leitura anonima. Este ponto ja esta funcionando corretamente -- o unico bloqueio era o status `draft`.
 
 ---
 
-### Files to edit
+### Arquivos a editar
 
-| File | Action |
+| Arquivo | Mudanca |
 |---|---|
-| Auth config | Configure auto-confirm via tool |
-| `auth.users` table | Update `email_confirmed_at` for existing users |
-| `src/components/CalendarSyncSection.tsx` | Fix hardcoded URL |
-| `src/pages/auth/Login.tsx` | Better error messages in Portuguese |
+| `src/hooks/useReports.ts` | Apos inserir rooms, recuperar IDs gerados e mapear `_room_index` das fotos para `room_id` real |
+| `src/pages/Execution.tsx` | Adicionar `_room_index` nas fotos de sala; mudar status de `'draft'` para `'published'` |
+| `src/pages/PublicReport.tsx` | Remover fallback que joga fotos sem `room_id` no primeiro room (linha 218-219) -- com a correcao, todas as fotos terao `room_id` correto |
 
-### Technical details
+### Detalhes tecnicos
 
-The `configure-auth` tool will set `enable_signup = true` and auto-confirm emails. The SQL update will use `UPDATE auth.users SET email_confirmed_at = now() WHERE email_confirmed_at IS NULL` to unlock existing accounts. The CalendarSyncSection fix will use `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ical-feed` for portability.
+**useReports.ts -- createReport mutation:**
+```text
+1. Insert rooms com .select() para retornar os IDs criados
+2. Criar mapa: room_index -> room.id
+3. Para cada foto com _room_index, atribuir room_id = mapa[_room_index]
+4. Insert fotos com room_id correto
+```
+
+**Execution.tsx -- coleta de fotos:**
+```text
+// Room-specific photos: adicionar _room_index
+finalJob.checklist.flatMap((section, sIdx) => {
+  const roomPhotos = (section as any).roomPhotos || [];
+  return roomPhotos.map((url, pIdx) => ({
+    photo_url: url,
+    photo_type: 'verification',
+    _room_index: sIdx,        // <-- NOVO: identifica a sala
+    display_order: pIdx,
+    caption: section.title,
+  }));
+});
+
+// Checklist item photos: tambem adicionar _room_index
+finalJob.checklist.flatMap((section, sIdx) =>
+  section.items.filter(item => item.photoUrl).map((item, idx) => ({
+    photo_url: item.photoUrl!,
+    photo_type: 'verification',
+    _room_index: sIdx,        // <-- NOVO
+    display_order: idx,
+    caption: `${section.title}: ${item.label}`,
+  }))
+);
+
+// status: 'published' em vez de 'draft'
+```
+
+**PublicReport.tsx:**
+```text
+// Remover logica que atribui generalPhotos ao primeiro room
+// Linha 218: const roomGeneralPhotos = roomIdx === 0 ? generalPhotos : [];
+// Substituir por: const allRoomPhotos = roomPhotos; (fotos ja vem com room_id correto)
+// Manter generalPhotos como secao separada "Before/After" se existirem
+```
 
