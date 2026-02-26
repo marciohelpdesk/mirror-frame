@@ -79,14 +79,11 @@ export const useProperties = (userId: string | undefined) => {
   const queryClient = useQueryClient();
 
   const query = useQuery({
-    queryKey: ['properties', userId],
+    queryKey: ['properties'],
     queryFn: async (): Promise<Property[]> => {
-      if (!userId) return [];
-      
       const { data, error } = await supabase
         .from('properties')
         .select('*')
-        .eq('user_id', userId)
         .order('created_at', { ascending: false });
       
       if (error) throw error;
@@ -110,7 +107,7 @@ export const useProperties = (userId: string | undefined) => {
       return mapDbToProperty(data as DbProperty);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['properties', userId] });
+      queryClient.invalidateQueries({ queryKey: ['properties'] });
     },
   });
 
@@ -124,13 +121,12 @@ export const useProperties = (userId: string | undefined) => {
       const { error } = await supabase
         .from('properties')
         .update(dbData)
-        .eq('id', id)
-        .eq('user_id', userId);
+        .eq('id', id);
       
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['properties', userId] });
+      queryClient.invalidateQueries({ queryKey: ['properties'] });
     },
   });
 
@@ -141,13 +137,12 @@ export const useProperties = (userId: string | undefined) => {
       const { error } = await supabase
         .from('properties')
         .delete()
-        .eq('id', propertyId)
-        .eq('user_id', userId);
+        .eq('id', propertyId);
       
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['properties', userId] });
+      queryClient.invalidateQueries({ queryKey: ['properties'] });
     },
   });
 
