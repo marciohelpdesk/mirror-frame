@@ -1,73 +1,36 @@
 
 
-## Diagnostico
+## Plano: Substituir branding Lovable por logotipo Pur nos links compartilhados
 
-### 1. Labels da Dashboard mostrando chaves brutas
-O `t()` retorna a propria chave quando ela nao existe (ex: `"dashboard.thisMonth"`). Como e uma string truthy, o fallback `|| 'Este mes'` **nunca executa**. Resultado: o usuario ve textos como "dashboard.thisMonth", "Total jobs", "dashboard.satisfaction" nos KPI cards.
+### Problema
+Quando voce envia o link do relatorio por WhatsApp/iMessage, a preview mostra o logotipo e branding do Lovable porque as meta tags Open Graph (OG) no `index.html` apontam para `https://lovable.dev/opengraph-image-p98pqg.png`.
 
-**Chaves ausentes nas traducoes (en e pt):** `dashboard.thisMonth`, `dashboard.satisfaction`, `dashboard.pending`, `dashboard.quickActions`, `dashboard.newJob`, `dashboard.property`, `dashboard.report`, `dashboard.team`, `dashboard.today`, `dashboard.viewAgenda`, `dashboard.continue`, `dashboard.progress`.
+### Solucao
 
-### 2. Visual pouco minimalista
-Os KPI cards usam `bg-card` simples sem glassmorphism. Os labels sao longos demais ("Propriedade", "Relatorio"). Quick actions tambem precisa de labels curtos.
+#### 1. Criar imagem OG personalizada da Pur
+- Criar uma imagem OG (1200x630px) usando o logotipo da Pur (`src/assets/pur-logo.png`) com fundo estilizado
+- Salvar como `public/og-image.png` para que fique acessivel via URL publica
 
-### 3. Fotos no relatorio publico so aparecem em um ambiente
-A correcao anterior do `_room_index` ja foi aplicada no codigo, mas so funcionara para **novos relatorios** criados apos a correcao. Relatorios existentes continuarao com fotos sem `room_id`. Nao ha bug adicional aqui -- o usuario precisa testar com um novo job.
+#### 2. Atualizar `index.html`
+- Linha 21: trocar `og:image` de `https://lovable.dev/opengraph-image-p98pqg.png` para a URL absoluta da imagem OG da Pur (usando o dominio publicado `https://mirror-frame.lovable.app/og-image.png`)
+- Linha 25: trocar `twitter:image` da mesma forma
+- Atualizar `og:title` e `og:description` se necessario para refletir melhor a marca
 
-### 4. Bottom nav se move com a pagina
-O `BottomNavRouter` ja usa `fixed bottom-0` -- o problema pode ser o container `overflow-y-auto` no DashboardView criando um contexto de scroll separado. Preciso garantir que o `MobileLayout` nao interfira.
+#### 3. Meta tags dinamicas para relatorios publicos (`PublicReport.tsx`)
+- Adicionar `useEffect` que atualiza `document.title` e as meta tags OG dinamicamente quando o relatorio carrega, para que o link do relatorio mostre o nome da propriedade e branding Pur na preview
+- Exemplo: titulo = "Pur | Relatorio - [Nome da Propriedade]"
 
-### 5. Design do bottom nav
-Atualmente funcional mas pode ser mais limpo e moderno.
-
----
-
-## Plano de Implementacao
-
-### Arquivo 1: `src/contexts/LanguageContext.tsx`
-Adicionar todas as chaves ausentes em ambos idiomas (en + pt) com labels **curtos e minimalistas**:
-
-| Chave | EN | PT |
-|---|---|---|
-| `dashboard.thisMonth` | `This Month` | `Mes` |
-| `dashboard.satisfaction` | `Rating` | `Nota` |
-| `dashboard.pending` | `Pending` | `Pendente` |
-| `dashboard.quickActions` | `Quick Actions` | `Acoes` |
-| `dashboard.newJob` | `New` | `Novo` |
-| `dashboard.property` | `Property` | `Imovel` |
-| `dashboard.report` | `Report` | `Dossi` |
-| `dashboard.team` | `Team` | `Equipe` |
-| `dashboard.today` | `Today` | `Hoje` |
-| `dashboard.viewAgenda` | `See all` | `Ver tudo` |
-| `dashboard.continue` | `Continue` | `Continuar` |
-| `dashboard.progress` | `Progress` | `Progresso` |
-| `dashboard.totalJobs` | `Jobs` | `Jobs` |
-
-### Arquivo 2: `src/views/DashboardView.tsx`
-- Substituir labels dos KPI cards por chaves de traducao curtas (ex: `t('dashboard.thisMonth')` ja vai funcionar com as chaves adicionadas)
-- Remover label hardcoded `'Total jobs'` e usar `t('dashboard.totalJobs')`
-- Remover fallbacks `||` desnecessarios (as chaves agora existem)
-- KPI cards: trocar `bg-card` por `glass-panel-subtle` para glassmorphism
-- Quick actions: trocar `bg-card` por `glass-panel-subtle`
-- Job timeline cards: adicionar glassmorphism sutil
-- Header: substituir texto "Dashboard" fixo por `t('nav.dashboard')`
-
-### Arquivo 3: `src/components/layout/BottomNavRouter.tsx`
-- Simplificar o design: remover ripple effects excessivos, dot indicator, e glow effect
-- Usar icones mais finos (strokeWidth 1.5) e labels menores
-- Aplicar glassmorphism mais forte com `backdrop-blur-2xl` e `bg-white/60`
-- Garantir `fixed bottom-0` com safe-area-inset-bottom para iPhones
-- Reduzir padding vertical para ficar mais compacto e moderno
-
-### Arquivo 4: `src/index.css` (se necessario)
-- Verificar se `.glass-panel-subtle` ja existe; se nao, ajustar para garantir que funcione nos KPI cards
-
----
+#### 4. Atualizar `manifest.json`
+- Ja esta correto com icones Pur -- nenhuma mudanca necessaria
 
 ### Arquivos a editar
 
 | Arquivo | Mudanca |
 |---|---|
-| `src/contexts/LanguageContext.tsx` | Adicionar ~13 chaves de traducao ausentes (en + pt) |
-| `src/views/DashboardView.tsx` | Labels curtos, glassmorphism nos cards, remover fallbacks |
-| `src/components/layout/BottomNavRouter.tsx` | Design minimalista, glassmorphism mais forte, compacto |
+| `public/og-image.png` | Novo arquivo -- imagem OG 1200x630 com logo Pur |
+| `index.html` | Substituir URLs de `og:image` e `twitter:image` |
+| `src/pages/PublicReport.tsx` | Adicionar meta tags OG dinamicas por relatorio |
+
+### Nota importante
+As imagens OG precisam ser URLs absolutas acessiveis publicamente. Usaremos o dominio publicado (`mirror-frame.lovable.app`) como base. Para gerar a imagem OG, vou criar um arquivo PNG simples com o logo da Pur centralizado sobre um fundo gradiente que combina com a identidade visual do app.
 
