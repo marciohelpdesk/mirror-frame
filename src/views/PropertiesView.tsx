@@ -107,28 +107,28 @@ export const PropertiesView = ({ properties, onViewProperty, onAddProperty }: Pr
             <p className="text-xl font-bold text-warning">{stats.maintenance}</p>
           </div>
         </div>
-      </div>
 
-      {/* Filter Chips */}
-      <div className="px-6 py-4 overflow-x-auto hide-scrollbar">
-        <div className="flex gap-2 min-w-max">
-          {filters.map((filter) => (
-            <button
-              key={filter.key}
-              onClick={() => setActiveFilter(filter.key)}
-              className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200
-                ${activeFilter === filter.key
-                  ? 'bg-gradient-to-r from-primary to-primary/80 text-primary-foreground scale-105 shadow-md shadow-primary/20'
-                  : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                }
-              `}
-            >
-              {filter.dotColor && (
-                <span className={`inline-block w-2 h-2 rounded-full ${filter.dotColor} mr-1.5`} />
-              )}
-              {filter.label}
-            </button>
-          ))}
+        {/* Filter Chips */}
+        <div className="pt-4 overflow-x-auto hide-scrollbar">
+          <div className="flex gap-2 min-w-max">
+            {filters.map((filter) => (
+              <button
+                key={filter.key}
+                onClick={() => setActiveFilter(filter.key)}
+                className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200
+                  ${activeFilter === filter.key
+                    ? 'bg-gradient-to-r from-primary to-primary/80 text-primary-foreground scale-105 shadow-md shadow-primary/20'
+                    : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                  }
+                `}
+              >
+                {filter.dotColor && (
+                  <span className={`inline-block w-2 h-2 rounded-full ${filter.dotColor} mr-1.5`} />
+                )}
+                {filter.label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
