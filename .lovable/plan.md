@@ -1,80 +1,60 @@
 
 
-## Plano: Adicionar 29 propriedades e configurar permissoes de acesso
+## Plano: Corrigir layout do perfil, filtros das propriedades, traduções e uniformizar headers
 
-### Resumo
-Adicionar todas as 29 propriedades ao banco de dados, tornar propriedades visíveis para todos os usuários autenticados, e restringir a exclusão apenas para kamila13petters@gmail.com e marcioasoliveira@hotmail.com.
+### Problemas identificados
 
-### 1. Alterações no banco de dados (Migration)
+1. **Perfil (EditProfileModal)**: O PhotoUploader com `aspect-square` dentro de um container `w-28` com `rounded-full` faz os botões Camera/Gallery ficarem apertados dentro do circulo do avatar, cortados visualmente.
 
-**Atualizar políticas RLS na tabela `properties`:**
+2. **Properties - Traduções faltando**: As chaves `properties.manage`, `properties.active`, `properties.today` não existem no `LanguageContext.tsx`, mostrando o texto bruto da chave (ex: "PROPERTIES.MANAGE", "properties.active").
 
-| Política | Atual | Nova |
-|---|---|---|
-| SELECT | Apenas próprias (`user_id = auth.uid()`) | Todos os autenticados (`true` para `authenticated`) |
-| UPDATE | Apenas próprias | Todos os autenticados (para que qualquer usuário possa editar) |
-| DELETE | Apenas próprias | Apenas os dois emails admin (verificação via `auth.jwt()->>'email'`) |
-| INSERT | Apenas próprias | Manter como está |
+3. **Properties - Filtros escondidos**: Os filter chips estão parcialmente escondidos atrás do header sticky com os stats.
 
-**Inserir 29 propriedades** usando o `user_id` de Kamila (`54a0452c-9808-4c67-92a5-3c588584b81d`) como proprietária inicial. Todas com `service_type = 'Airbnb Cleaning'`, `type = 'House'`, `status = 'READY'`.
+4. **Headers inconsistentes**: Cada página tem um header diferente:
+   - Dashboard: header custom com greeting + logo + avatar
+   - Agenda: header custom com titulo bold + botão add
+   - Properties: header custom com subtitle uppercase + titulo + stats
+   - Reports: usa PageHeader com titulo + subtitle
+   - Settings: usa PageHeader com titulo + subtitle
 
-### 2. Alterações no frontend
+### Solução
 
-**`src/hooks/useProperties.ts`:**
-- Remover filtro `.eq('user_id', userId)` no SELECT (buscar todas as propriedades)
-- Remover filtro `.eq('user_id', userId)` no UPDATE (permitir edição por qualquer usuário)
-- Remover filtro `.eq('user_id', userId)` no DELETE (o RLS controla quem pode excluir)
-- Manter `queryKey` como `['properties']` sem userId
+#### 1. PhotoUploader no perfil - Separar botões do circulo
 
-**`src/views/PropertyDetailsView.tsx`:**
-- Mostrar botão "Delete Property" apenas quando `user?.email` for um dos dois emails autorizados
-- Esconder o botão para todos os outros usuários
+**`src/components/EditProfileModal.tsx`**: Mudar o layout do avatar para que o circulo mostre apenas a foto/placeholder, e os botões Camera/Gallery fiquem **abaixo** do circulo, fora dele. Remover o uso do PhotoUploader dentro do circulo e usar um avatar simples com botões separados.
 
-**`src/pages/Properties.tsx`:**
-- Ajustar chamada do hook (userId ainda necessário para INSERT)
+#### 2. Adicionar traduções faltantes
 
-### 3. Dados das 29 propriedades
+**`src/contexts/LanguageContext.tsx`**: Adicionar as chaves:
+- `properties.manage` → EN: "Manage" / PT: "Gerenciar"
+- `properties.active` → EN: "Active" / PT: "Ativas"  
+- `properties.today` → EN: "Today" / PT: "Hoje"
 
-Todas as propriedades da lista serão inseridas com os dados fornecidos (nome, endereço/bairro, quartos, banheiros, preço base estimado). O usuário poderá editar cada uma individualmente depois.
+#### 3. Corrigir filtros cortados nas Properties
 
-### Detalhes técnicos
+**`src/views/PropertiesView.tsx`**: Mover os filter chips para **dentro** do bloco sticky do header (antes do fechamento do div sticky), para que não fiquem escondidos atrás dele.
 
-**RLS DELETE policy:**
-```text
-CREATE POLICY "Only admins can delete properties"
-ON public.properties FOR DELETE TO authenticated
-USING (
-  auth.jwt()->>'email' IN (
-    'kamila13petters@gmail.com',
-    'marcioasoliveira@hotmail.com'
-  )
-);
-```
+#### 4. Uniformizar headers de todas as páginas
 
-**useProperties.ts query change:**
-```text
-// Antes: .eq('user_id', userId)
-// Depois: sem filtro (RLS permite SELECT para todos autenticados)
-const { data, error } = await supabase
-  .from('properties')
-  .select('*')
-  .order('created_at', { ascending: false });
-```
+Padronizar todos os headers com o mesmo formato:
+- Linha 1: subtitle em uppercase pequeno (`text-[10px] font-bold uppercase tracking-wider text-muted-foreground`)
+- Linha 2: titulo em `text-2xl font-bold`
+- Direita: ações relevantes da página
 
-**PropertyDetailsView delete button:**
-```text
-const ADMIN_EMAILS = ['kamila13petters@gmail.com', 'marcioasoliveira@hotmail.com'];
-const canDelete = user?.email && ADMIN_EMAILS.includes(user.email.toLowerCase());
-// Renderizar botão delete apenas se canDelete === true
-```
+Arquivos a ajustar:
+- **DashboardView.tsx**: Já tem o padrão correto (subtitle "Painel" + greeting bold). Manter.
+- **AgendaView.tsx**: Adicionar subtitle `t('agenda.subtitle')` acima do titulo.
+- **Reports.tsx**: Mudar para usar o mesmo padrão sticky dos outros (bg-card + border-b), não o PageHeader solto.
+- **SettingsView.tsx**: Mudar para usar o mesmo padrão sticky dos outros.
 
 ### Arquivos a editar
 
 | Arquivo | Mudança |
 |---|---|
-| Migration SQL | Atualizar 3 RLS policies + inserir 29 propriedades |
-| `src/hooks/useProperties.ts` | Remover filtros user_id no SELECT/UPDATE/DELETE |
-| `src/views/PropertyDetailsView.tsx` | Condicionar botão delete ao email do usuário |
-| `src/pages/Properties.tsx` | Ajustar uso do hook |
-| `src/pages/PropertyDetails.tsx` | Ajustar uso do hook |
+| `src/contexts/LanguageContext.tsx` | Adicionar chaves `properties.manage`, `properties.active`, `properties.today` |
+| `src/components/EditProfileModal.tsx` | Separar botões de foto do circulo do avatar |
+| `src/views/PropertiesView.tsx` | Mover filter chips para dentro do sticky header |
+| `src/views/AgendaView.tsx` | Adicionar subtitle acima do titulo para consistência |
+| `src/pages/Reports.tsx` | Uniformizar header com padrão sticky |
+| `src/views/SettingsView.tsx` | Uniformizar header com padrão sticky |
 
