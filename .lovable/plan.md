@@ -1,35 +1,65 @@
 
 
-## Diagnostico e Plano de Correcao
+## Diagnostico
 
-### Problema 1: Todas as fotos vao para a Cozinha (primeiro ambiente)
+### 1. Labels da Dashboard mostrando chaves brutas
+O `t()` retorna a propria chave quando ela nao existe (ex: `"dashboard.thisMonth"`). Como e uma string truthy, o fallback `|| 'Este mes'` **nunca executa**. Resultado: o usuario ve textos como "dashboard.thisMonth", "Total jobs", "dashboard.satisfaction" nos KPI cards.
 
-**Causa raiz identificada:** O fluxo de criacao do relatorio em `Execution.tsx` coleta as fotos de cada sala mas **nao associa nenhum `room_id`** a elas. Isso acontece porque os rooms do relatorio sao criados no banco ao mesmo tempo que as fotos, e nao ha um passo para vincular os IDs gerados.
+**Chaves ausentes nas traducoes (en e pt):** `dashboard.thisMonth`, `dashboard.satisfaction`, `dashboard.pending`, `dashboard.quickActions`, `dashboard.newJob`, `dashboard.property`, `dashboard.report`, `dashboard.team`, `dashboard.today`, `dashboard.viewAgenda`, `dashboard.continue`, `dashboard.progress`.
 
-No `PublicReport.tsx` linha 118-119:
-```text
-getPhotosForRoom(roomId)  → filtra por room_id (que e null em todas as fotos)
-generalPhotos             → fotos sem room_id vao TODAS para roomIdx === 0 (Cozinha)
-```
+### 2. Visual pouco minimalista
+Os KPI cards usam `bg-card` simples sem glassmorphism. Os labels sao longos demais ("Propriedade", "Relatorio"). Quick actions tambem precisa de labels curtos.
 
-Resultado: todas as fotos aparecem na Cozinha, e as outras salas ficam vazias.
+### 3. Fotos no relatorio publico so aparecem em um ambiente
+A correcao anterior do `_room_index` ja foi aplicada no codigo, mas so funcionara para **novos relatorios** criados apos a correcao. Relatorios existentes continuarao com fotos sem `room_id`. Nao ha bug adicional aqui -- o usuario precisa testar com um novo job.
 
-**Correcao:** Modificar `useReports.ts` para:
-1. Criar os rooms primeiro e capturar os IDs gerados (`.select()`)
-2. Antes de inserir as fotos, associar cada foto ao `room_id` correto usando um identificador temporario (`_room_index`) que mapeia a posicao da sala
-3. Inserir as fotos ja com o `room_id` correto
+### 4. Bottom nav se move com a pagina
+O `BottomNavRouter` ja usa `fixed bottom-0` -- o problema pode ser o container `overflow-y-auto` no DashboardView criando um contexto de scroll separado. Preciso garantir que o `MobileLayout` nao interfira.
 
-Em `Execution.tsx`, adicionar `_room_index` nas fotos de cada sala para identificar a qual room pertencem.
+### 5. Design do bottom nav
+Atualmente funcional mas pode ser mais limpo e moderno.
 
-### Problema 2: Relatorio criado como "draft" -- cliente nao consegue ver
+---
 
-O relatorio e criado com `status: 'draft'` (Execution.tsx linha 114), mas o `PublicReport.tsx` filtra apenas `status = 'published'`. O cliente recebe o link mas ve "Relatorio nao encontrado".
+## Plano de Implementacao
 
-**Correcao:** Mudar `status: 'draft'` para `status: 'published'` em `Execution.tsx` linha 114, para que o relatorio fique imediatamente acessivel ao cliente via link publico `/r/{token}`.
+### Arquivo 1: `src/contexts/LanguageContext.tsx`
+Adicionar todas as chaves ausentes em ambos idiomas (en + pt) com labels **curtos e minimalistas**:
 
-### Problema 3: Link publico ja esta desvinculado de login
+| Chave | EN | PT |
+|---|---|---|
+| `dashboard.thisMonth` | `This Month` | `Mes` |
+| `dashboard.satisfaction` | `Rating` | `Nota` |
+| `dashboard.pending` | `Pending` | `Pendente` |
+| `dashboard.quickActions` | `Quick Actions` | `Acoes` |
+| `dashboard.newJob` | `New` | `Novo` |
+| `dashboard.property` | `Property` | `Imovel` |
+| `dashboard.report` | `Report` | `Dossi` |
+| `dashboard.team` | `Team` | `Equipe` |
+| `dashboard.today` | `Today` | `Hoje` |
+| `dashboard.viewAgenda` | `See all` | `Ver tudo` |
+| `dashboard.continue` | `Continue` | `Continuar` |
+| `dashboard.progress` | `Progress` | `Progresso` |
+| `dashboard.totalJobs` | `Jobs` | `Jobs` |
 
-A rota `/r/:token` ja e publica (sem `RequireAuth`), e as RLS policies permitem leitura anonima. Este ponto ja esta funcionando corretamente -- o unico bloqueio era o status `draft`.
+### Arquivo 2: `src/views/DashboardView.tsx`
+- Substituir labels dos KPI cards por chaves de traducao curtas (ex: `t('dashboard.thisMonth')` ja vai funcionar com as chaves adicionadas)
+- Remover label hardcoded `'Total jobs'` e usar `t('dashboard.totalJobs')`
+- Remover fallbacks `||` desnecessarios (as chaves agora existem)
+- KPI cards: trocar `bg-card` por `glass-panel-subtle` para glassmorphism
+- Quick actions: trocar `bg-card` por `glass-panel-subtle`
+- Job timeline cards: adicionar glassmorphism sutil
+- Header: substituir texto "Dashboard" fixo por `t('nav.dashboard')`
+
+### Arquivo 3: `src/components/layout/BottomNavRouter.tsx`
+- Simplificar o design: remover ripple effects excessivos, dot indicator, e glow effect
+- Usar icones mais finos (strokeWidth 1.5) e labels menores
+- Aplicar glassmorphism mais forte com `backdrop-blur-2xl` e `bg-white/60`
+- Garantir `fixed bottom-0` com safe-area-inset-bottom para iPhones
+- Reduzir padding vertical para ficar mais compacto e moderno
+
+### Arquivo 4: `src/index.css` (se necessario)
+- Verificar se `.glass-panel-subtle` ja existe; se nao, ajustar para garantir que funcione nos KPI cards
 
 ---
 
@@ -37,53 +67,7 @@ A rota `/r/:token` ja e publica (sem `RequireAuth`), e as RLS policies permitem 
 
 | Arquivo | Mudanca |
 |---|---|
-| `src/hooks/useReports.ts` | Apos inserir rooms, recuperar IDs gerados e mapear `_room_index` das fotos para `room_id` real |
-| `src/pages/Execution.tsx` | Adicionar `_room_index` nas fotos de sala; mudar status de `'draft'` para `'published'` |
-| `src/pages/PublicReport.tsx` | Remover fallback que joga fotos sem `room_id` no primeiro room (linha 218-219) -- com a correcao, todas as fotos terao `room_id` correto |
-
-### Detalhes tecnicos
-
-**useReports.ts -- createReport mutation:**
-```text
-1. Insert rooms com .select() para retornar os IDs criados
-2. Criar mapa: room_index -> room.id
-3. Para cada foto com _room_index, atribuir room_id = mapa[_room_index]
-4. Insert fotos com room_id correto
-```
-
-**Execution.tsx -- coleta de fotos:**
-```text
-// Room-specific photos: adicionar _room_index
-finalJob.checklist.flatMap((section, sIdx) => {
-  const roomPhotos = (section as any).roomPhotos || [];
-  return roomPhotos.map((url, pIdx) => ({
-    photo_url: url,
-    photo_type: 'verification',
-    _room_index: sIdx,        // <-- NOVO: identifica a sala
-    display_order: pIdx,
-    caption: section.title,
-  }));
-});
-
-// Checklist item photos: tambem adicionar _room_index
-finalJob.checklist.flatMap((section, sIdx) =>
-  section.items.filter(item => item.photoUrl).map((item, idx) => ({
-    photo_url: item.photoUrl!,
-    photo_type: 'verification',
-    _room_index: sIdx,        // <-- NOVO
-    display_order: idx,
-    caption: `${section.title}: ${item.label}`,
-  }))
-);
-
-// status: 'published' em vez de 'draft'
-```
-
-**PublicReport.tsx:**
-```text
-// Remover logica que atribui generalPhotos ao primeiro room
-// Linha 218: const roomGeneralPhotos = roomIdx === 0 ? generalPhotos : [];
-// Substituir por: const allRoomPhotos = roomPhotos; (fotos ja vem com room_id correto)
-// Manter generalPhotos como secao separada "Before/After" se existirem
-```
+| `src/contexts/LanguageContext.tsx` | Adicionar ~13 chaves de traducao ausentes (en + pt) |
+| `src/views/DashboardView.tsx` | Labels curtos, glassmorphism nos cards, remover fallbacks |
+| `src/components/layout/BottomNavRouter.tsx` | Design minimalista, glassmorphism mais forte, compacto |
 
