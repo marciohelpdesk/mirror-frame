@@ -98,7 +98,7 @@ export default function Reports() {
   };
 
   const handleCopyLink = (report: CleaningReport) => {
-    const url = `${window.location.origin}/r/${report.public_token}`;
+    const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/share-report?token=${report.public_token}`;
     navigator.clipboard.writeText(url);
     toast.success(t('reports.linkCopied'));
   };
