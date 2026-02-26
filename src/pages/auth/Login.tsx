@@ -90,6 +90,8 @@ export default function Login() {
           setError('Verifique seu email para confirmar a conta!');
         }
       }
+    } catch (err: any) {
+      setError('Falha de conexão com o servidor. Verifique sua internet e tente novamente.');
     } finally {
       setIsLoading(false);
     }
