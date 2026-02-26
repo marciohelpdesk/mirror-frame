@@ -57,7 +57,7 @@ export const DashboardView = ({ jobs, properties = [], onStartJob, onViewJob, us
     {
       icon: DollarSign,
       value: `$${monthEarnings.toLocaleString()}`,
-      label: t('dashboard.thisMonth') || 'Este mês',
+      label: t('dashboard.thisMonth'),
       gradient: 'from-primary to-primary/70',
       trend: '+12%',
       trendColor: 'text-primary bg-primary/10',
@@ -66,7 +66,7 @@ export const DashboardView = ({ jobs, properties = [], onStartJob, onViewJob, us
     {
       icon: Briefcase,
       value: String(todayJobs.length),
-      label: 'Total jobs',
+      label: t('dashboard.totalJobs'),
       gradient: 'from-primary to-primary/70',
       badge: `${scheduledJobs.length} jobs`,
       segments: [
@@ -78,14 +78,14 @@ export const DashboardView = ({ jobs, properties = [], onStartJob, onViewJob, us
     {
       icon: Star,
       value: `${todayProgress}%`,
-      label: t('dashboard.satisfaction') || 'Satisfação',
+      label: t('dashboard.satisfaction'),
       gradient: 'from-warning to-warning/70',
       stars: true,
     },
     {
       icon: Clock,
       value: `${scheduledJobs.length + inProgressJobs.length}`,
-      label: t('dashboard.pending') || 'Pendentes',
+      label: t('dashboard.pending'),
       gradient: 'from-destructive to-destructive/70',
       trend: completedJobs.length > 0 ? `${completedJobs.length} done` : undefined,
       trendColor: 'text-primary bg-primary/10',
@@ -99,7 +99,7 @@ export const DashboardView = ({ jobs, properties = [], onStartJob, onViewJob, us
       <div className="sticky top-0 z-20 bg-background/70 backdrop-blur-xl border-b border-border/30 px-6 py-4">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Dashboard</p>
+            <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">{t('nav.dashboard')}</p>
             <h1 className="text-2xl font-bold text-foreground">{greeting} 👋</h1>
           </div>
           <div className="flex items-center gap-3">
@@ -131,7 +131,7 @@ export const DashboardView = ({ jobs, properties = [], onStartJob, onViewJob, us
               initial={{ opacity: 0, y: 20, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               transition={{ delay: 0.1 + idx * 0.08 }}
-              className="relative bg-card rounded-2xl p-4 shadow-sm border border-border/50 overflow-hidden group hover:-translate-y-1 transition-all duration-300 hover:shadow-lg"
+              className="relative glass-panel-subtle rounded-2xl p-4 overflow-hidden group hover:-translate-y-1 transition-all duration-300 hover:shadow-lg"
             >
               {/* Top accent line */}
               <div className={`absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r ${card.gradient}`} />
@@ -186,13 +186,13 @@ export const DashboardView = ({ jobs, properties = [], onStartJob, onViewJob, us
         <section>
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-bold text-foreground">
-              {t('dashboard.today') || 'Hoje'}, {currentTime.toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' })}
+              {t('dashboard.today')}, {currentTime.toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' })}
             </h2>
             <button 
               onClick={() => navigate('/agenda')}
               className="text-primary text-sm font-medium flex items-center gap-1"
             >
-              {t('dashboard.viewAgenda') || 'Ver agenda'} <ChevronRight size={14} />
+              {t('dashboard.viewAgenda')} <ChevronRight size={14} />
             </button>
           </div>
 
@@ -207,7 +207,7 @@ export const DashboardView = ({ jobs, properties = [], onStartJob, onViewJob, us
                 <motion.div 
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  className="bg-card rounded-2xl p-8 text-center shadow-sm border border-border/50"
+                  className="glass-panel-subtle rounded-2xl p-8 text-center"
                 >
                   <p className="text-muted-foreground">{t('dashboard.noJobsToday')}</p>
                 </motion.div>
@@ -232,10 +232,10 @@ export const DashboardView = ({ jobs, properties = [], onStartJob, onViewJob, us
 
                       {/* Job card */}
                       <div 
-                        className={`ml-2 bg-card rounded-2xl p-4 shadow-sm cursor-pointer transition-all duration-300
+                        className={`ml-2 glass-panel-subtle rounded-2xl p-4 cursor-pointer transition-all duration-300
                           ${isInProgress 
                             ? 'border-2 border-primary shadow-lg' 
-                            : 'border border-border/50 hover:border-primary/30'
+                            : 'hover:border-primary/30'
                           }
                           ${isCompleted ? 'opacity-75' : ''}
                         `}
@@ -288,7 +288,7 @@ export const DashboardView = ({ jobs, properties = [], onStartJob, onViewJob, us
                         {isInProgress && job.checklist && (
                           <div className="mt-4">
                             <div className="flex items-center justify-between text-xs mb-2">
-                              <span className="text-muted-foreground font-medium">{t('dashboard.progress') || 'Progresso'}</span>
+                              <span className="text-muted-foreground font-medium">{t('dashboard.progress')}</span>
                               <span className="text-primary font-bold">
                                 {(() => {
                                   const cl = job.checklist as any[];
@@ -313,7 +313,7 @@ export const DashboardView = ({ jobs, properties = [], onStartJob, onViewJob, us
                             className="mt-4 w-full py-3 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground rounded-xl font-semibold flex items-center justify-center gap-2 shadow-md shadow-primary/20 active:scale-[0.98] transition-transform"
                           >
                             <Play size={16} className="fill-primary-foreground" />
-                            {isInProgress ? (t('dashboard.continue') || 'Continuar Limpeza') : (t('jobs.startChecklist') || 'Iniciar Checklist')}
+                            {isInProgress ? t('dashboard.continue') : t('jobs.startChecklist')}
                           </button>
                         )}
 
@@ -345,14 +345,14 @@ export const DashboardView = ({ jobs, properties = [], onStartJob, onViewJob, us
         {/* Quick Actions */}
         <section>
           <h2 className="text-lg font-bold text-foreground mb-4">
-            {t('dashboard.quickActions') || 'Ações Rápidas'}
+            {t('dashboard.quickActions')}
           </h2>
           <div className="grid grid-cols-4 gap-3">
             {[
-              { icon: Plus, label: t('dashboard.newJob') || 'Novo Job', gradient: 'from-primary to-primary/80', action: () => navigate('/agenda') },
-              { icon: Home, label: t('dashboard.property') || 'Propriedade', gradient: 'from-primary to-primary/80', action: () => navigate('/properties') },
-              { icon: FileText, label: t('dashboard.report') || 'Relatório', gradient: 'from-primary to-primary/80', action: () => navigate('/reports') },
-              { icon: Users, label: t('dashboard.team') || 'Equipe', gradient: 'from-primary to-primary/80', action: () => navigate('/settings') },
+              { icon: Plus, label: t('dashboard.newJob'), gradient: 'from-primary to-primary/80', action: () => navigate('/agenda') },
+              { icon: Home, label: t('dashboard.property'), gradient: 'from-primary to-primary/80', action: () => navigate('/properties') },
+              { icon: FileText, label: t('dashboard.report'), gradient: 'from-primary to-primary/80', action: () => navigate('/reports') },
+              { icon: Users, label: t('dashboard.team'), gradient: 'from-primary to-primary/80', action: () => navigate('/settings') },
             ].map((action, idx) => (
               <motion.button
                 key={idx}
@@ -360,7 +360,7 @@ export const DashboardView = ({ jobs, properties = [], onStartJob, onViewJob, us
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 + idx * 0.05 }}
                 onClick={action.action}
-                className="flex flex-col items-center gap-2 p-3 bg-card rounded-2xl shadow-sm border border-border/50 hover:scale-105 transition-transform active:scale-95"
+                className="flex flex-col items-center gap-2 p-3 glass-panel-subtle rounded-2xl hover:scale-105 transition-transform active:scale-95"
               >
                 <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${action.gradient} flex items-center justify-center shadow-md`}>
                   <action.icon size={20} className="text-white" />

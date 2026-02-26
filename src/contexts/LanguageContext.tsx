@@ -370,6 +370,22 @@ const translations: Record<Language, Record<string, string>> = {
     
     // Purification
     'dashboard.purification': 'PURIFICATION',
+    
+    // Dashboard KPI & Actions
+    'dashboard.thisMonth': 'This Month',
+    'dashboard.totalJobs': 'Jobs',
+    'dashboard.satisfaction': 'Rating',
+    'dashboard.pending': 'Pending',
+    'dashboard.quickActions': 'Quick Actions',
+    'dashboard.newJob': 'New',
+    'dashboard.property': 'Property',
+    'dashboard.report': 'Report',
+    'dashboard.team': 'Team',
+    'dashboard.today': 'Today',
+    'dashboard.viewAgenda': 'See all',
+    'dashboard.continue': 'Continue',
+    'dashboard.progress': 'Progress',
+    'jobs.startChecklist': 'Start Checklist',
   },
   pt: {
     // Navigation
@@ -732,6 +748,22 @@ const translations: Record<Language, Record<string, string>> = {
     
     // Purification
     'dashboard.purification': 'PURIFICAÇÃO',
+    
+    // Dashboard KPI & Actions
+    'dashboard.thisMonth': 'Mês',
+    'dashboard.totalJobs': 'Jobs',
+    'dashboard.satisfaction': 'Nota',
+    'dashboard.pending': 'Pendente',
+    'dashboard.quickActions': 'Ações',
+    'dashboard.newJob': 'Novo',
+    'dashboard.property': 'Imóvel',
+    'dashboard.report': 'Dossiê',
+    'dashboard.team': 'Equipe',
+    'dashboard.today': 'Hoje',
+    'dashboard.viewAgenda': 'Ver tudo',
+    'dashboard.continue': 'Continuar',
+    'dashboard.progress': 'Progresso',
+    'jobs.startChecklist': 'Iniciar',
   },
 };
 
