@@ -68,7 +68,7 @@ export const useReports = (userId: string | undefined) => {
   });
 
   const createReport = useMutation({
-    mutationFn: async (report: Partial<CleaningReport> & { rooms?: Partial<ReportRoom>[]; photos?: Partial<ReportPhoto>[] }) => {
+    mutationFn: async (report: Partial<CleaningReport> & { rooms?: (Partial<ReportRoom> & { _room_index?: number })[]; photos?: (Partial<ReportPhoto> & { _room_index?: number })[] }) => {
       if (!userId) throw new Error('No user ID');
       
       const { rooms, photos, ...reportData } = report;
@@ -81,26 +81,41 @@ export const useReports = (userId: string | undefined) => {
         .single();
       if (error) throw error;
 
-      // Create rooms
+      // Create rooms and capture generated IDs
+      let roomIndexToId: Record<number, string> = {};
       if (rooms && rooms.length > 0) {
-        const roomsData = rooms.map((r, i) => ({
-          ...r,
-          report_id: newReport.id,
-          display_order: i,
-        }));
-        const { error: roomErr } = await supabase
+        const roomsData = rooms.map((r, i) => {
+          const { _room_index, ...roomFields } = r as any;
+          return {
+            ...roomFields,
+            report_id: newReport.id,
+            display_order: i,
+          };
+        });
+        const { data: createdRooms, error: roomErr } = await supabase
           .from('report_rooms')
-          .insert(roomsData as any);
-        if (roomErr) console.error('Error creating rooms:', roomErr);
+          .insert(roomsData as any)
+          .select('id, display_order');
+        if (roomErr) {
+          console.error('Error creating rooms:', roomErr);
+        } else if (createdRooms) {
+          createdRooms.forEach((cr: any) => {
+            roomIndexToId[cr.display_order] = cr.id;
+          });
+        }
       }
 
-      // Create photos
+      // Create photos with correct room_id mapping
       if (photos && photos.length > 0) {
-        const photosData = photos.map((p, i) => ({
-          ...p,
-          report_id: newReport.id,
-          display_order: i,
-        }));
+        const photosData = photos.map((p, i) => {
+          const { _room_index, ...photoFields } = p as any;
+          return {
+            ...photoFields,
+            report_id: newReport.id,
+            display_order: photoFields.display_order ?? i,
+            room_id: _room_index !== undefined ? (roomIndexToId[_room_index] || null) : (photoFields.room_id || null),
+          };
+        });
         const { error: photoErr } = await supabase
           .from('report_photos')
           .insert(photosData as any);

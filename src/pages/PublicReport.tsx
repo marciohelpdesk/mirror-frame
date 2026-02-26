@@ -215,8 +215,7 @@ export default function PublicReport() {
       <div className="max-w-7xl mx-auto px-6 pb-20">
         {rooms.map((room, roomIdx) => {
           const roomPhotos = getPhotosForRoom(room.id);
-          const roomGeneralPhotos = roomIdx === 0 ? generalPhotos : [];
-          const allRoomPhotos = [...roomPhotos, ...roomGeneralPhotos];
+          const allRoomPhotos = roomPhotos;
           const roomDamages = (room.damages || []) as any[];
           const roomLostFound = (room.lost_and_found || []) as any[];
           const checklistItems = (room.checklist || []) as any[];
@@ -383,6 +382,39 @@ export default function PublicReport() {
             </div>
           );
         })}
+
+        {/* Before & After Photos (not room-specific) */}
+        {generalPhotos.length > 0 && (
+          <div className="mb-24 border-b border-stone-200 pb-16 last:border-0">
+            <div className="flex items-center gap-4 mb-8">
+              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-stone-900 font-serif text-lg font-bold text-white shadow-lg shadow-stone-200 flex-shrink-0" style={{ fontFamily: "'Playfair Display', serif" }}>
+                📸
+              </span>
+              <h2 className="font-serif text-3xl md:text-4xl text-stone-800" style={{ fontFamily: "'Playfair Display', serif" }}>
+                Before & After
+              </h2>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              {generalPhotos.map((photo) => (
+                <div
+                  key={photo.id}
+                  className="group relative cursor-pointer overflow-hidden rounded-xl bg-stone-100 shadow-md transition-all hover:-translate-y-1 hover:shadow-xl aspect-square"
+                  onClick={() => setLightboxUrl(photo.photo_url)}
+                >
+                  <img src={photo.photo_url} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" alt={photo.caption || 'Photo'} loading="lazy" />
+                  <div className="absolute inset-0 bg-black/0 transition-colors group-hover:bg-black/10" />
+                  <div className="absolute top-3 left-3">
+                    <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-full backdrop-blur-md ${
+                      photo.photo_type === 'before' ? 'bg-blue-500/80 text-white' : 'bg-green-500/80 text-white'
+                    }`}>
+                      {photo.photo_type === 'before' ? 'Before' : 'After'}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Standalone damages/lostfound that aren't room-specific */}
         {rooms.length === 0 && (allDamages.length > 0 || allLostFound.length > 0) && (

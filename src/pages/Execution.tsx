@@ -69,7 +69,7 @@ export default function Execution() {
         };
       });
 
-      // Collect all photos including room-specific photos
+      // Collect all photos including room-specific photos with _room_index
       const photos = [
         ...finalJob.photosBefore.map((url, i) => ({ photo_url: url, photo_type: 'before' as const, display_order: i })),
         ...finalJob.photosAfter.map((url, i) => ({ photo_url: url, photo_type: 'after' as const, display_order: i })),
@@ -83,10 +83,11 @@ export default function Execution() {
             photo_type: 'verification' as const,
             display_order: pIdx,
             caption: section.title,
+            _room_index: sIdx,
           }));
         }),
         // Checklist item verification photos
-        ...finalJob.checklist.flatMap(section =>
+        ...finalJob.checklist.flatMap((section, sIdx) =>
           section.items
             .filter(item => item.photoUrl)
             .map((item, idx) => ({
@@ -94,6 +95,7 @@ export default function Execution() {
               photo_type: 'verification' as const,
               display_order: idx,
               caption: `${section.title}: ${item.label}`,
+              _room_index: sIdx,
             }))
         ),
       ];
@@ -111,7 +113,7 @@ export default function Execution() {
         cleaning_date: finalJob.date,
         start_time: finalJob.startTime || null,
         end_time: finalJob.endTime || null,
-        status: 'draft',
+        status: 'published',
         total_tasks: totalTasks,
         completed_tasks: completedTasks,
         total_photos: photos.length,
