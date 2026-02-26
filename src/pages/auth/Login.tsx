@@ -55,6 +55,15 @@ const inputFocusVariants = {
   },
 };
 
+const translateAuthError = (msg: string): string => {
+  if (msg.includes('Email not confirmed')) return 'E-mail não confirmado. Verifique sua caixa de entrada.';
+  if (msg.includes('Invalid login credentials')) return 'E-mail ou senha incorretos.';
+  if (msg.includes('User already registered')) return 'Este e-mail já está cadastrado. Tente fazer login.';
+  if (msg.includes('Password should be')) return 'A senha deve ter no mínimo 6 caracteres.';
+  if (msg.includes('rate limit') || msg.includes('security purposes')) return 'Muitas tentativas. Aguarde alguns segundos e tente novamente.';
+  return msg;
+};
+
 export default function Login() {
   const { t } = useLanguage();
   const navigate = useNavigate();
@@ -78,16 +87,16 @@ export default function Login() {
       if (authMode === 'SIGN_IN') {
         const { error } = await signIn(email, password);
         if (error) {
-          setError(error.message);
+          setError(translateAuthError(error.message));
         } else {
           navigate('/dashboard');
         }
       } else {
         const { error } = await signUp(email, password);
         if (error) {
-          setError(error.message);
+          setError(translateAuthError(error.message));
         } else {
-          setError('Verifique seu email para confirmar a conta!');
+          setError('Conta criada com sucesso! Fazendo login...');
         }
       }
     } catch (err: any) {
