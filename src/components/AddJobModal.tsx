@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { format } from 'date-fns';
-import { Briefcase } from 'lucide-react';
+import { Briefcase, X, Plus } from 'lucide-react';
 import { Job, JobStatus, Property, Employee } from '@/types';
 import { STANDARD_CHECKLIST_TEMPLATE } from '@/data/checklist';
 import {
@@ -45,7 +45,6 @@ export const AddJobModal = ({ open, onOpenChange, properties, employees = [], on
   const handleSubmit = () => {
     if (!formData.selectedDate || !formData.propertyId) return;
 
-    // Use property's custom checklist if available, otherwise use default
     const checklistTemplate = selectedProperty?.checklistTemplate && selectedProperty.checklistTemplate.length > 0
       ? JSON.parse(JSON.stringify(selectedProperty.checklistTemplate))
       : JSON.parse(JSON.stringify(STANDARD_CHECKLIST_TEMPLATE));
@@ -94,37 +93,45 @@ export const AddJobModal = ({ open, onOpenChange, properties, employees = [], on
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[340px] rounded-2xl max-h-[85vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Briefcase className="w-5 h-5 text-primary" />
+      <DialogContent className="glass-panel border-0 max-w-[95%] sm:max-w-[380px] rounded-2xl max-h-[90vh] p-0 overflow-hidden">
+        {/* Header */}
+        <DialogHeader className="p-5 pb-3">
+          <DialogTitle className="flex items-center gap-3 text-lg">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-lg">
+              <Briefcase className="w-5 h-5 text-primary-foreground" />
+            </div>
             {t('jobModal.title')}
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-xs text-muted-foreground mt-1">
             {t('jobModal.description')}
           </DialogDescription>
         </DialogHeader>
 
-        <JobFormFields
-          formData={formData}
-          onChange={handleFormChange}
-          properties={properties}
-          employees={employees}
-        />
+        <div className="px-5 pb-4 overflow-y-auto max-h-[60vh]">
+          <JobFormFields
+            formData={formData}
+            onChange={handleFormChange}
+            properties={properties}
+            employees={employees}
+          />
+        </div>
 
-        <div className="flex gap-2 pt-2">
+        {/* Footer */}
+        <div className="flex gap-2 p-5 pt-3 border-t border-border/50">
           <Button
             variant="outline"
-            className="flex-1"
+            className="flex-1 h-11 rounded-xl"
             onClick={() => onOpenChange(false)}
           >
+            <X className="w-4 h-4 mr-1.5" />
             {t('common.cancel')}
           </Button>
           <Button
-            className="flex-1"
+            className="flex-1 h-11 rounded-xl bg-gradient-to-r from-primary to-primary/80 shadow-lg shadow-primary/25"
             onClick={handleSubmit}
             disabled={!isValid}
           >
+            <Plus className="w-4 h-4 mr-1.5" />
             {t('jobModal.create')}
           </Button>
         </div>

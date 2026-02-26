@@ -55,12 +55,15 @@ export const JobFormFields = ({ formData, onChange, properties, employees = [], 
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
 
+  const inputClass = "h-11 rounded-xl bg-card/50 border-muted";
+  const selectTriggerClass = "h-11 rounded-xl bg-card/50 border-muted";
+
   return (
     <div className="space-y-4">
       {/* Property Selection */}
-      <div className="space-y-2">
-        <Label className="flex items-center gap-2">
-          <MapPin className="w-4 h-4 text-muted-foreground" />
+      <div className="space-y-1.5">
+        <Label className="field-label flex items-center gap-1.5">
+          <MapPin className="w-3.5 h-3.5" />
           Property
         </Label>
         <Select 
@@ -68,7 +71,7 @@ export const JobFormFields = ({ formData, onChange, properties, employees = [], 
           onValueChange={(v) => onChange({ propertyId: v })}
           disabled={disablePropertyChange}
         >
-          <SelectTrigger>
+          <SelectTrigger className={selectTriggerClass}>
             <SelectValue placeholder="Select a property" />
           </SelectTrigger>
           <SelectContent>
@@ -82,19 +85,20 @@ export const JobFormFields = ({ formData, onChange, properties, employees = [], 
       </div>
 
       {/* Client Name */}
-      <div className="space-y-2">
-        <Label>Client Name (optional)</Label>
+      <div className="space-y-1.5">
+        <Label className="field-label">Client Name (optional)</Label>
         <Input
           value={formData.clientName}
           onChange={(e) => onChange({ clientName: e.target.value })}
           placeholder={selectedProperty?.name || 'Enter client name'}
+          className={inputClass}
         />
       </div>
 
       {/* Date Picker */}
-      <div className="space-y-2">
-        <Label className="flex items-center gap-2">
-          <CalendarIcon className="w-4 h-4 text-muted-foreground" />
+      <div className="space-y-1.5">
+        <Label className="field-label flex items-center gap-1.5">
+          <CalendarIcon className="w-3.5 h-3.5" />
           Date
         </Label>
         <Popover>
@@ -103,6 +107,7 @@ export const JobFormFields = ({ formData, onChange, properties, employees = [], 
               variant="outline"
               className={cn(
                 "w-full justify-start text-left font-normal",
+                inputClass,
                 !formData.selectedDate && "text-muted-foreground"
               )}
             >
@@ -123,16 +128,16 @@ export const JobFormFields = ({ formData, onChange, properties, employees = [], 
       </div>
 
       {/* Time Window Selection */}
-      <div className="space-y-2">
-        <Label className="flex items-center gap-2">
-          <Clock className="w-4 h-4 text-muted-foreground" />
+      <div className="space-y-1.5">
+        <Label className="field-label flex items-center gap-1.5">
+          <Clock className="w-3.5 h-3.5" />
           Janela de Horário
         </Label>
         <div className="grid grid-cols-2 gap-2">
           <div className="space-y-1">
-            <p className="text-xs text-muted-foreground">Check-out (início)</p>
+            <p className="text-[10px] text-muted-foreground ml-1">Check-out (início)</p>
             <Select value={formData.checkoutTime || formData.selectedTime} onValueChange={(v) => onChange({ checkoutTime: v, selectedTime: v })}>
-              <SelectTrigger>
+              <SelectTrigger className={selectTriggerClass}>
                 <SelectValue placeholder="Check-out" />
               </SelectTrigger>
               <SelectContent className="max-h-[200px]">
@@ -145,9 +150,9 @@ export const JobFormFields = ({ formData, onChange, properties, employees = [], 
             </Select>
           </div>
           <div className="space-y-1">
-            <p className="text-xs text-muted-foreground">Check-in (prazo)</p>
+            <p className="text-[10px] text-muted-foreground ml-1">Check-in (prazo)</p>
             <Select value={formData.checkinDeadline || ''} onValueChange={(v) => onChange({ checkinDeadline: v })}>
-              <SelectTrigger>
+              <SelectTrigger className={selectTriggerClass}>
                 <SelectValue placeholder="Check-in" />
               </SelectTrigger>
               <SelectContent className="max-h-[200px]">
@@ -163,16 +168,16 @@ export const JobFormFields = ({ formData, onChange, properties, employees = [], 
       </div>
 
       {/* Job Type */}
-      <div className="space-y-2">
-        <Label className="flex items-center gap-2">
-          <Briefcase className="w-4 h-4 text-muted-foreground" />
+      <div className="space-y-1.5">
+        <Label className="field-label flex items-center gap-1.5">
+          <Briefcase className="w-3.5 h-3.5" />
           Job Type
         </Label>
         <Select 
           value={formData.jobType} 
           onValueChange={(v) => onChange({ jobType: v as typeof JOB_TYPES[number] })}
         >
-          <SelectTrigger>
+          <SelectTrigger className={selectTriggerClass}>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -186,9 +191,9 @@ export const JobFormFields = ({ formData, onChange, properties, employees = [], 
       </div>
 
       {/* Price */}
-      <div className="space-y-2">
-        <Label className="flex items-center gap-2">
-          <DollarSign className="w-4 h-4 text-muted-foreground" />
+      <div className="space-y-1.5">
+        <Label className="field-label flex items-center gap-1.5">
+          <DollarSign className="w-3.5 h-3.5" />
           Price (optional)
         </Label>
         <Input
@@ -196,21 +201,22 @@ export const JobFormFields = ({ formData, onChange, properties, employees = [], 
           value={formData.price}
           onChange={(e) => onChange({ price: e.target.value })}
           placeholder={selectedProperty?.basePrice?.toString() || '0'}
+          className={inputClass}
         />
       </div>
 
       {/* Employee Assignment */}
       {employees.length > 0 && (
-        <div className="space-y-2">
-          <Label className="flex items-center gap-2">
-            <Users className="w-4 h-4 text-muted-foreground" />
+        <div className="space-y-1.5">
+          <Label className="field-label flex items-center gap-1.5">
+            <Users className="w-3.5 h-3.5" />
             Assign To (optional)
           </Label>
           <Select 
             value={formData.assignedTo || "unassigned"} 
             onValueChange={(v) => onChange({ assignedTo: v === "unassigned" ? "" : v })}
           >
-            <SelectTrigger>
+            <SelectTrigger className={selectTriggerClass}>
               <SelectValue placeholder="Select team member" />
             </SelectTrigger>
             <SelectContent>
