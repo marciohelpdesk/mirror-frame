@@ -3,7 +3,7 @@ import { useReports, CleaningReport } from '@/hooks/useReports';
 import { useJobs } from '@/hooks/useJobs';
 import { useProfile } from '@/hooks/useProfile';
 import { PageLoader } from '@/lib/routes';
-import { PageHeader } from '@/components/PageHeader';
+
 import { useLanguage } from '@/contexts/LanguageContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FileText, Share2, Eye, Trash2, Plus, Clock, CheckCircle, Link2, ExternalLink, Sparkles } from 'lucide-react';
@@ -111,8 +111,18 @@ export default function Reports() {
   if (isLoading) return <PageLoader />;
 
   return (
-    <div className="px-4 pt-safe" style={{ paddingTop: 'max(env(safe-area-inset-top, 0px), 1rem)' }}>
-      <PageHeader title={t('nav.reports')} subtitle={t('reports.subtitle')} />
+    <div className="flex flex-col h-full relative z-10 overflow-y-auto hide-scrollbar pb-32">
+      {/* Header */}
+      <div className="sticky top-0 z-20 bg-card border-b border-border/30 px-6 py-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">{t('reports.subtitle')}</p>
+            <h1 className="font-bold text-foreground text-2xl">{t('nav.reports')}</h1>
+          </div>
+        </div>
+      </div>
+
+      <div className="px-6 pt-4">
 
       {/* Unreported completed jobs */}
       {unreportedJobs.length > 0 && (
@@ -235,6 +245,7 @@ export default function Reports() {
             </motion.div>
           ))}
         </AnimatePresence>
+      </div>
       </div>
     </div>
   );

@@ -61,6 +61,12 @@ const translations: Record<Language, Record<string, string>> = {
     'properties.bedrooms': 'Bedrooms',
     'properties.bathrooms': 'Bathrooms',
     'properties.searchPlaceholder': 'Search properties...',
+    'properties.manage': 'Manage',
+    'properties.active': 'Active',
+    'properties.today': 'Today',
+    'properties.all': 'All',
+    'properties.maintenance': 'Maintenance',
+    'properties.occupied': 'Occupied',
     
     // Settings
     'settings.title': 'Settings',
@@ -439,6 +445,12 @@ const translations: Record<Language, Record<string, string>> = {
     'properties.bedrooms': 'Quartos',
     'properties.bathrooms': 'Banheiros',
     'properties.searchPlaceholder': 'Buscar propriedades...',
+    'properties.manage': 'Gerenciar',
+    'properties.active': 'Ativas',
+    'properties.today': 'Hoje',
+    'properties.all': 'Todas',
+    'properties.maintenance': 'Manutenção',
+    'properties.occupied': 'Ocupadas',
     
     // Settings
     'settings.title': 'Configurações',

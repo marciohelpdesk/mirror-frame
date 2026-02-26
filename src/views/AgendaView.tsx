@@ -138,7 +138,10 @@ export const AgendaView = ({ jobs, properties, employees = [], onStartJob, onVie
       {/* Header */}
       <header className="sticky top-0 z-20 bg-card border-b border-border/30 px-6 py-4">
         <div className="flex items-center justify-between mb-4">
-          <h1 className="font-bold text-foreground text-2xl">{t('agenda.title')}</h1>
+          <div>
+            <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">{t('agenda.subtitle')}</p>
+            <h1 className="font-bold text-foreground text-2xl">{t('agenda.title')}</h1>
+          </div>
           <button
             onClick={() => setShowAddJobModal(true)}
             className="px-4 py-2 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground rounded-full text-sm font-semibold flex items-center gap-2 shadow-lg shadow-primary/30"

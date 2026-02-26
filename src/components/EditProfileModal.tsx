@@ -16,6 +16,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { PhotoUploader } from '@/components/PhotoUploader';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { Camera } from 'lucide-react';
 
 interface EditProfileModalProps {
   isOpen: boolean;
@@ -98,9 +100,17 @@ export const EditProfileModal = ({ isOpen, onClose, userProfile, onUpdateProfile
         
         <div className="space-y-5 px-5 pb-5 overflow-y-auto max-h-[65vh]">
           {/* Avatar Section */}
-          <div className="flex flex-col items-center glass-panel p-4">
-            {user?.id ? (
-              <div className="w-28">
+          <div className="flex flex-col items-center glass-panel p-4 gap-3">
+            <Avatar className="w-24 h-24 border-4 border-primary/20 shadow-lg">
+              {avatar ? (
+                <AvatarImage src={avatar} alt="Profile" />
+              ) : null}
+              <AvatarFallback className="bg-muted">
+                <User size={32} className="text-muted-foreground" />
+              </AvatarFallback>
+            </Avatar>
+            {user?.id && (
+              <div className="w-full max-w-[200px]">
                 <PhotoUploader
                   userId={user.id}
                   category="profile"
@@ -108,15 +118,13 @@ export const EditProfileModal = ({ isOpen, onClose, userProfile, onUpdateProfile
                   onPhotoChange={(url) => setAvatar(url || '')}
                   aspectRatio="square"
                   placeholder={t('profile.changePhoto')}
-                  className="rounded-full overflow-hidden"
+                  className="rounded-xl"
                 />
               </div>
-            ) : (
-              <div className="w-24 h-24 rounded-full border-4 border-primary/20 shadow-lg overflow-hidden bg-muted flex items-center justify-center">
-                <User size={32} className="text-muted-foreground" />
-              </div>
             )}
-            <p className="text-xs text-muted-foreground mt-2">{t('profile.changePhoto')}</p>
+            {!user?.id && (
+              <p className="text-xs text-muted-foreground">{t('profile.changePhoto')}</p>
+            )}
           </div>
 
           {/* Form Fields */}
