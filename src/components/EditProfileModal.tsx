@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { z } from 'zod';
-import { User } from 'lucide-react';
+import { User, Save, X } from 'lucide-react';
 import { UserProfile } from '@/types';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useToast } from '@/hooks/use-toast';
@@ -10,7 +10,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -42,7 +41,6 @@ export const EditProfileModal = ({ isOpen, onClose, userProfile, onUpdateProfile
   const [avatar, setAvatar] = useState(userProfile.avatar);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Reset form when modal opens with new profile data
   useEffect(() => {
     if (isOpen) {
       setName(userProfile.name);
@@ -87,16 +85,22 @@ export const EditProfileModal = ({ isOpen, onClose, userProfile, onUpdateProfile
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>{t('profile.edit')}</DialogTitle>
+      <DialogContent className="glass-panel border-0 max-w-[95%] sm:max-w-md max-h-[90vh] rounded-2xl p-0 overflow-hidden">
+        {/* Header */}
+        <DialogHeader className="p-5 pb-3">
+          <DialogTitle className="flex items-center gap-3 text-lg">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-lg">
+              <User className="w-5 h-5 text-primary-foreground" />
+            </div>
+            {t('profile.edit')}
+          </DialogTitle>
         </DialogHeader>
         
-        <div className="space-y-6 py-4">
+        <div className="space-y-5 px-5 pb-5 overflow-y-auto max-h-[65vh]">
           {/* Avatar Section */}
-          <div className="flex flex-col items-center">
+          <div className="flex flex-col items-center glass-panel p-4">
             {user?.id ? (
-              <div className="w-32">
+              <div className="w-28">
                 <PhotoUploader
                   userId={user.id}
                   category="profile"
@@ -117,48 +121,48 @@ export const EditProfileModal = ({ isOpen, onClose, userProfile, onUpdateProfile
 
           {/* Form Fields */}
           <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">{t('profile.name')}</Label>
+            <div className="space-y-1.5">
+              <Label htmlFor="name" className="field-label">{t('profile.name')}</Label>
               <Input
                 id="name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder={t('profile.name')}
-                className={errors.name ? 'border-destructive' : ''}
+                className={`h-11 rounded-xl bg-card/50 border-muted ${errors.name ? 'border-destructive' : ''}`}
               />
               {errors.name && <p className="text-xs text-destructive">{errors.name}</p>}
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="email">{t('profile.email')}</Label>
+            <div className="space-y-1.5">
+              <Label htmlFor="email" className="field-label">{t('profile.email')}</Label>
               <Input
                 id="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder={t('profile.email')}
-                className={errors.email ? 'border-destructive' : ''}
-                disabled // Email comes from auth
+                className={`h-11 rounded-xl bg-card/50 border-muted ${errors.email ? 'border-destructive' : ''}`}
+                disabled
               />
               {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="phone">{t('profile.phone')}</Label>
+            <div className="space-y-1.5">
+              <Label htmlFor="phone" className="field-label">{t('profile.phone')}</Label>
               <Input
                 id="phone"
                 type="tel"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder={t('profile.phone')}
-                className={errors.phone ? 'border-destructive' : ''}
+                className={`h-11 rounded-xl bg-card/50 border-muted ${errors.phone ? 'border-destructive' : ''}`}
               />
               {errors.phone && <p className="text-xs text-destructive">{errors.phone}</p>}
             </div>
 
-            <div className="space-y-2">
-              <Label>{t('profile.role')}</Label>
-              <div className="flex items-center h-10">
+            <div className="space-y-1.5">
+              <Label className="field-label">{t('profile.role')}</Label>
+              <div className="flex items-center h-11 px-3 rounded-xl bg-card/50 border border-muted">
                 <Badge variant="secondary" className="text-xs font-medium">
                   {userProfile.role}
                 </Badge>
@@ -167,14 +171,24 @@ export const EditProfileModal = ({ isOpen, onClose, userProfile, onUpdateProfile
           </div>
         </div>
 
-        <DialogFooter className="gap-2">
-          <Button variant="outline" onClick={onClose}>
+        {/* Footer */}
+        <div className="flex gap-2 p-5 pt-3 border-t border-border/50">
+          <Button
+            variant="outline"
+            className="flex-1 h-11 rounded-xl"
+            onClick={onClose}
+          >
+            <X className="w-4 h-4 mr-1.5" />
             {t('common.cancel')}
           </Button>
-          <Button onClick={handleSubmit}>
+          <Button
+            className="flex-1 h-11 rounded-xl bg-gradient-to-r from-primary to-primary/80 shadow-lg shadow-primary/25"
+            onClick={handleSubmit}
+          >
+            <Save className="w-4 h-4 mr-1.5" />
             {t('common.save')}
           </Button>
-        </DialogFooter>
+        </div>
       </DialogContent>
     </Dialog>
   );
