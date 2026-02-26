@@ -1,91 +1,76 @@
 
 
-## Plano: Corrigir branding dos links compartilhados e tornar 100% externos
+## Plano: Corrigir links de compartilhamento de relatórios (404 e dados vazios)
 
-### Problema identificado
+### Problemas identificados
 
-Quando um link de relatório é compartilhado via iMessage/WhatsApp, o preview mostra **branding da Lovable** ("Build apps and websites by chatting with AI") ao invés da marca Pur. Isso acontece porque:
+Testei a edge function diretamente e ela **funciona** -- retorna HTML correto com OG tags da Pur. Porém existem **2 problemas** que causam o erro 404:
 
-1. **Crawlers não executam JavaScript** — os meta tags OG dinâmicos definidos no `PublicReport.tsx` via `useEffect` nunca são lidos pelos crawlers do iMessage/WhatsApp
-2. **O domínio do link é `lovableproject.com`** — que tem seus próprios meta tags padrão da plataforma Lovable
-3. **O link `window.location.origin/r/TOKEN`** aponta para o domínio Lovable, exigindo que o app SPA carregue primeiro
+#### Problema 1: URL de redirecionamento errada
+
+A edge function redireciona para `https://mirror-frame.lovable.app/r/{token}`, mas o domínio publicado real do app é `https://maisonpur.lovable.app`. O domínio `mirror-frame` não existe, causando 404.
+
+#### Problema 2: Políticas de acesso bloqueiam leitura pública
+
+Todas as políticas de SELECT na tabela `cleaning_reports` são **restritivas** (RESTRICTIVE). No PostgreSQL, quando não há nenhuma política permissiva, o acesso é negado por padrão. Isso significa que usuários anônimos (sem login) **não conseguem ler** os relatórios publicados, mesmo com a política "Public can view reports by token" -- porque ela é restritiva e não permissiva.
+
+O mesmo problema afeta `report_rooms` e `report_photos`.
 
 ### Solução
 
-Criar uma **backend function** (`share-report`) que serve HTML server-side com os meta tags OG corretos da Pur. O link compartilhado passará a ser uma URL externa do backend, não do domínio Lovable.
-
-#### 1. Nova backend function: `share-report`
+#### 1. Corrigir APP_URL na edge function
 
 **Arquivo:** `supabase/functions/share-report/index.ts`
 
-A function:
-- Recebe o token como query param (`?token=XXX`)
-- Busca os dados do relatório no banco (nome da propriedade, nome da cleaner, data)
-- Retorna uma página HTML completa com:
-  - OG title: `Pur | {Nome da Propriedade}`
-  - OG description: `Visit Report — {Nome da Cleaner}`
-  - OG image: a imagem `og-image.png` da Pur (hospedada no domínio publicado `mirror-frame.lovable.app/og-image.png`)
-  - Meta refresh + redirect JavaScript para a página do relatório no app publicado (`https://mirror-frame.lovable.app/r/TOKEN`)
-- Não requer autenticação (público)
-- Usa `SUPABASE_SERVICE_ROLE_KEY` para acessar os dados
-
-#### 2. Atualizar o link de compartilhamento
-
-**Arquivo:** `src/pages/Reports.tsx`
-
-Mudar `handleCopyLink` para gerar a URL da backend function ao invés do domínio SPA:
-
-```text
-// Antes:
-const url = `${window.location.origin}/r/${report.public_token}`;
-
-// Depois:
-const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/share-report?token=${report.public_token}`;
+Mudar de:
+```
+const APP_URL = "https://mirror-frame.lovable.app";
+```
+Para:
+```
+const APP_URL = "https://maisonpur.lovable.app";
 ```
 
-Também atualizar o botão "View" que abre em nova aba para continuar abrindo via `/r/TOKEN` (já que é visualização direta, não compartilhamento).
+#### 2. Corrigir políticas RLS para acesso público
 
-#### 3. Atualizar o fluxo de auto-share pós-execução
+Criar uma migração SQL que:
+- Remove a política restritiva "Public can view reports by token" da tabela `cleaning_reports`
+- Cria uma política **permissiva** para leitura pública de relatórios publicados (filtrada por `status = 'published'`)
+- Remove as políticas restritivas "Public can view report rooms/photos by report" 
+- Cria políticas **permissivas** equivalentes nas tabelas `report_rooms` e `report_photos`
+- Também converte a política "Users can view their own reports" para permissiva
 
-Verificar se existe algum outro lugar no código que gere links de compartilhamento e atualizar para usar a mesma URL externa.
+```sql
+-- cleaning_reports: trocar restritivas por permissivas
+DROP POLICY "Public can view reports by token" ON cleaning_reports;
+DROP POLICY "Users can view their own reports" ON cleaning_reports;
+CREATE POLICY "Users can view own reports" ON cleaning_reports FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Public can view published reports" ON cleaning_reports FOR SELECT TO anon USING (status = 'published');
 
-### Fluxo resultante
+-- report_rooms: trocar restritiva por permissiva  
+DROP POLICY "Public can view report rooms by report" ON report_rooms;
+CREATE POLICY "Public can view report rooms" ON report_rooms FOR SELECT TO anon USING (
+  EXISTS (SELECT 1 FROM cleaning_reports WHERE id = report_rooms.report_id AND status = 'published')
+);
 
-```text
-Cliente recebe link → Backend function serve HTML com OG tags Pur
-                    → Crawler lê meta tags corretos (preview com branding Pur)
-                    → Browser redireciona para mirror-frame.lovable.app/r/TOKEN
-                    → Página pública carrega sem login
-```
-
-### Detalhes técnicos
-
-**Edge function HTML response (simplificado):**
-```text
-<html>
-<head>
-  <meta property="og:title" content="Pur | {property_name}" />
-  <meta property="og:description" content="Visit Report — {cleaner_name}" />
-  <meta property="og:image" content="https://mirror-frame.lovable.app/og-image.png" />
-  <meta http-equiv="refresh" content="0;url=https://mirror-frame.lovable.app/r/{token}" />
-</head>
-<body>
-  <script>window.location.href = "https://mirror-frame.lovable.app/r/{token}";</script>
-</body>
-</html>
-```
-
-**Config (verify_jwt = false para acesso público):**
-```text
-[functions.share-report]
-verify_jwt = false
+-- report_photos: trocar restritiva por permissiva
+DROP POLICY "Public can view report photos by report" ON report_photos;
+CREATE POLICY "Public can view report photos" ON report_photos FOR SELECT TO anon USING (
+  EXISTS (SELECT 1 FROM cleaning_reports WHERE id = report_photos.report_id AND status = 'published')
+);
 ```
 
 ### Arquivos a editar/criar
 
 | Arquivo | Mudança |
 |---|---|
-| `supabase/functions/share-report/index.ts` | Nova function que serve HTML com OG tags da Pur |
-| `supabase/config.toml` | Adicionar `[functions.share-report] verify_jwt = false` |
-| `src/pages/Reports.tsx` | Atualizar `handleCopyLink` para usar URL da backend function |
+| `supabase/functions/share-report/index.ts` | Corrigir APP_URL para `maisonpur.lovable.app` |
+| Nova migração SQL | Converter políticas SELECT de restritivas para permissivas |
+
+### Resultado esperado
+
+Ao copiar o link e enviar por WhatsApp/iMessage:
+1. Preview mostra branding Pur com nome da propriedade
+2. Clicando, redireciona para `maisonpur.lovable.app/r/{token}`
+3. Página carrega os dados do relatório **sem necessidade de login**
 
