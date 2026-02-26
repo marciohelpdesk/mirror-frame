@@ -1,145 +1,68 @@
 
-# Plano de Correção: Desalinhamento do BottomNav e Problemas Visuais
-
-## Resumo do Problema
-
-O indicador animado (retângulo azul) no menu de navegação inferior (BottomNav) fica desalinhado quando você alterna entre as abas (Dashboard, Agenda, Properties, Settings). Isso acontece porque o cálculo da posição não considera corretamente o padding do container e a posição real de cada botão.
-
-## Causa Raiz
-
-O código atual calcula a posição do indicador assim:
-```text
-x = activeIndex * itemWidth + 6
-```
-
-Porém, isso assume que:
-- Os itens começam na posição 0 do container
-- Cada item tem largura = container / número de itens
-
-Na realidade:
-- O container tem padding horizontal (`px-3` = 12px de cada lado)
-- Os botões estão distribuídos com `justify-between`
-- A posição real de cada botão varia dinamicamente
-
-## Solução Proposta
-
-### 1. Medir as Posições Reais dos Botões
-
-Em vez de calcular matematicamente, vamos **medir a posição real de cada botão** usando refs e atualizar o indicador com base nessas medidas.
+Diagnóstico rápido (por que você não consegue logar)
+- O app está tentando autenticar no projeto Supabase antigo: `uxafpoydheganjeuktuf`.
+- Os logs de rede mostram `POST /auth/v1/token` nesse domínio e erro `TypeError: Load failed`.
+- Você passou outro projeto (`ouzxkijkhkmjvnhaswhi`) e o código ainda não está apontando para ele.
+- Resultado: o login falha antes mesmo de validar email/senha.
 
 ```text
-Antes (cálculo aproximado):
-┌──────────────────────────────────┐
-│ px-3 │ Btn1 │ Btn2 │ Btn3 │ Btn4 │ px-3 │
-│      │  ▭   │      │      │      │      │
-└──────────────────────────────────┘
-        ↑ indicador calculado (errado)
-
-Depois (medição real):
-┌──────────────────────────────────┐
-│ px-3 │ Btn1 │ Btn2 │ Btn3 │ Btn4 │ px-3 │
-│      │ ▭    │      │      │      │      │
-└──────────────────────────────────┘
-        ↑ indicador baseado em getBoundingClientRect()
+Tela Login
+  -> useAuth.signInWithPassword()
+    -> supabase client (URL antiga: uxaf...)
+      -> request /auth/v1/token
+        -> Load failed (sem resposta útil)
+          -> usuário não autentica
 ```
 
-### 2. Arquivos a Modificar
+Plano passo a passo para fazer o app funcionar novamente
 
-| Arquivo | Mudança |
-|---------|---------|
-| `src/components/layout/BottomNavRouter.tsx` | Refatorar sistema de posicionamento do indicador |
-| `src/components/ForgotPasswordModal.tsx` | Adicionar `forwardRef` para eliminar warnings |
+1) Corrigir conexão do Supabase no frontend
+- Atualizar `src/integrations/supabase/client.ts` para usar a URL e anon key do projeto correto (`ouzxkijkhkmjvnhaswhi`).
+- Isso é o bloqueio principal do login hoje.
 
-### 3. Detalhes Técnicos
+2) Remover dependências hardcoded do projeto antigo
+- Atualizar `src/components/CalendarSyncSection.tsx` (hoje usa URL fixa `uxaf...` no iCal).
+- Trocar para montar a URL com base na configuração ativa do Supabase (evita quebrar de novo em migrações).
 
-#### BottomNavRouter.tsx
+3) Alinhar configuração do Supabase CLI/projeto
+- Atualizar `supabase/config.toml` (`project_id`) para o projeto atual.
+- Assim migrations/edge functions passam a ser aplicadas no projeto certo.
 
-**Mudanças principais:**
+4) Validar backend mínimo no Supabase novo
+- No dashboard Supabase:
+  - Authentication > Providers: Email habilitado.
+  - Authentication > URL Configuration:
+    - Site URL
+    - Redirect URLs com seus domínios de preview/publicação (`lovableproject.com`, `lovable.app`, domínio publicado).
+- Confirmar que schema/tabelas e políticas existem (especialmente `profiles`, `jobs`, `properties`, trigger `handle_new_user`, RLS).
+- Se o projeto novo estiver “limpo”, aplicar as migrations existentes da pasta `supabase/migrations`.
 
-1. **Criar refs para cada item de navegação**:
-   - Array de refs para os 4 botões
-   - Medir posição e largura de cada um
+5) Melhorar tratamento de erro no login (para não ficar “cego”)
+- Em `src/pages/auth/Login.tsx` e/ou `src/hooks/useAuth.ts`, capturar exceções de rede e mostrar mensagem clara:
+  - Exemplo: “Falha de conexão com o servidor de autenticação. Verifique URL/keys do Supabase.”
+- Hoje, em erro de rede puro, a UI pode não exibir motivo suficiente.
 
-2. **Calcular posição relativa ao container**:
-   - Usar `getBoundingClientRect()` do item ativo
-   - Subtrair a posição do container pai
-   - Aplicar valores medidos no indicador
+6) Corrigir warning secundário de ref (não bloqueia login, mas precisa limpar)
+- Warning atual: “Function components cannot be given refs… ForgotPasswordModal”.
+- Ajustar `ForgotPasswordModal` para compatibilidade com Framer Motion/AnimatePresence (via `forwardRef` ou estrutura de render sem passar ref para function component).
 
-3. **Atualizar em resize e mudança de rota**:
-   - `ResizeObserver` já existe, expandir para re-medir posições
-   - Recalcular quando `activeIndex` mudar
+Checklist de validação (fim a fim)
+1. Abrir `/login`.
+2. Tentar login com usuário existente (deve autenticar e navegar para `/dashboard`).
+3. Testar criar conta (signup) e confirmar comportamento de email.
+4. Testar “Esqueci minha senha” e fluxo `/reset-password`.
+5. Verificar se não há mais `Load failed` para `/auth/v1/token` no domínio antigo.
+6. Verificar se iCal gera link no domínio correto do Supabase atual.
 
-```text
-// Pseudocódigo da nova lógica:
+Arquivos que serão alterados na implementação
+- `src/integrations/supabase/client.ts` (obrigatório)
+- `src/components/CalendarSyncSection.tsx` (obrigatório)
+- `supabase/config.toml` (obrigatório para deploy/migrations/funções)
+- `src/pages/auth/Login.tsx` e possivelmente `src/hooks/useAuth.ts` (melhoria de erro)
+- `src/components/ForgotPasswordModal.tsx` (warning de ref)
 
-const itemRefs = useRef<(HTMLAnchorElement | null)[]>([]);
-const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0 });
-
-useLayoutEffect(() => {
-  const updateIndicator = () => {
-    const activeItem = itemRefs.current[activeIndex];
-    const container = navRef.current;
-    
-    if (activeItem && container) {
-      const itemRect = activeItem.getBoundingClientRect();
-      const containerRect = container.getBoundingClientRect();
-      
-      setIndicatorStyle({
-        left: itemRect.left - containerRect.left,
-        width: itemRect.width,
-      });
-    }
-  };
-  
-  updateIndicator();
-  // + ResizeObserver para re-medir em resize
-}, [activeIndex]);
-```
-
-4. **Remover cálculos matemáticos antigos**:
-   - Eliminar `itemWidth = navWidth / navItems.length`
-   - Substituir por medidas reais
-
-5. **Animar com `left` em vez de `x`**:
-   - Usar `animate={{ left: indicatorStyle.left, width: indicatorStyle.width }}`
-   - Mais preciso e compatível com posicionamento absoluto
-
-#### ForgotPasswordModal.tsx
-
-Adicionar `forwardRef` para eliminar o warning no console:
-
-```text
-// De:
-export const ForgotPasswordModal = ({ isOpen, onClose }: Props) => { ... }
-
-// Para:
-export const ForgotPasswordModal = forwardRef<HTMLDivElement, Props>(
-  ({ isOpen, onClose }, ref) => { ... }
-);
-```
-
-### 4. Resultado Esperado
-
-| Antes | Depois |
-|-------|--------|
-| Indicador azul desalinhado ao clicar em Settings/Properties | Indicador alinha perfeitamente com o botão ativo |
-| Warning no console sobre refs | Sem warnings |
-| Cálculo matemático impreciso | Medição real das posições DOM |
-
-### 5. Benefícios Adicionais
-
-- **Responsividade**: O indicador se adapta corretamente a qualquer largura de tela
-- **Robustez**: Funciona mesmo se os botões tiverem larguras diferentes
-- **Manutenibilidade**: Código mais previsível e fácil de debugar
-
-## Sobre a UI que "Sumiu"
-
-Com base no código atual, a navegação inferior é escondida propositalmente em:
-- `/execution/*`
-- `/login`
-- `/reset-password`
-- `/finance`
-- `/properties/*` (rotas de detalhe)
-- `/jobs/*` (rotas de detalhe)
-
-Isso parece **intencional** para dar mais espaço em páginas de detalhe/execução. Se não for o comportamento desejado, posso ajustar a lista de `hideNavPaths`.
+Detalhes técnicos (se você quiser saber o “por trás”)
+- O erro `Load failed` indica falha de transporte/rede (não é “senha inválida” do Supabase).
+- Como a request está indo para `uxaf...`, a correção não é no formulário de login; é na origem de autenticação (URL/key/projeto).
+- A anon key é publicável (pode ficar no frontend), mas precisa corresponder exatamente ao projeto da URL.
+- Se trocar de projeto Supabase, não basta só login: qualquer URL fixa (como Edge Function iCal) e `project_id` também precisam ser sincronizados.
