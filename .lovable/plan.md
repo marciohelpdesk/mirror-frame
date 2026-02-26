@@ -1,68 +1,72 @@
 
-Diagnóstico rápido (por que você não consegue logar)
-- O app está tentando autenticar no projeto Supabase antigo: `uxafpoydheganjeuktuf`.
-- Os logs de rede mostram `POST /auth/v1/token` nesse domínio e erro `TypeError: Load failed`.
-- Você passou outro projeto (`ouzxkijkhkmjvnhaswhi`) e o código ainda não está apontando para ele.
-- Resultado: o login falha antes mesmo de validar email/senha.
 
-```text
-Tela Login
-  -> useAuth.signInWithPassword()
-    -> supabase client (URL antiga: uxaf...)
-      -> request /auth/v1/token
-        -> Load failed (sem resposta útil)
-          -> usuário não autentica
-```
+## Diagnóstico Completo
 
-Plano passo a passo para fazer o app funcionar novamente
+### Problema 1: Tabelas e Storage Bucket nao existem no Supabase
 
-1) Corrigir conexão do Supabase no frontend
-- Atualizar `src/integrations/supabase/client.ts` para usar a URL e anon key do projeto correto (`ouzxkijkhkmjvnhaswhi`).
-- Isso é o bloqueio principal do login hoje.
+Todas as requisicoes de rede retornam **404** com `"Could not find the table 'public.profiles' in the schema cache"` (e o mesmo para `properties`, `jobs`, `employees`, `cleaning_reports`). O upload de fotos retorna `"Bucket not found"`.
 
-2) Remover dependências hardcoded do projeto antigo
-- Atualizar `src/components/CalendarSyncSection.tsx` (hoje usa URL fixa `uxaf...` no iCal).
-- Trocar para montar a URL com base na configuração ativa do Supabase (evita quebrar de novo em migrações).
+Isso confirma que o projeto Supabase `okgqcakjjkbijcuaevgx` esta **vazio** -- as migrations nunca foram aplicadas nele. O login funciona (autenticacao OK), mas nenhuma tabela ou bucket de storage existe.
 
-3) Alinhar configuração do Supabase CLI/projeto
-- Atualizar `supabase/config.toml` (`project_id`) para o projeto atual.
-- Assim migrations/edge functions passam a ser aplicadas no projeto certo.
+### Problema 2: Modais de formulario sem glassmorphism
 
-4) Validar backend mínimo no Supabase novo
-- No dashboard Supabase:
-  - Authentication > Providers: Email habilitado.
-  - Authentication > URL Configuration:
-    - Site URL
-    - Redirect URLs com seus domínios de preview/publicação (`lovableproject.com`, `lovable.app`, domínio publicado).
-- Confirmar que schema/tabelas e políticas existem (especialmente `profiles`, `jobs`, `properties`, trigger `handle_new_user`, RLS).
-- Se o projeto novo estiver “limpo”, aplicar as migrations existentes da pasta `supabase/migrations`.
+Os modais `EditProfileModal` e `AddJobModal` usam estilos padrao sem o visual glassmorphism que ja existe no `AddPropertyModal`.
 
-5) Melhorar tratamento de erro no login (para não ficar “cego”)
-- Em `src/pages/auth/Login.tsx` e/ou `src/hooks/useAuth.ts`, capturar exceções de rede e mostrar mensagem clara:
-  - Exemplo: “Falha de conexão com o servidor de autenticação. Verifique URL/keys do Supabase.”
-- Hoje, em erro de rede puro, a UI pode não exibir motivo suficiente.
+---
 
-6) Corrigir warning secundário de ref (não bloqueia login, mas precisa limpar)
-- Warning atual: “Function components cannot be given refs… ForgotPasswordModal”.
-- Ajustar `ForgotPasswordModal` para compatibilidade com Framer Motion/AnimatePresence (via `forwardRef` ou estrutura de render sem passar ref para function component).
+## Plano de Implementacao
 
-Checklist de validação (fim a fim)
-1. Abrir `/login`.
-2. Tentar login com usuário existente (deve autenticar e navegar para `/dashboard`).
-3. Testar criar conta (signup) e confirmar comportamento de email.
-4. Testar “Esqueci minha senha” e fluxo `/reset-password`.
-5. Verificar se não há mais `Load failed` para `/auth/v1/token` no domínio antigo.
-6. Verificar se iCal gera link no domínio correto do Supabase atual.
+### Passo 1 -- Criar migration unificada para provisionar o banco
 
-Arquivos que serão alterados na implementação
-- `src/integrations/supabase/client.ts` (obrigatório)
-- `src/components/CalendarSyncSection.tsx` (obrigatório)
-- `supabase/config.toml` (obrigatório para deploy/migrations/funções)
-- `src/pages/auth/Login.tsx` e possivelmente `src/hooks/useAuth.ts` (melhoria de erro)
-- `src/components/ForgotPasswordModal.tsx` (warning de ref)
+Criar uma **nova migration** que consolida todo o schema necessario (com `IF NOT EXISTS` / `ON CONFLICT` para ser idempotente):
 
-Detalhes técnicos (se você quiser saber o “por trás”)
-- O erro `Load failed` indica falha de transporte/rede (não é “senha inválida” do Supabase).
-- Como a request está indo para `uxaf...`, a correção não é no formulário de login; é na origem de autenticação (URL/key/projeto).
-- A anon key é publicável (pode ficar no frontend), mas precisa corresponder exatamente ao projeto da URL.
-- Se trocar de projeto Supabase, não basta só login: qualquer URL fixa (como Edge Function iCal) e `project_id` também precisam ser sincronizados.
+- Tabelas: `user_roles`, `profiles`, `properties`, `jobs`, `employees`, `inventory`, `cleaning_reports`, `report_rooms`, `report_photos`
+- Colunas extras de jobs: `checkout_time`, `checkin_deadline`, `report_pdf_url`
+- Trigger `handle_new_user` (auto-cria profile + role no signup)
+- Trigger `update_updated_at_column`
+- Todas as RLS policies
+- Storage buckets: `cleaning-photos` e `report-photos` (publicos)
+- Storage RLS policies
+- Indices
+
+Isso resolve todos os erros 404 de tabelas e "Bucket not found" de uma so vez.
+
+### Passo 2 -- Melhorar visual do EditProfileModal
+
+Aplicar o mesmo padrao glassmorphism do `AddPropertyModal`:
+- `glass-panel border-0 max-w-[95%] max-h-[90vh] rounded-2xl p-0 overflow-hidden` no DialogContent
+- Header com icone gradiente
+- Campos com `rounded-xl bg-card/50 border-muted`
+- Botoes com gradiente e sombra
+- Secoes agrupadas em `glass-panel`
+
+### Passo 3 -- Melhorar visual do AddJobModal
+
+Mesmo tratamento:
+- DialogContent com `glass-panel border-0 rounded-2xl`
+- Header com icone Briefcase em container gradiente
+- Botoes estilizados com sombra e gradiente
+- Max-width ajustado para `max-w-[95%]` (consistente com outros modais)
+
+### Passo 4 -- Melhorar visual do JobFormFields
+
+Revisar os campos do formulario de agendamento para usar:
+- Inputs com `h-11 rounded-xl bg-card/50 border-muted`
+- Labels com icones
+- Secoes agrupadas em `glass-panel`
+
+---
+
+### Arquivos a serem criados/editados
+
+| Arquivo | Acao |
+|---|---|
+| `supabase/migrations/20260226030000_provision_full_schema.sql` | **Criar** -- migration completa |
+| `src/components/EditProfileModal.tsx` | **Editar** -- glassmorphism |
+| `src/components/AddJobModal.tsx` | **Editar** -- glassmorphism |
+| `src/components/JobFormFields.tsx` | **Editar** -- campos estilizados |
+
+### Detalhes tecnicos
+
+A migration usara `CREATE TABLE IF NOT EXISTS` e `INSERT ... ON CONFLICT DO NOTHING` para buckets, garantindo que possa rodar em qualquer estado do banco. As policies usam `DROP POLICY IF EXISTS` antes de `CREATE POLICY` para evitar conflitos. O trigger `handle_new_user` usa `CREATE OR REPLACE` e `DROP TRIGGER IF EXISTS` seguido de `CREATE TRIGGER`.
+
