@@ -624,21 +624,23 @@ export const PropertyDetailsView = ({ property, onBack, onUpdate, onDelete }: Pr
           )}
         </motion.div>
 
-        {/* Delete Property Button */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="pt-4"
-        >
-          <button
-            onClick={() => setShowDeleteDialog(true)}
-            className="w-full py-4 text-destructive font-bold text-xs uppercase tracking-widest hover:text-destructive/80 transition-colors flex items-center justify-center gap-2 glass-panel"
+        {/* Delete Property Button - Admin only */}
+        {user?.email && ['kamila13petters@gmail.com', 'marcioasoliveira@hotmail.com'].includes(user.email.toLowerCase()) && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            className="pt-4"
           >
-            <Trash2 size={16} />
-            Delete Property
-          </button>
-        </motion.div>
+            <button
+              onClick={() => setShowDeleteDialog(true)}
+              className="w-full py-4 text-destructive font-bold text-xs uppercase tracking-widest hover:text-destructive/80 transition-colors flex items-center justify-center gap-2 glass-panel"
+            >
+              <Trash2 size={16} />
+              Delete Property
+            </button>
+          </motion.div>
+        )}
       </div>
 
       {/* Delete Confirmation Dialog */}
