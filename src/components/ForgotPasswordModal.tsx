@@ -1,4 +1,4 @@
-import { useState, forwardRef } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Mail, ArrowLeft, CheckCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -9,7 +9,7 @@ interface ForgotPasswordModalProps {
   onClose: () => void;
 }
 
-export const ForgotPasswordModal = forwardRef<HTMLDivElement, ForgotPasswordModalProps>(({ isOpen, onClose }, ref) => {
+export const ForgotPasswordModal = ({ isOpen, onClose }: ForgotPasswordModalProps) => {
   const { t } = useLanguage();
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -146,6 +146,4 @@ export const ForgotPasswordModal = forwardRef<HTMLDivElement, ForgotPasswordModa
       )}
     </AnimatePresence>
   );
-});
-
-ForgotPasswordModal.displayName = 'ForgotPasswordModal';
+};
