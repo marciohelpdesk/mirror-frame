@@ -1,72 +1,58 @@
 
 
-## Diagnóstico Completo
+## Diagnostic Results
 
-### Problema 1: Tabelas e Storage Bucket nao existem no Supabase
+### What IS working
+- Database: All 9 tables are correctly provisioned (profiles, properties, jobs, employees, inventory, cleaning_reports, report_rooms, report_photos, user_roles)
+- Storage: Both buckets (cleaning-photos, report-photos) exist and are public
+- Triggers: `on_auth_user_created` is active on auth.users, auto-creating profile + role on signup
+- RLS: All policies are correctly applied
+- The migration ran successfully -- the database is complete
 
-Todas as requisicoes de rede retornam **404** com `"Could not find the table 'public.profiles' in the schema cache"` (e o mesmo para `properties`, `jobs`, `employees`, `cleaning_reports`). O upload de fotos retorna `"Bucket not found"`.
+### Root Cause of Login Failure
 
-Isso confirma que o projeto Supabase `okgqcakjjkbijcuaevgx` esta **vazio** -- as migrations nunca foram aplicadas nele. O login funciona (autenticacao OK), mas nenhuma tabela ou bucket de storage existe.
+Both registered accounts (`kamila13petters@gmail.com` and `marcioasoliveira@hotmail.com`) have **`email_confirmed_at = NULL`**. The authentication system requires email confirmation before allowing login. This is why every login attempt returns "Invalid login credentials" or "Email not confirmed".
 
-### Problema 2: Modais de formulario sem glassmorphism
+This is NOT a database or migration issue -- the schema is fully intact.
 
-Os modais `EditProfileModal` e `AddJobModal` usam estilos padrao sem o visual glassmorphism que ja existe no `AddPropertyModal`.
+### Secondary Issue
 
----
-
-## Plano de Implementacao
-
-### Passo 1 -- Criar migration unificada para provisionar o banco
-
-Criar uma **nova migration** que consolida todo o schema necessario (com `IF NOT EXISTS` / `ON CONFLICT` para ser idempotente):
-
-- Tabelas: `user_roles`, `profiles`, `properties`, `jobs`, `employees`, `inventory`, `cleaning_reports`, `report_rooms`, `report_photos`
-- Colunas extras de jobs: `checkout_time`, `checkin_deadline`, `report_pdf_url`
-- Trigger `handle_new_user` (auto-cria profile + role no signup)
-- Trigger `update_updated_at_column`
-- Todas as RLS policies
-- Storage buckets: `cleaning-photos` e `report-photos` (publicos)
-- Storage RLS policies
-- Indices
-
-Isso resolve todos os erros 404 de tabelas e "Bucket not found" de uma so vez.
-
-### Passo 2 -- Melhorar visual do EditProfileModal
-
-Aplicar o mesmo padrao glassmorphism do `AddPropertyModal`:
-- `glass-panel border-0 max-w-[95%] max-h-[90vh] rounded-2xl p-0 overflow-hidden` no DialogContent
-- Header com icone gradiente
-- Campos com `rounded-xl bg-card/50 border-muted`
-- Botoes com gradiente e sombra
-- Secoes agrupadas em `glass-panel`
-
-### Passo 3 -- Melhorar visual do AddJobModal
-
-Mesmo tratamento:
-- DialogContent com `glass-panel border-0 rounded-2xl`
-- Header com icone Briefcase em container gradiente
-- Botoes estilizados com sombra e gradiente
-- Max-width ajustado para `max-w-[95%]` (consistente com outros modais)
-
-### Passo 4 -- Melhorar visual do JobFormFields
-
-Revisar os campos do formulario de agendamento para usar:
-- Inputs com `h-11 rounded-xl bg-card/50 border-muted`
-- Labels com icones
-- Secoes agrupadas em `glass-panel`
+`CalendarSyncSection.tsx` still references the old project URL (`okgqcakjjkbijcuaevgx`) instead of the current one (`ebafqcanwdqomqcrifrj`).
 
 ---
 
-### Arquivos a serem criados/editados
+## Plan
 
-| Arquivo | Acao |
+### Step 1 -- Enable auto-confirm for email signups
+
+Use the `configure-auth` tool to enable automatic email confirmation. This will:
+- Allow existing unconfirmed users to sign in immediately after re-registering or resetting password
+- Allow future signups to work without email verification delays
+
+### Step 2 -- Confirm existing users via SQL
+
+Run an UPDATE on `auth.users` to set `email_confirmed_at = now()` for the two existing unconfirmed accounts so they can log in immediately with their current passwords.
+
+### Step 3 -- Fix CalendarSyncSection URL
+
+Update `src/components/CalendarSyncSection.tsx` to use `import.meta.env.VITE_SUPABASE_URL` instead of the hardcoded old project URL.
+
+### Step 4 -- Improve login error messages
+
+Update `src/pages/auth/Login.tsx` to translate common backend error codes (`email_not_confirmed`, `invalid_credentials`) into clear Portuguese messages instead of showing raw English error text.
+
+---
+
+### Files to edit
+
+| File | Action |
 |---|---|
-| `supabase/migrations/20260226030000_provision_full_schema.sql` | **Criar** -- migration completa |
-| `src/components/EditProfileModal.tsx` | **Editar** -- glassmorphism |
-| `src/components/AddJobModal.tsx` | **Editar** -- glassmorphism |
-| `src/components/JobFormFields.tsx` | **Editar** -- campos estilizados |
+| Auth config | Configure auto-confirm via tool |
+| `auth.users` table | Update `email_confirmed_at` for existing users |
+| `src/components/CalendarSyncSection.tsx` | Fix hardcoded URL |
+| `src/pages/auth/Login.tsx` | Better error messages in Portuguese |
 
-### Detalhes tecnicos
+### Technical details
 
-A migration usara `CREATE TABLE IF NOT EXISTS` e `INSERT ... ON CONFLICT DO NOTHING` para buckets, garantindo que possa rodar em qualquer estado do banco. As policies usam `DROP POLICY IF EXISTS` antes de `CREATE POLICY` para evitar conflitos. O trigger `handle_new_user` usa `CREATE OR REPLACE` e `DROP TRIGGER IF EXISTS` seguido de `CREATE TRIGGER`.
+The `configure-auth` tool will set `enable_signup = true` and auto-confirm emails. The SQL update will use `UPDATE auth.users SET email_confirmed_at = now() WHERE email_confirmed_at IS NULL` to unlock existing accounts. The CalendarSyncSection fix will use `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ical-feed` for portability.
 
