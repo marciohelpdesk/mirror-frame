@@ -76,6 +76,23 @@ export default function PublicReport() {
     if (report?.language && translations[report.language]) setLang(report.language);
   }, [report]);
 
+  // Dynamic OG meta tags for shared links
+  useEffect(() => {
+    if (!report) return;
+    const ogUrl = 'https://mirror-frame.lovable.app/og-image.png';
+    document.title = `Pur | ${report.property_name}`;
+    const setMeta = (attr: string, val: string, content: string) => {
+      let el = document.querySelector(`meta[${attr}="${val}"]`) as HTMLMetaElement;
+      if (!el) { el = document.createElement('meta'); el.setAttribute(attr.split('=')[0], val); document.head.appendChild(el); }
+      el.setAttribute('content', content);
+    };
+    setMeta('property', 'og:title', `Pur | ${report.property_name}`);
+    setMeta('property', 'og:description', `${t('visitReport')} — ${report.cleaner_name}`);
+    setMeta('property', 'og:image', ogUrl);
+    setMeta('name', 'twitter:image', ogUrl);
+    return () => { document.title = 'Pur — Cleaning Management'; };
+  }, [report, t]);
+
   // Close lang menu on outside click
   useEffect(() => {
     const handler = () => setLangMenuOpen(false);
