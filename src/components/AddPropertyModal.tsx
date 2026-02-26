@@ -126,9 +126,11 @@ export const AddPropertyModal = ({ open, onOpenChange, onAdd, userId }: AddPrope
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="glass-panel border-0 max-w-[95%] max-h-[90vh] rounded-2xl p-0 overflow-hidden">
-        <DialogHeader className="px-4 pt-4 pb-2">
-          <DialogTitle className="text-lg font-semibold text-foreground flex items-center gap-2">
-            <Home className="w-5 h-5 text-primary" />
+        <DialogHeader className="px-5 pt-5 pb-3">
+          <DialogTitle className="text-lg font-bold text-foreground flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-lg shadow-primary/25">
+              <Home className="w-5 h-5 text-primary-foreground" />
+            </div>
             {t('propertyModal.title')}
           </DialogTitle>
         </DialogHeader>
@@ -460,18 +462,18 @@ export const AddPropertyModal = ({ open, onOpenChange, onAdd, userId }: AddPrope
             </div>
 
             {/* Actions */}
-            <div className="p-4 border-t border-muted flex gap-3">
+            <div className="p-4 border-t border-border/20 flex gap-3 bg-card/50 backdrop-blur-sm">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => onOpenChange(false)}
-                className="flex-1 h-12 rounded-xl"
+                className="flex-1 h-12 rounded-2xl border-border/40 hover:bg-muted/60"
               >
                 {t('common.cancel')}
               </Button>
               <Button
                 type="submit"
-                className="flex-1 h-12 rounded-xl bg-primary text-primary-foreground gap-2"
+                className="flex-1 h-12 rounded-2xl bg-gradient-to-r from-primary to-primary/80 text-primary-foreground gap-2 shadow-lg shadow-primary/25 hover:shadow-xl transition-all"
               >
                 <Plus className="w-4 h-4" />
                 {t('propertyModal.addProperty')}

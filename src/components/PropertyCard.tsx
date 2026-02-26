@@ -1,4 +1,4 @@
-import { MapPin, Bed, Bath, Heart, ChevronRight, CalendarCheck, Clock } from 'lucide-react';
+import { MapPin, Bed, Bath, ChevronRight, CalendarCheck, Clock } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { forwardRef } from 'react';
 import { Property } from '@/types';
@@ -27,11 +27,11 @@ export const PropertyCard = forwardRef<HTMLDivElement, PropertyCardProps>(
         exit={{ opacity: 0, y: -8 }}
         whileTap={{ scale: 0.98 }}
         transition={{ type: "spring", stiffness: 400, damping: 30 }}
-        className="bg-card rounded-3xl overflow-hidden shadow-sm border border-border/50 cursor-pointer group hover:-translate-y-2 hover:shadow-xl transition-all duration-400"
+        className="glass-panel overflow-hidden cursor-pointer group hover:-translate-y-1 hover:shadow-xl transition-all duration-300"
         onClick={() => onClick(property.id)}
       >
         {/* Image Section */}
-        <div className="relative h-48 bg-gradient-to-br from-muted to-muted/50 overflow-hidden">
+        <div className="relative h-44 bg-gradient-to-br from-muted to-muted/50 overflow-hidden">
           {property.photo ? (
             <img 
               src={property.photo} 
@@ -45,69 +45,67 @@ export const PropertyCard = forwardRef<HTMLDivElement, PropertyCardProps>(
             </div>
           )}
           
+          {/* Gradient overlay at bottom for readability */}
+          <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/40 to-transparent" />
+
           {/* Status Badge */}
-          <div className="absolute top-4 left-4">
-            <span className={`px-3 py-1.5 rounded-full ${status.color} text-primary-foreground text-xs font-semibold shadow-lg flex items-center gap-1`}>
+          <div className="absolute top-3 left-3">
+            <span className={`px-2.5 py-1 rounded-full ${status.color} text-primary-foreground text-[10px] font-bold shadow-lg flex items-center gap-1 uppercase tracking-wider`}>
               {status.icon} {status.label}
             </span>
           </div>
 
-          {/* Property specs overlay */}
-          <div className="absolute bottom-4 left-4 right-4 flex items-center gap-2">
+          {/* Property specs overlay - positioned safely */}
+          <div className="absolute bottom-3 left-3 right-3 flex items-center gap-2">
             {property.bedrooms !== undefined && (
-              <span className="px-2 py-1 rounded-lg bg-white/90 backdrop-blur text-xs font-semibold text-foreground flex items-center gap-1">
-                <Bed size={12} /> {property.bedrooms}
+              <span className="px-2 py-1 rounded-lg bg-white/90 backdrop-blur-sm text-[11px] font-bold text-foreground flex items-center gap-1 shadow-sm">
+                <Bed size={11} /> {property.bedrooms}
               </span>
             )}
             {property.bathrooms !== undefined && (
-              <span className="px-2 py-1 rounded-lg bg-white/90 backdrop-blur text-xs font-semibold text-foreground flex items-center gap-1">
-                <Bath size={12} /> {property.bathrooms}
+              <span className="px-2 py-1 rounded-lg bg-white/90 backdrop-blur-sm text-[11px] font-bold text-foreground flex items-center gap-1 shadow-sm">
+                <Bath size={11} /> {property.bathrooms}
+              </span>
+            )}
+            {property.basePrice && (
+              <span className="ml-auto px-2.5 py-1 rounded-lg bg-primary/90 backdrop-blur-sm text-[11px] font-bold text-primary-foreground shadow-sm">
+                ${property.basePrice}
               </span>
             )}
           </div>
         </div>
 
         {/* Content */}
-        <div className="p-5">
-          <div className="flex items-start justify-between mb-3">
-            <div className="flex-1 min-w-0">
-              <h3 className="font-bold text-foreground text-lg mb-1 truncate">{property.name}</h3>
-              <p className="text-muted-foreground text-sm flex items-center gap-1">
-                <MapPin size={14} className="text-primary shrink-0" />
-                <span className="truncate">{property.address}</span>
-              </p>
-            </div>
-            {property.basePrice && (
-              <div className="text-right shrink-0 ml-3">
-                <p className="text-2xl font-bold text-primary">${property.basePrice}</p>
-                <p className="text-[10px] text-muted-foreground">por limpeza</p>
-              </div>
-            )}
+        <div className="p-4">
+          <div className="mb-3">
+            <h3 className="font-bold text-foreground text-base mb-1 truncate">{property.name}</h3>
+            <p className="text-muted-foreground text-xs flex items-center gap-1.5">
+              <MapPin size={12} className="text-primary shrink-0" />
+              <span className="truncate">{property.address}</span>
+            </p>
           </div>
 
-          {/* Next cleaning info */}
-          <div className="flex items-center gap-3 p-3 rounded-2xl bg-gradient-to-r from-primary/5 to-success/5 border border-primary/10 mb-4">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center text-primary-foreground shrink-0">
-              <CalendarCheck size={18} />
+          {/* Service type info */}
+          <div className="flex items-center gap-3 p-3 rounded-2xl bg-gradient-to-r from-primary/5 to-accent/30 border border-primary/10">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center text-primary-foreground shrink-0 shadow-md shadow-primary/20">
+              <CalendarCheck size={16} />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">Status</p>
-              <p className="font-semibold text-foreground text-sm truncate">
+              <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-widest">Serviço</p>
+              <p className="font-semibold text-foreground text-xs truncate">
                 {property.serviceType}
               </p>
             </div>
-            <div className="w-8 h-8 rounded-xl bg-card flex items-center justify-center text-primary shadow-sm">
-              <ChevronRight size={16} />
+            <div className="w-7 h-7 rounded-lg bg-card/80 flex items-center justify-center text-primary shrink-0 shadow-sm border border-border/30">
+              <ChevronRight size={14} />
             </div>
           </div>
 
           {/* Footer */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold flex items-center gap-1">
-                <Clock size={12} /> {property.type}
-              </span>
-            </div>
+          <div className="flex items-center mt-3">
+            <span className="px-3 py-1.5 rounded-full bg-primary/8 text-primary text-[10px] font-bold flex items-center gap-1.5 border border-primary/10">
+              <Clock size={11} /> {property.type}
+            </span>
           </div>
         </div>
       </motion.article>

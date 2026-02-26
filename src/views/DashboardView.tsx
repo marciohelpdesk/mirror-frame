@@ -9,7 +9,6 @@ import {
 import { Job, JobStatus, Property } from '@/types';
 import { PageHeader } from '@/components/PageHeader';
 import { WeeklyProgress } from '@/components/dashboard/WeeklyProgress';
-import { TipsBanner } from '@/components/dashboard/TipsBanner';
 import { AnimatedCounter } from '@/components/dashboard/AnimatedCounter';
 import { useLanguage } from '@/contexts/LanguageContext';
 import purLogo from '@/assets/pur-logo.png';
@@ -119,15 +118,6 @@ export const DashboardView = ({ jobs, properties = [], onStartJob, onViewJob, us
       </div>
 
       <div className="px-6 py-4 relative z-10 space-y-6">
-        {/* Tips Banner */}
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.05 }}
-        >
-          <TipsBanner />
-        </motion.div>
-
         {/* KPI Cards Grid - 2x2 */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
