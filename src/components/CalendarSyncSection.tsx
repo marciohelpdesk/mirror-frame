@@ -15,7 +15,7 @@ export const CalendarSyncSection = ({ userId }: CalendarSyncSectionProps) => {
   const [copied, setCopied] = useState(false);
   
   const icalUrl = userId 
-    ? `https://ouzxkijkhkmjvnhaswhi.supabase.co/functions/v1/ical-feed?user_id=${userId}`
+    ? `https://okgqcakjjkbijcuaevgx.supabase.co/functions/v1/ical-feed?user_id=${userId}`
     : '';
 
   const handleCopy = async () => {
