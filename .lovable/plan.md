@@ -1,76 +1,48 @@
 
 
-## Plano: Corrigir links de compartilhamento de relatórios (404 e dados vazios)
+## Plano: Modernizar checklist de execucao + upload multiplo + edicao de itens/ambientes
 
-### Problemas identificados
+### Mudancas
 
-Testei a edge function diretamente e ela **funciona** -- retorna HTML correto com OG tags da Pur. Porém existem **2 problemas** que causam o erro 404:
+#### 1. Upload multiplo de fotos em paralelo
 
-#### Problema 1: URL de redirecionamento errada
+**`src/components/execution/ChecklistStep.tsx`** (RoomPhotosSection):
+- O input ja aceita `multiple`, mas o processamento e sequencial (`for...await`). Mudar para `Promise.all` para upload paralelo.
+- Adicionar estado de contagem de uploads em progresso ao inves de booleano simples.
 
-A edge function redireciona para `https://mirror-frame.lovable.app/r/{token}`, mas o domínio publicado real do app é `https://maisonpur.lovable.app`. O domínio `mirror-frame` não existe, causando 404.
+**`src/components/execution/PhotoCaptureStep.tsx`**:
+- Mesmo problema — processar fotos em paralelo com `Promise.all` ao inves de sequencial.
 
-#### Problema 2: Políticas de acesso bloqueiam leitura pública
+#### 2. Adicionar/remover itens do checklist durante execucao
 
-Todas as políticas de SELECT na tabela `cleaning_reports` são **restritivas** (RESTRICTIVE). No PostgreSQL, quando não há nenhuma política permissiva, o acesso é negado por padrão. Isso significa que usuários anônimos (sem login) **não conseguem ler** os relatórios publicados, mesmo com a política "Public can view reports by token" -- porque ela é restritiva e não permissiva.
+**`src/components/execution/ChecklistStep.tsx`**:
+- Adicionar botao "+" no final da lista de itens de cada ambiente para criar novo item inline (input de texto + confirmar).
+- Adicionar botao de delete (X) em cada item card (apenas itens nao completados, com swipe ou icone).
+- Adicionar botao "+" nas tabs de ambiente para criar novo ambiente/secao.
+- Adicionar botao de delete no header do ambiente ativo (apenas se vazio ou com confirmacao).
 
-O mesmo problema afeta `report_rooms` e `report_photos`.
+#### 3. Modernizar visual do checklist
 
-### Solução
+**`src/components/execution/ChecklistStep.tsx`**:
 
-#### 1. Corrigir APP_URL na edge function
+Redesign completo dos item cards:
+- Trocar o layout flat por cards com micro-interacoes mais sofisticadas
+- Checkbox: trocar circulo simples por checkbox animado com efeito de "ripple" ao completar
+- Adicionar icone contextual por tipo de tarefa (limpeza, organizacao, etc.)
+- Card completado: adicionar gradiente sutil de fundo verde com animacao de slide
+- Melhorar tipografia: label em `text-sm font-medium`, sublabel para "Foto obrigatoria" mais integrado
+- Thumbnail da foto verificacao: maior (w-11 h-11), com borda glow quando presente
+- Adicionar contador de progresso animado no header da secao (barra circular mini ao lado do titulo)
+- Transicao entre abas: slide horizontal ao invez de fade simples
+- Botao "Proximo Ambiente": gradiente animado com seta pulsante
+- Room tabs: adicionar indicador de progresso circular mini dentro de cada tab
+- Photo grid do ambiente: layout masonry 2 colunas com aspect-ratio variado, animacao de entrada staggered
+- Botoes Camera/Galeria no grid de fotos: icones maiores com labels mais visiveis
 
-**Arquivo:** `supabase/functions/share-report/index.ts`
+#### 4. Arquivos a editar
 
-Mudar de:
-```
-const APP_URL = "https://mirror-frame.lovable.app";
-```
-Para:
-```
-const APP_URL = "https://maisonpur.lovable.app";
-```
-
-#### 2. Corrigir políticas RLS para acesso público
-
-Criar uma migração SQL que:
-- Remove a política restritiva "Public can view reports by token" da tabela `cleaning_reports`
-- Cria uma política **permissiva** para leitura pública de relatórios publicados (filtrada por `status = 'published'`)
-- Remove as políticas restritivas "Public can view report rooms/photos by report" 
-- Cria políticas **permissivas** equivalentes nas tabelas `report_rooms` e `report_photos`
-- Também converte a política "Users can view their own reports" para permissiva
-
-```sql
--- cleaning_reports: trocar restritivas por permissivas
-DROP POLICY "Public can view reports by token" ON cleaning_reports;
-DROP POLICY "Users can view their own reports" ON cleaning_reports;
-CREATE POLICY "Users can view own reports" ON cleaning_reports FOR SELECT USING (auth.uid() = user_id);
-CREATE POLICY "Public can view published reports" ON cleaning_reports FOR SELECT TO anon USING (status = 'published');
-
--- report_rooms: trocar restritiva por permissiva  
-DROP POLICY "Public can view report rooms by report" ON report_rooms;
-CREATE POLICY "Public can view report rooms" ON report_rooms FOR SELECT TO anon USING (
-  EXISTS (SELECT 1 FROM cleaning_reports WHERE id = report_rooms.report_id AND status = 'published')
-);
-
--- report_photos: trocar restritiva por permissiva
-DROP POLICY "Public can view report photos by report" ON report_photos;
-CREATE POLICY "Public can view report photos" ON report_photos FOR SELECT TO anon USING (
-  EXISTS (SELECT 1 FROM cleaning_reports WHERE id = report_photos.report_id AND status = 'published')
-);
-```
-
-### Arquivos a editar/criar
-
-| Arquivo | Mudança |
+| Arquivo | Mudanca |
 |---|---|
-| `supabase/functions/share-report/index.ts` | Corrigir APP_URL para `maisonpur.lovable.app` |
-| Nova migração SQL | Converter políticas SELECT de restritivas para permissivas |
-
-### Resultado esperado
-
-Ao copiar o link e enviar por WhatsApp/iMessage:
-1. Preview mostra branding Pur com nome da propriedade
-2. Clicando, redireciona para `maisonpur.lovable.app/r/{token}`
-3. Página carrega os dados do relatório **sem necessidade de login**
+| `src/components/execution/ChecklistStep.tsx` | Redesign visual, upload paralelo, add/remove items e ambientes |
+| `src/components/execution/PhotoCaptureStep.tsx` | Upload paralelo de fotos |
 
