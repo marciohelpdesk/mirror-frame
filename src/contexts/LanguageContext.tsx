@@ -149,6 +149,9 @@ const translations: Record<Language, Record<string, string>> = {
     'exec.checklist.tasks': 'tasks',
     'exec.checklist.of': 'of',
     'exec.checklist.remaining': 'remaining',
+    'exec.checklist.pause': 'Pause',
+    'exec.checklist.nextRoom': 'Next Room',
+    'exec.checklist.finalize': 'Finish',
     
     // Execution - Damage Report
     'exec.damage.title': 'Damage Report',
@@ -533,6 +536,9 @@ const translations: Record<Language, Record<string, string>> = {
     'exec.checklist.tasks': 'tarefas',
     'exec.checklist.of': 'de',
     'exec.checklist.remaining': 'restante(s)',
+    'exec.checklist.pause': 'Pausar',
+    'exec.checklist.nextRoom': 'Próxima Sala',
+    'exec.checklist.finalize': 'Finalizar',
     
     // Execution - Damage Report
     'exec.damage.title': 'Registro de Danos',
