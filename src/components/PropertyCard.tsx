@@ -1,4 +1,5 @@
-import { MapPin, Bed, Bath, ChevronRight, CalendarCheck, Clock } from 'lucide-react';
+import { MapPin, Bed, Bath, ChevronRight, CalendarCheck, Clock, ExternalLink } from 'lucide-react';
+import { openAddressInMaps } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import { forwardRef } from 'react';
 import { Property } from '@/types';
@@ -79,10 +80,14 @@ export const PropertyCard = forwardRef<HTMLDivElement, PropertyCardProps>(
         <div className="p-4">
           <div className="mb-3">
             <h3 className="font-bold text-foreground text-base mb-1 truncate">{property.name}</h3>
-            <p className="text-muted-foreground text-xs flex items-center gap-1.5">
+            <button
+              onClick={(e) => { e.stopPropagation(); openAddressInMaps(property.address); }}
+              className="text-muted-foreground text-xs flex items-center gap-1.5 underline decoration-dotted hover:text-primary transition-colors"
+            >
               <MapPin size={12} className="text-primary shrink-0" />
               <span className="truncate">{property.address}</span>
-            </p>
+              <ExternalLink size={9} className="opacity-50 shrink-0" />
+            </button>
           </div>
 
           {/* Service type info */}

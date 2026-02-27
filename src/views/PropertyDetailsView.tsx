@@ -28,6 +28,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { Property, Room, ChecklistSection } from '@/types';
 import { RoomManagement } from '@/components/RoomManagement';
 import { ChecklistTemplateEditor } from '@/components/ChecklistTemplateEditor';
+import { openAddressInMaps } from '@/lib/utils';
 import { PhotoUploader } from '@/components/PhotoUploader';
 import { useAuth } from '@/hooks/useAuth';
 import {
@@ -187,7 +188,13 @@ export const PropertyDetailsView = ({ property, onBack, onUpdate, onDelete }: Pr
                   className="flex-1 text-sm text-muted-foreground bg-white/10 rounded-lg px-2 py-1 border border-white/20 focus:outline-none focus:border-secondary"
                 />
               ) : (
-                <p className="text-sm text-muted-foreground">{property.address}</p>
+                <button
+                  onClick={() => openAddressInMaps(property.address)}
+                  className="text-sm text-muted-foreground underline decoration-dotted hover:text-primary transition-colors flex items-center gap-1"
+                >
+                  {property.address}
+                  <ExternalLink size={11} className="opacity-50" />
+                </button>
               )}
             </div>
             

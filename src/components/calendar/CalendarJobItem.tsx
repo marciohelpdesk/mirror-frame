@@ -1,5 +1,6 @@
 import { forwardRef } from 'react';
-import { Clock, MapPin, GripVertical, Users } from 'lucide-react';
+import { Clock, MapPin, GripVertical, Users, ExternalLink } from 'lucide-react';
+import { openAddressInMaps } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import { Job, JobStatus } from '@/types';
 
@@ -125,10 +126,14 @@ export const CalendarJobItem = forwardRef<HTMLDivElement, CalendarJobItemProps>(
               
               {/* Details */}
               <div className="space-y-1.5 text-xs text-muted-foreground">
-                <div className="flex items-center gap-1.5">
+                <button
+                  onClick={(e) => { e.stopPropagation(); openAddressInMaps(job.address); }}
+                  className="flex items-center gap-1.5 underline decoration-dotted hover:text-primary transition-colors"
+                >
                   <MapPin size={12} className="shrink-0" />
                   <span className="truncate">{job.address}</span>
-                </div>
+                  <ExternalLink size={9} className="opacity-50 shrink-0" />
+                </button>
                 {job.assignedTo && (
                   <div className="flex items-center gap-1.5">
                     <Users size={12} className="shrink-0" />

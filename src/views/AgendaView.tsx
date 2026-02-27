@@ -2,8 +2,9 @@ import { useState, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ChevronLeft, ChevronRight, Calendar, CalendarDays, CalendarRange, Plus,
-  MapPin, Bed, Bath, Play, Clock, Check, AlertTriangle, Car
+  MapPin, Bed, Bath, Play, Clock, Check, AlertTriangle, Car, ExternalLink
 } from 'lucide-react';
+import { openAddressInMaps } from '@/lib/utils';
 import { Job, JobStatus, Property, Employee } from '@/types';
 import { DayView } from '@/components/calendar/DayView';
 import { WeekView } from '@/components/calendar/WeekView';
@@ -319,9 +320,13 @@ export const AgendaView = ({ jobs, properties, employees = [], onStartJob, onVie
                             </span>
                           </div>
                           <h3 className="font-bold text-foreground text-lg">{job.clientName}</h3>
-                          <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                          <button
+                            onClick={(e) => { e.stopPropagation(); openAddressInMaps(job.address); }}
+                            className="text-xs text-muted-foreground mt-1 flex items-center gap-1 underline decoration-dotted hover:text-primary transition-colors"
+                          >
                             <MapPin size={10} /> {job.address}
-                          </p>
+                            <ExternalLink size={9} className="opacity-50" />
+                          </button>
                         </div>
                         <div className="text-right">
                           {job.price && <p className="font-bold text-primary text-xl">${job.price}</p>}
