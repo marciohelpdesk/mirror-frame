@@ -108,7 +108,7 @@ export default function Execution() {
         property_name: finalJob.clientName,
         property_address: finalJob.address,
         service_type: finalJob.type,
-        cleaner_name: profile?.name || 'Cleaner',
+        cleaner_name: profile?.name || 'Kamila Petters',
         cleaning_date: finalJob.date,
         start_time: finalJob.startTime || null,
         end_time: finalJob.endTime || null,
@@ -126,7 +126,7 @@ export default function Execution() {
         const pdfBlob = await generateCleaningReport({
           job: finalJob,
           inventory,
-          responsibleName: profile?.name || 'Cleaner',
+          responsibleName: profile?.name || 'Kamila Petters',
           lostAndFound: finalJob.lostAndFound || [],
           publicToken: newReport?.public_token,
         });
