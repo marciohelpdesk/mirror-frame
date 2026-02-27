@@ -7,7 +7,7 @@ const corsHeaders = {
 };
 
 const APP_URL = "https://maisonpur.lovable.app";
-const OG_IMAGE = `${APP_URL}/og-image.png`;
+const OG_IMAGE = "https://storage.googleapis.com/gpt-engineer-file-uploads/LWW1I6T5b8gH99kiEm571PLbSUL2/social-images/social-1772082935113-Design_sem_nome.webp";
 
 function isSocialBot(userAgent: string): boolean {
   const bots = [
@@ -61,7 +61,9 @@ Deno.serve(async (req) => {
       .maybeSingle();
 
     const title = report ? `Pur | ${report.property_name}` : "Pur | Visit Report";
-    const description = report ? `Visit Report — ${report.cleaner_name}` : "Cleaning Visit Report";
+    const description = report
+      ? `Visit Report for ${report.property_name} — ${report.cleaner_name}`
+      : "Cleaning Visit Report by Pur";
 
     const html = `<!DOCTYPE html>
 <html lang="en">
@@ -74,8 +76,10 @@ Deno.serve(async (req) => {
   <meta property="og:title" content="${title}" />
   <meta property="og:description" content="${description}" />
   <meta property="og:image" content="${OG_IMAGE}" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
   <meta property="og:url" content="${redirectUrl}" />
-  <meta property="og:site_name" content="Maison Pur" />
+  <meta property="og:site_name" content="Pur" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="${title}" />
   <meta name="twitter:description" content="${description}" />
