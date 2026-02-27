@@ -11,10 +11,10 @@ export const BackgroundEffects = () => {
         style={{
           position: 'absolute',
           left: '50%',
-          top: '60px',
+          top: '20px',
           transform: 'translateX(-50%)',
-          width: '140px',
-          height: '140px',
+          width: '100px',
+          height: '100px',
           borderRadius: '50%',
           background: 'radial-gradient(circle at 35% 30%, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.05) 100%)',
           border: '1.5px solid rgba(255,255,255,0.5)',
