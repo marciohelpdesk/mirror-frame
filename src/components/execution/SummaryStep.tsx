@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Check, Clock, Camera, ClipboardCheck, Star, MessageSquare, FileDown, AlertTriangle, Package, Search, Eye, Upload } from 'lucide-react';
+import { Check, Clock, Camera, ClipboardCheck, Star, MessageSquare, AlertTriangle, Package, Search, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Job, InventoryItem } from '@/types';
@@ -8,12 +8,11 @@ import { generateCleaningReport, downloadPdf } from '@/lib/pdfGenerator';
 import { toast } from 'sonner';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { PdfPreviewModal } from './PdfPreviewModal';
-import { supabase } from '@/integrations/supabase/client';
 
 interface SummaryStepProps {
   job: Job;
   inventory: InventoryItem[];
-  onComplete: (note?: string, reportPdfUrl?: string) => void;
+  onComplete: (note?: string) => void;
   onBack: () => void;
 }
 
@@ -84,42 +83,10 @@ export const SummaryStep = ({ job, inventory, onComplete, onBack }: SummaryStepP
 
   const handleComplete = async () => {
     setIsSubmitting(true);
-    
     try {
-      // 1. Generate PDF
-      const blob = await generateCleaningReport({
-        job: { ...job, reportNote: note, endTime: Date.now() },
-        inventory,
-        responsibleName: 'Maria Santos', // TODO: Get from user profile
-        lostAndFound: job.lostAndFound || [],
-      });
-      
-      // 2. Upload to Supabase Storage
-      const filename = `reports/${job.id}-${Date.now()}.pdf`;
-      const { error: uploadError } = await supabase.storage
-        .from('cleaning-photos')
-        .upload(filename, blob, { contentType: 'application/pdf' });
-      
-      if (uploadError) {
-        console.error('Error uploading PDF:', uploadError);
-        toast.error('Erro ao salvar relatório. Completando sem salvar PDF.');
-        onComplete(note);
-        return;
-      }
-      
-      // 3. Get public URL
-      const { data: urlData } = supabase.storage
-        .from('cleaning-photos')
-        .getPublicUrl(filename);
-      
-      const reportPdfUrl = urlData?.publicUrl;
-      
-      // 4. Complete with PDF URL
-      toast.success('Relatório salvo com sucesso!');
-      onComplete(note, reportPdfUrl);
+      onComplete(note);
     } catch (error) {
       console.error('Error completing job:', error);
-      toast.error('Erro ao gerar relatório. Completando sem salvar PDF.');
       onComplete(note);
     }
   };

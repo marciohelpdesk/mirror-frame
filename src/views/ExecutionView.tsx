@@ -100,11 +100,10 @@ export const ExecutionView = ({ job, inventory, userId, onUpdateJob, onComplete,
     onUpdateJob({ ...job, inventoryUsed });
   };
 
-  const handleComplete = (note?: string, reportPdfUrl?: string) => {
+  const handleComplete = (note?: string) => {
     const completedJob: Job = {
       ...job,
       reportNote: note,
-      reportPdfUrl: reportPdfUrl,
       endTime: Date.now(),
       currentStep: 'SUMMARY',
     };

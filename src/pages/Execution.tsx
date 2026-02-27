@@ -7,6 +7,9 @@ import { useReports } from '@/hooks/useReports';
 import { useProfile } from '@/hooks/useProfile';
 import { Job, JobStatus } from '@/types';
 import { PageLoader } from '@/lib/routes';
+import { generateCleaningReport } from '@/lib/pdfGenerator';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 export default function Execution() {
   const { jobId } = useParams<{ jobId: string }>();
@@ -34,7 +37,6 @@ export default function Execution() {
 
     // Auto-generate report
     try {
-      // Distribute damages and lost&found across rooms (first room gets unmatched items)
       const allDamages = finalJob.damages || [];
       const allLostFound = finalJob.lostAndFound || [];
 
@@ -69,13 +71,11 @@ export default function Execution() {
         };
       });
 
-      // Collect all photos including room-specific photos with _room_index
       const photos = [
         ...finalJob.photosBefore.map((url, i) => ({ photo_url: url, photo_type: 'before' as const, display_order: i })),
         ...finalJob.photosAfter.map((url, i) => ({ photo_url: url, photo_type: 'after' as const, display_order: i })),
         ...(finalJob.damages || []).filter(d => d.photoUrl).map((d, i) => ({ photo_url: d.photoUrl!, photo_type: 'damage' as const, display_order: i, caption: d.description })),
         ...(finalJob.lostAndFound || []).filter(l => l.photoUrl).map((l, i) => ({ photo_url: l.photoUrl!, photo_type: 'lost_found' as const, display_order: i, caption: l.description })),
-        // Room-specific photos from checklist sections
         ...finalJob.checklist.flatMap((section, sIdx) => {
           const roomPhotos = (section as any).roomPhotos || [];
           return roomPhotos.map((url: string, pIdx: number) => ({
@@ -86,7 +86,6 @@ export default function Execution() {
             _room_index: sIdx,
           }));
         }),
-        // Checklist item verification photos
         ...finalJob.checklist.flatMap((section, sIdx) =>
           section.items
             .filter(item => item.photoUrl)
@@ -103,7 +102,7 @@ export default function Execution() {
       const totalTasks = finalJob.checklist.reduce((acc, s) => acc + s.items.length, 0);
       const completedTasks = finalJob.checklist.reduce((acc, s) => acc + s.items.filter(it => it.completed).length, 0);
 
-      await createReport({
+      const newReport = await createReport({
         job_id: finalJob.id,
         property_id: finalJob.propertyId || null,
         property_name: finalJob.clientName,
@@ -121,6 +120,34 @@ export default function Execution() {
         rooms,
         photos,
       });
+
+      // Generate PDF with public token for dossier link
+      try {
+        const pdfBlob = await generateCleaningReport({
+          job: finalJob,
+          inventory,
+          responsibleName: profile?.name || 'Cleaner',
+          lostAndFound: finalJob.lostAndFound || [],
+          publicToken: newReport?.public_token,
+        });
+
+        const pdfFilename = `reports/${finalJob.id}-${Date.now()}.pdf`;
+        const { error: uploadError } = await supabase.storage
+          .from('cleaning-photos')
+          .upload(pdfFilename, pdfBlob, { contentType: 'application/pdf' });
+
+        if (!uploadError) {
+          const { data: urlData } = supabase.storage
+            .from('cleaning-photos')
+            .getPublicUrl(pdfFilename);
+          if (urlData?.publicUrl) {
+            updateJob({ ...finalJob, reportPdfUrl: urlData.publicUrl });
+          }
+        }
+        toast.success('Relatorio salvo com sucesso!');
+      } catch (pdfErr) {
+        console.error('PDF generation failed:', pdfErr);
+      }
     } catch (error) {
       console.error('Auto-report generation failed:', error);
     }
