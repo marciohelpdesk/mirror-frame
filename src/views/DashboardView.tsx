@@ -4,8 +4,9 @@ import { useNavigate } from 'react-router-dom';
 import { 
   DollarSign, Briefcase, Star, Clock, 
   MapPin, Bed, Bath, Play, ChevronRight,
-  Plus, Home, FileText, Users, Check
+  Plus, Home, FileText, Users, Check, ExternalLink
 } from 'lucide-react';
+import { openAddressInMaps } from '@/lib/utils';
 import { Job, JobStatus, Property } from '@/types';
 import { PageHeader } from '@/components/PageHeader';
 import { WeeklyProgress } from '@/components/dashboard/WeeklyProgress';
@@ -264,9 +265,13 @@ export const DashboardView = ({ jobs, properties = [], onStartJob, onViewJob, us
                         </div>
 
                         <h3 className="font-bold text-foreground text-lg">{job.clientName}</h3>
-                        <p className="text-sm text-muted-foreground flex items-center gap-1 mt-0.5">
+                        <button
+                          onClick={(e) => { e.stopPropagation(); openAddressInMaps(job.address); }}
+                          className="text-sm text-muted-foreground flex items-center gap-1 mt-0.5 underline decoration-dotted hover:text-primary transition-colors"
+                        >
                           <MapPin size={12} /> {job.address}
-                        </p>
+                          <ExternalLink size={10} className="opacity-50" />
+                        </button>
 
                         <div className="flex items-center gap-3 mt-2">
                           {property?.bedrooms && (

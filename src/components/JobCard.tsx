@@ -1,4 +1,5 @@
-import { Clock, MapPin, Play, Check, FileText } from 'lucide-react';
+import { Clock, MapPin, Play, Check, FileText, ExternalLink } from 'lucide-react';
+import { openAddressInMaps } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import { Job, JobStatus } from '@/types';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -53,10 +54,14 @@ export const JobCard = ({ job, onStart, onView }: JobCardProps) => {
           <h3 className="font-medium text-foreground text-lg leading-tight group-hover:text-primary transition-colors duration-200">
             {job.clientName}
           </h3>
-          <div className="flex items-center gap-1.5 text-muted-foreground text-sm mt-1">
-            <MapPin size={14} className="group-hover:text-primary/60 transition-colors" />
+          <button
+            onClick={(e) => { e.stopPropagation(); openAddressInMaps(job.address); }}
+            className="flex items-center gap-1.5 text-muted-foreground text-sm mt-1 underline decoration-dotted hover:text-primary transition-colors"
+          >
+            <MapPin size={14} />
             <span>{job.address}</span>
-          </div>
+            <ExternalLink size={10} className="opacity-50" />
+          </button>
         </div>
         <motion.span 
           initial={{ scale: 0.9, opacity: 0 }}
