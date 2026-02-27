@@ -1,10 +1,16 @@
 
 
-## Plano: Atualizar nome da profissional no relatório
+## Plano: Fallback do nome 'Cleaner' → 'Kamila Petters'
 
-### Mudança única
+O nome "Cleaner" aparece no relatório porque `profile?.name` está vazio/null e o fallback é `'Cleaner'`. Preciso trocar o fallback em dois arquivos.
 
-**Arquivo: `src/components/execution/SummaryStep.tsx`** (linha 62)
-- Substituir `'Maria Santos'` por `'Kamila Petters'`
-- Remover o comentário `// TODO: Get from user profile`
+### Mudanças
+
+| Arquivo | Linha | De | Para |
+|---|---|---|---|
+| `src/pages/Reports.tsx` | 73 | `profile?.name \|\| 'Cleaner'` | `profile?.name \|\| 'Kamila Petters'` |
+| `src/pages/Execution.tsx` | 111 | `profile?.name \|\| 'Cleaner'` | `profile?.name \|\| 'Kamila Petters'` |
+| `src/pages/Execution.tsx` | 129 | `profile?.name \|\| 'Cleaner'` | `profile?.name \|\| 'Kamila Petters'` |
+
+3 substituições em 2 arquivos.
 
