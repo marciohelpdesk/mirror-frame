@@ -6,8 +6,9 @@ import {
   MapPin, Bed, Bath, Play, ChevronRight,
   Plus, Home, FileText, Users, Check, ExternalLink,
   Building2, Sparkles, ClipboardList, Timer, Ruler,
-  Bell, Calendar as CalendarIcon
+  Calendar as CalendarIcon
 } from 'lucide-react';
+import purLogo from '@/assets/pur-logo.png';
 import { openAddressInMaps } from '@/lib/utils';
 import { Job, JobStatus, Property } from '@/types';
 import { WeeklyProgress } from '@/components/dashboard/WeeklyProgress';
@@ -103,9 +104,9 @@ export const DashboardView = ({ jobs, properties = [], onStartJob, onViewJob, us
               </p>
             </div>
           </div>
-          <button className="w-10 h-10 rounded-full bg-white/15 backdrop-blur-sm flex items-center justify-center border border-white/20">
-            <Bell size={20} className="text-white" />
-          </button>
+          <div className="w-10 h-10 rounded-full bg-white/15 backdrop-blur-sm flex items-center justify-center border border-white/20">
+            <img src={purLogo} className="w-6 h-6 object-contain" alt="Pur" />
+          </div>
         </div>
       </div>
 
