@@ -89,10 +89,8 @@ export const PhotoCaptureStep = ({
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
-    // Process files one by one
-    for (const file of Array.from(files)) {
-      await processAndUpload(file);
-    }
+    // Process all files in parallel
+    await Promise.all(Array.from(files).map(file => processAndUpload(file)));
 
     // Reset input
     if (e.target) {
