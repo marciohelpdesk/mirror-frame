@@ -1,41 +1,47 @@
 
 
-## Plano: Melhorias visuais inspiradas na imagem de referencia
+## Plano: Cabeçalho, rodapé e categorias interativas
 
-Analisando os circulos azuis na imagem, identifico 3 areas de melhoria:
+### 1. Cabeçalho estilo referência (`src/views/DashboardView.tsx`)
+Na imagem de referência, o header tem:
+- **Avatar à ESQUERDA** ao lado da saudação (não à direita como está agora)
+- **Ícone de sino/notificação à DIREITA**
+- **Data com ícone de calendário** abaixo da saudação ("21 Juillet 2025")
+- Gradiente verde suave de fundo
 
-### 1. Header do Dashboard — estilo da referencia
-- Avatar do usuario a direita, logo Pur a esquerda
-- Data formatada abaixo da saudacao (ex: "27 Fevereiro 2026")
-- Gradiente verde mais suave, com transicao melhor para o conteudo
+Mudanças:
+- Mover avatar para a esquerda, ao lado do texto de saudação
+- Adicionar ícone de sino (Bell) à direita
+- Adicionar ícone de calendário (Calendar) antes da data formatada
+- Remover logo do header (já está na tela de login)
 
-### 2. Categorias com cores variadas (nao so verde)
-As categorias atualmente usam todas tons de verde. Na referencia, cada categoria tem cor/ilustracao distinta:
-- **Airbnb**: fundo coral/salmon `from-orange-400 to-amber-300`
-- **Residencial**: fundo verde-menta `from-emerald-400 to-teal-300`
-- **Pos-obra**: fundo amarelo/dourado `from-amber-400 to-yellow-300`
-- **Comercial**: fundo azul-slate `from-slate-500 to-slate-400`
+### 2. Rodapé estilo referência (`src/components/layout/BottomNavRouter.tsx`)
+Na imagem de referência, o rodapé tem:
+- Todos os ícones dentro de **círculos iguais** (não apenas o Home elevado)
+- Ícone ativo fica **destacado com fundo colorido** (verde)
+- Sem elevação especial para nenhum ícone — todos no mesmo nível
+- Ícones: Home, Agenda, Checklist, Properties, Grid/More
 
-Isso quebra a monotonia do verde e traz variedade visual.
+Mudanças:
+- Remover tratamento especial do Home (sem `-mt-6` e sem círculo elevado)
+- Todos os ícones ficam dentro de círculos de fundo suave
+- Ícone ativo: fundo `bg-primary/15` com cor `text-primary`
+- Ícone inativo: fundo transparente com `text-muted-foreground`
+- Remover o dot animado abaixo
 
-### 3. Bottom nav — estilo da referencia
-Na imagem, o bottom nav tem:
-- O primeiro icone (Home) elevado com circulo verde, nao o central
-- Icones mais espassados e limpos
-- Mudar: o icone elevado sera o **Home** (indice 0), nao o Reports (indice 2)
-- Sem sliding indicator — apenas icone ativo com cor primary e dot abaixo
+### 3. Categorias clicáveis (`src/views/DashboardView.tsx`)
+Ao clicar numa categoria, abrir um **modal/sheet** com informações:
+- **Airbnb**: Limpeza profissional para propriedades de aluguel por temporada
+- **Residencial**: Limpeza regular de casas e apartamentos
+- **Pós-obra**: Limpeza especializada após reformas e construções
+- **Comercial**: Limpeza de escritórios e espaços comerciais
 
-### 4. Toques de cor adicional
-- Progress bars e badges com variedade: amber para pendente, emerald para completo, coral para atrasado
-- Cards de checklist com bordas coloridas sutis (cada template com cor diferente)
-- Botoes CTA mantidos em amber/dourado
+Usar componente `Sheet` (vaul drawer) para exibir descrição, ícone e um botão para criar job dessa categoria.
 
 ### Arquivos a alterar
 
-| Arquivo | Mudanca |
+| Arquivo | Mudança |
 |---|---|
-| `src/views/DashboardView.tsx` | Header com data, categorias multicoloridas, checklist cards coloridos |
-| `src/components/layout/BottomNavRouter.tsx` | Icone Home elevado (nao central), remover sliding indicator |
-
-Nenhuma logica ou funcionalidade alterada.
+| `src/views/DashboardView.tsx` | Header: avatar à esquerda, sino à direita, data com ícone calendário. Categorias clicáveis com Sheet informativo |
+| `src/components/layout/BottomNavRouter.tsx` | Todos ícones iguais em círculos, ativo com destaque, sem elevação especial |
 
