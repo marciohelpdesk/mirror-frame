@@ -1,55 +1,44 @@
 
+### Diagnóstico confirmado
+- O link atual copiado em `/reports` usa o endpoint de compartilhamento (`.../functions/v1/share-report?...`).
+- Esse endpoint está sendo renderizado como texto em alguns acessos, então o cliente vê código HTML em vez do relatório interativo.
+- A rota pública `/r/:token` já funciona sem login e abre o relatório corretamente.
+- Em `PhotoCaptureStep`, o upload múltiplo de Antes/Depois tem condição de corrida: cada arquivo atualiza com estado antigo (`onPhotosChange([...photos, url])`), causando comportamento de “uma por uma”.
+- Antes/Depois exigem mínimo de 1 foto e hoje não existe opção de pular.
 
-## Plano: Corrigir e modernizar checklist de execucao
+### Plano de implementação (correção definitiva)
+1. **Tornar o link do cliente sempre direto e público**
+   - Em `src/pages/Reports.tsx`, mudar o link principal (copiar/abrir) para:
+     - `https://maisonpur.lovable.app/r/${report.public_token}`
+   - Não usar o endpoint de função como link principal para o cliente.
 
-### Problemas identificados
+2. **Blindar a função de compartilhamento para não mostrar HTML bruto**
+   - Em `supabase/functions/share-report/index.ts`:
+     - aplicar headers consistentes em todas as respostas.
+     - para navegadores comuns: responder com **redirect HTTP 302** para `/r/{token}`.
+     - para bots de preview social: manter resposta HTML com OG tags.
 
-1. **Botoes com texto gigante** — as chaves `exec.checklist.pause`, `exec.checklist.nextRoom`, `exec.checklist.finalize` nao existem no LanguageContext, entao exibem a chave inteira como texto (ex: "exec.checklist.pause")
-2. **Delete de itens/ambientes inacessivel no mobile** — o botao de remover item usa `opacity-0 group-hover:opacity-100`, que nao funciona em toque
-3. **Cards espremidos** — gap e padding insuficientes no layout dos itens
-4. **Ondas do LiquidProgressBubble pouco fluidas** — apenas 2 camadas de onda com paths retos demais
-5. **Lentidao ao clicar** — animacoes de delay (`delay: index * 0.03`) somam em listas grandes
+3. **Corrigir upload múltiplo em Fotos Antes/Depois**
+   - Em `src/components/execution/PhotoCaptureStep.tsx`:
+     - remover atualização de estado por arquivo dentro de `processAndUpload`.
+     - no `handleFileSelect`, fazer `Promise.all`, juntar URLs e chamar `onPhotosChange` uma única vez com todas as novas fotos.
+     - manter feedback visual de processamento/upload.
 
-### Mudancas
+4. **Permitir pular Antes/Depois sem fotos**
+   - Em `src/views/ExecutionView.tsx`, alterar `minPhotos` de `1` para `0` nas etapas BEFORE_PHOTOS e AFTER_PHOTOS.
+   - Em `src/components/execution/PhotoCaptureStep.tsx`, adicionar botão “Pular etapa” quando não houver foto.
+   - Em `src/contexts/LanguageContext.tsx`, adicionar textos PT/EN para “Pular etapa”.
 
-#### 1. Adicionar traducoes faltantes (`src/contexts/LanguageContext.tsx`)
+### Arquivos a alterar
+- `src/pages/Reports.tsx`
+- `supabase/functions/share-report/index.ts`
+- `src/components/execution/PhotoCaptureStep.tsx`
+- `src/views/ExecutionView.tsx`
+- `src/contexts/LanguageContext.tsx`
 
-Adicionar ao EN e PT:
-- `exec.checklist.pause` → "Pause" / "Pausar"
-- `exec.checklist.nextRoom` → "Next Room" / "Proxima Sala"
-- `exec.checklist.finalize` → "Finish" / "Finalizar"
-
-#### 2. Corrigir ChecklistStep (`src/components/execution/ChecklistStep.tsx`)
-
-**Botoes inferiores:**
-- Reduzir tamanho de texto para `text-sm`
-- Usar traducoes corretas
-
-**Cards de item:**
-- Remover `delay: index * 0.03` para resposta instantanea
-- Tornar botao de delete sempre visivel no mobile (remover `opacity-0 group-hover:opacity-100`, usar sempre visivel com opacidade reduzida)
-- Aumentar padding interno e gap entre elementos
-- Melhorar glassmorphism com `backdrop-blur-xl` e bordas mais refinadas
-
-**Fotos do ambiente:**
-- Dar mais espaco ao grid de fotos (gap-4)
-- Botoes Camera/Galeria com labels maiores
-
-**Add/Remove Room:**
-- Garantir que swipe ou botao de lixeira funcione no mobile para remover ambiente
-
-#### 3. Melhorar ondas do LiquidProgressBubble (`src/components/LiquidProgressBubble.tsx`)
-
-- Adicionar 3a camada de onda com velocidade diferente
-- Usar paths com curvas mais organicas (bezier mais suaves)
-- Adicionar mais particulas de bolha com tamanhos variados
-- Aumentar amplitude das ondas para efeito mais dramatico
-
-### Arquivos a editar
-
-| Arquivo | Mudanca |
-|---|---|
-| `src/contexts/LanguageContext.tsx` | Adicionar 3 traducoes faltantes |
-| `src/components/execution/ChecklistStep.tsx` | Fix botoes, delete mobile, performance, glassmorphism |
-| `src/components/LiquidProgressBubble.tsx` | Ondas mais fluidas e organicas |
-
+### Validação end-to-end
+1. Gerar relatório, copiar link e abrir em aba anônima: deve abrir direto no relatório interativo sem login.
+2. Selecionar múltiplas fotos em “Fotos Antes”: todas devem entrar de uma vez.
+3. Selecionar múltiplas fotos em “Fotos Depois”: todas devem entrar de uma vez.
+4. Testar “Pular etapa” em Antes e Depois com 0 fotos e concluir execução.
+5. Validar compartilhamento social com preview de marca quando usar link de preview.
