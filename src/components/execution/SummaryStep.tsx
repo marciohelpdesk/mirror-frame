@@ -58,7 +58,7 @@ export const SummaryStep = ({ job, inventory, onComplete, onBack }: SummaryStepP
       const blob = await generateCleaningReport({
         job: { ...job, reportNote: note, endTime: Date.now() },
         inventory,
-        responsibleName: 'Maria Santos', // TODO: Get from user profile
+        responsibleName: 'Kamila Petters',
         lostAndFound: job.lostAndFound || [],
       });
       
