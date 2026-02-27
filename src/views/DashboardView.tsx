@@ -97,11 +97,11 @@ export const DashboardView = ({ jobs, properties = [], onStartJob, onViewJob, us
   return (
     <div className="flex flex-col h-full relative z-10 overflow-y-auto hide-scrollbar pb-32">
       {/* Header */}
-      <div className="sticky top-0 z-20 bg-background/70 backdrop-blur-xl border-b border-border/30 px-6 py-4">
+      <div className="sticky top-0 z-20 bg-transparent backdrop-blur-xl px-6 py-4">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">{t('nav.dashboard')}</p>
-            <h1 className="text-2xl font-bold text-foreground">{greeting} 👋</h1>
+            <p className="text-[10px] font-semibold text-white/70 uppercase tracking-wider">{t('nav.dashboard')}</p>
+            <h1 className="text-2xl font-bold text-white">{greeting} 👋</h1>
           </div>
           <div className="flex items-center gap-3">
             <img 

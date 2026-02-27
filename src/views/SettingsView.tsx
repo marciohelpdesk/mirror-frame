@@ -37,10 +37,10 @@ export const SettingsView = ({ userId, userProfile, employees, onLogout, onViewF
   return (
     <div className="flex flex-col h-full relative z-10 overflow-y-auto hide-scrollbar pb-32">
       {/* Header */}
-      <div className="sticky top-0 z-20 bg-card border-b border-border/30 px-6 py-4">
+      <div className="sticky top-0 z-20 bg-transparent backdrop-blur-xl px-6 py-4">
         <div>
-          <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">{t('settings.subtitle')}</p>
-          <h1 className="font-bold text-foreground text-2xl">{t('settings.title')}</h1>
+          <p className="text-[10px] text-white/70 font-medium uppercase tracking-wider">{t('settings.subtitle')}</p>
+          <h1 className="font-bold text-white text-2xl">{t('settings.title')}</h1>
         </div>
       </div>
       
