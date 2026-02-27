@@ -64,25 +64,12 @@ export const BottomNavRouter = () => {
           boxShadow: '0 8px 32px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,1)',
         }}
       >
-        {/* Sliding indicator */}
-        <motion.div
-          className="absolute h-[calc(100%-8px)] rounded-xl pointer-events-none top-1"
-          style={{ background: 'hsl(160 45% 35% / 0.12)' }}
-          initial={false}
-          animate={{
-            left: indicatorStyle.left,
-            width: indicatorStyle.width,
-            opacity: activeIndex >= 0 ? 1 : 0,
-          }}
-          transition={{ type: "spring", stiffness: 400, damping: 35 }}
-        />
-
         {navItems.map((item, index) => {
           const isActive = location.pathname === item.path || location.pathname.startsWith(item.path + '/');
           const Icon = item.icon;
-          const isCenterIcon = index === 2;
+          const isHomeIcon = index === 0;
 
-          if (isCenterIcon) {
+          if (isHomeIcon) {
             return (
               <NavLink
                 key={item.path}

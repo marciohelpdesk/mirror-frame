@@ -51,6 +51,10 @@ export const DashboardView = ({ jobs, properties = [], onStartJob, onViewJob, us
   const greeting = currentTime.getHours() < 12 ? t('dashboard.goodMorning') : 
                    currentTime.getHours() < 17 ? t('dashboard.goodAfternoon') : t('dashboard.goodEvening');
 
+  const formattedDate = currentTime.toLocaleDateString('pt-BR', { 
+    day: 'numeric', month: 'long', year: 'numeric' 
+  });
+
   // Next job to highlight
   const nextJob = useMemo(() => {
     const now = new Date();
@@ -62,18 +66,18 @@ export const DashboardView = ({ jobs, properties = [], onStartJob, onViewJob, us
 
   // Service categories
   const categories = [
-    { icon: Home, label: 'Airbnb', color: 'from-primary to-primary/70' },
-    { icon: Building2, label: 'Residencial', color: 'from-primary/80 to-primary/50' },
-    { icon: Sparkles, label: 'Pós-obra', color: 'from-cta to-cta/70' },
-    { icon: Briefcase, label: 'Comercial', color: 'from-secondary to-secondary/70' },
+    { icon: Home, label: 'Airbnb', color: 'from-orange-400 to-amber-300' },
+    { icon: Building2, label: 'Residencial', color: 'from-emerald-400 to-teal-300' },
+    { icon: Sparkles, label: 'Pós-obra', color: 'from-amber-400 to-yellow-300' },
+    { icon: Briefcase, label: 'Comercial', color: 'from-slate-500 to-slate-400' },
   ];
 
   // Checklist templates
   const checklistTemplates = [
-    { title: 'Airbnb Premium', rooms: 6, tasks: 42, icon: '🏠' },
-    { title: 'Residencial', rooms: 4, tasks: 28, icon: '🏡' },
-    { title: 'Comercial', rooms: 8, tasks: 35, icon: '🏢' },
-    { title: 'Pós-obra', rooms: 5, tasks: 50, icon: '🔨' },
+    { title: 'Airbnb Premium', rooms: 6, tasks: 42, icon: '🏠', border: 'border-l-orange-400' },
+    { title: 'Residencial', rooms: 4, tasks: 28, icon: '🏡', border: 'border-l-emerald-400' },
+    { title: 'Comercial', rooms: 8, tasks: 35, icon: '🏢', border: 'border-l-slate-400' },
+    { title: 'Pós-obra', rooms: 5, tasks: 50, icon: '🔨', border: 'border-l-amber-400' },
   ];
 
   return (
@@ -82,7 +86,7 @@ export const DashboardView = ({ jobs, properties = [], onStartJob, onViewJob, us
       <div className="sticky top-0 z-20 px-6 py-4" style={{ background: 'linear-gradient(to bottom, hsl(160 35% 18%) 0%, hsl(160 40% 30%) 60%, transparent 100%)' }}>
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-[10px] font-semibold text-white/70 uppercase tracking-wider">{t('nav.dashboard')}</p>
+            <p className="text-[11px] font-medium text-white/60 capitalize">{formattedDate}</p>
             <h1 className="text-2xl font-bold text-white">{greeting} 👋</h1>
           </div>
           <div className="flex items-center gap-3">
@@ -227,7 +231,7 @@ export const DashboardView = ({ jobs, properties = [], onStartJob, onViewJob, us
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.1 + idx * 0.08 }}
-                className="min-w-[160px] glass-panel-subtle rounded-2xl p-4 cursor-pointer hover:-translate-y-1 transition-all duration-300"
+                className={`min-w-[160px] glass-panel-subtle rounded-2xl p-4 cursor-pointer hover:-translate-y-1 transition-all duration-300 border-l-4 ${tmpl.border}`}
               >
                 <span className="text-3xl mb-2 block">{tmpl.icon}</span>
                 <h4 className="font-bold text-foreground text-sm mb-1">{tmpl.title}</h4>
