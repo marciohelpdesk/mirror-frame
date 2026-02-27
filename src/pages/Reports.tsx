@@ -70,7 +70,7 @@ export default function Reports() {
         property_name: job.clientName,
         property_address: job.address,
         service_type: job.type,
-        cleaner_name: profile?.name || 'Kamila Petters',
+        cleaner_name: 'Kamila Petters',
         cleaning_date: job.date,
         start_time: job.startTime || null,
         end_time: job.endTime || null,
