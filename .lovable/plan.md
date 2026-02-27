@@ -1,37 +1,36 @@
 
-Objetivo: corrigir definitivamente para exibir sempre o nome completo **“Kamila Petters”** no relatório (novo e já existente), sem depender do nome curto salvo no perfil.
 
-1) Diagnóstico confirmado
-- A causa é que o sistema ainda prioriza `profile?.name` ao gerar relatório.
-- No banco, os registros atuais estão com `cleaner_name = 'Kamila'` (3) e `cleaner_name = 'Cleaner'` (2), então o fallback nunca resolve os antigos.
+## Plano: Branding nos links compartilhados
 
-2) Implementação (código)
-- `src/pages/Execution.tsx`
-  - Trocar:
-    - `cleaner_name: profile?.name || 'Kamila Petters'` → `cleaner_name: 'Kamila Petters'`
-    - `responsibleName: profile?.name || 'Kamila Petters'` → `responsibleName: 'Kamila Petters'`
-- `src/pages/Reports.tsx`
-  - Trocar:
-    - `cleaner_name: profile?.name || 'Kamila Petters'` → `cleaner_name: 'Kamila Petters'`
+### Problema atual
+1. O `getShareUrl` aponta diretamente para `maisonpur.lovable.app/r/{token}` — os bots de redes sociais (WhatsApp, iMessage, Instagram) não conseguem ler as OG tags porque o SPA não as serve no HTML inicial
+2. A edge function `share-report` existe exatamente para resolver isso (serve OG tags para bots, redireciona browsers normais), mas **não está sendo usada** no link copiado
+3. A imagem OG na edge function aponta para `/og-image.png` (genérica), enquanto o `index.html` já usa uma imagem branded diferente
 
-3) Correção dos relatórios já gerados (backend)
-- Executar atualização única nos dados existentes:
-```sql
-update public.cleaning_reports
-set cleaner_name = 'Kamila Petters',
-    updated_at = now()
-where lower(trim(cleaner_name)) in ('kamila', 'camila', 'cleaner');
+### Mudanças
+
+**1. `src/pages/Reports.tsx`** — Alterar `getShareUrl` para usar a edge function
 ```
-- Isso corrige imediatamente os links públicos já publicados (`/r/:token`) sem precisar recriar cada relatório.
+// De:
+return `https://maisonpur.lovable.app/r/${report.public_token}`;
 
-4) Validação (primeiro item: teste ponta a ponta)
-- Testar ponta a ponta:
-  - concluir um job novo e gerar relatório;
-  - abrir o link público;
-  - confirmar que aparece **Kamila Petters** no título/hero e metadados;
-  - abrir um relatório antigo e confirmar que também foi corrigido.
+// Para:
+return `https://ebafqcanwdqomqcrifrj.supabase.co/functions/v1/share-report?token=${report.public_token}`;
+```
 
-Seção técnica (resumo de arquivos afetados)
-- `src/pages/Execution.tsx` (2 substituições)
-- `src/pages/Reports.tsx` (1 substituição)
-- 1 update SQL em `cleaning_reports` para backfill
+**2. `supabase/functions/share-report/index.ts`** — Atualizar OG image para a imagem branded e melhorar os textos
+- Trocar `OG_IMAGE` de `/og-image.png` para a imagem branded já usada no index.html: `https://storage.googleapis.com/gpt-engineer-file-uploads/LWW1I6T5b8gH99kiEm571PLbSUL2/social-images/social-1772082935113-Design_sem_nome.webp`
+- Melhorar `og:site_name` para `"Pur"` 
+- Melhorar description para incluir data formatada e propriedade: `"Visit Report for {property} — {date}"`
+- Adicionar `og:image:width`, `og:image:height` para melhor rendering em previews
+
+**3. `src/pages/PublicReport.tsx`** (linha 82) — Corrigir referência OG image no useEffect
+- Trocar `'https://mirror-frame.lovable.app/og-image.png'` pela mesma imagem branded
+
+### Resultado
+Ao colar o link no WhatsApp, iMessage, Instagram ou qualquer rede social, aparecerá:
+- **Imagem**: banner branded da Pur
+- **Título**: "Pur | Nome da Propriedade"  
+- **Descrição**: "Visit Report — Kamila Petters"
+- **Site**: "Pur"
+
