@@ -369,12 +369,12 @@ export const ChecklistStep = ({
           onClick={onBack}
           className="flex-1 py-3.5 bg-card/80 backdrop-blur-sm text-muted-foreground rounded-2xl font-semibold flex items-center justify-center gap-2 border border-border/40 shadow-sm hover:shadow-md transition-all"
         >
-          {t('exec.checklist.pause') || 'Pausar'}
+          <span className="text-sm">{t('exec.checklist.pause')}</span>
         </button>
         <button
           onClick={canGoNextRoom ? () => setActiveRoomIdx(prev => prev + 1) : allCompleted ? onNext : undefined}
           disabled={isLastRoom && !allCompleted}
-          className={`flex-[2] py-3.5 rounded-2xl font-semibold flex items-center justify-center gap-2 transition-all duration-300
+          className={`flex-[2] py-3.5 rounded-2xl font-semibold text-sm flex items-center justify-center gap-2 transition-all duration-300
             ${(canGoNextRoom || allCompleted)
               ? 'bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-lg shadow-primary/25 hover:shadow-xl active:scale-[0.98]'
               : 'bg-muted/60 text-muted-foreground border border-border/30'
@@ -383,13 +383,13 @@ export const ChecklistStep = ({
         >
           {canGoNextRoom ? (
             <>
-              {t('exec.checklist.nextRoom') || 'Próxima Sala'}
+              {t('exec.checklist.nextRoom')}
               <motion.span animate={{ x: [0, 4, 0] }} transition={{ repeat: Infinity, duration: 1.5 }}>
                 <ArrowRight size={16} />
               </motion.span>
             </>
           ) : allCompleted ? (
-            <>{t('exec.checklist.finalize') || 'Finalizar'} <ArrowRight size={16} /></>
+            <>{t('exec.checklist.finalize')} <ArrowRight size={16} /></>
           ) : (
             `${completedItems}/${totalItems}`
           )}
@@ -499,9 +499,9 @@ const RoomPhotosSection = ({ sectionId, sectionTitle, userId, jobId, checklist, 
               className="aspect-square rounded-2xl bg-muted overflow-hidden relative group shadow-sm border border-border/30"
             >
               <img src={photo} alt={`${sectionTitle} ${idx + 1}`} className="w-full h-full object-cover" />
-              <button
+               <button
                 onClick={() => handleRemovePhoto(idx)}
-                className="absolute top-1.5 right-1.5 w-6 h-6 bg-destructive/90 rounded-full flex items-center justify-center text-destructive-foreground text-xs opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
+                className="absolute top-1.5 right-1.5 w-6 h-6 bg-destructive/90 rounded-full flex items-center justify-center text-destructive-foreground text-xs shadow-md"
               >
                 <X size={12} />
               </button>
@@ -597,7 +597,7 @@ const ChecklistItemCard = memo(({ item, index, sectionId, isCapturing, onToggle,
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, x: -100, height: 0 }}
-        transition={{ delay: index * 0.03, duration: 0.2 }}
+        transition={{ duration: 0.15 }}
         layout
         className={`
           flex items-center gap-4 p-4 rounded-2xl transition-all duration-200 border-2 shadow-sm group
@@ -685,7 +685,7 @@ const ChecklistItemCard = memo(({ item, index, sectionId, isCapturing, onToggle,
         {!item.completed && (
           <button
             onClick={e => { e.stopPropagation(); onRemove(); }}
-            className="shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-muted-foreground/30 hover:text-destructive hover:bg-destructive/10 transition-all opacity-0 group-hover:opacity-100"
+            className="shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-muted-foreground/40 hover:text-destructive hover:bg-destructive/10 transition-all"
           >
             <X size={14} />
           </button>
