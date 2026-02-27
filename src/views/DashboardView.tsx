@@ -4,13 +4,12 @@ import { useNavigate } from 'react-router-dom';
 import { 
   DollarSign, Briefcase, Star, Clock, 
   MapPin, Bed, Bath, Play, ChevronRight,
-  Plus, Home, FileText, Users, Check, ExternalLink
+  Plus, Home, FileText, Users, Check, ExternalLink,
+  Building2, Sparkles, ClipboardList, Timer, Ruler
 } from 'lucide-react';
 import { openAddressInMaps } from '@/lib/utils';
 import { Job, JobStatus, Property } from '@/types';
-import { PageHeader } from '@/components/PageHeader';
 import { WeeklyProgress } from '@/components/dashboard/WeeklyProgress';
-import { AnimatedCounter } from '@/components/dashboard/AnimatedCounter';
 import { useLanguage } from '@/contexts/LanguageContext';
 import purLogo from '@/assets/pur-logo.png';
 
@@ -38,7 +37,6 @@ export const DashboardView = ({ jobs, properties = [], onStartJob, onViewJob, us
   const scheduledJobs = todayJobs.filter(j => j.status === JobStatus.SCHEDULED);
   const completedJobs = todayJobs.filter(j => j.status === JobStatus.COMPLETED);
 
-  // Monthly earnings
   const monthJobs = useMemo(() => {
     const now = new Date();
     const monthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
@@ -53,45 +51,29 @@ export const DashboardView = ({ jobs, properties = [], onStartJob, onViewJob, us
   const greeting = currentTime.getHours() < 12 ? t('dashboard.goodMorning') : 
                    currentTime.getHours() < 17 ? t('dashboard.goodAfternoon') : t('dashboard.goodEvening');
 
-  // KPI Cards data
-  const kpiCards = [
-    {
-      icon: DollarSign,
-      value: `$${monthEarnings.toLocaleString()}`,
-      label: t('dashboard.thisMonth'),
-      gradient: 'from-primary to-primary/70',
-      trend: '+12%',
-      trendColor: 'text-primary bg-primary/10',
-      progress: 75,
-    },
-    {
-      icon: Briefcase,
-      value: String(todayJobs.length),
-      label: t('dashboard.totalJobs'),
-      gradient: 'from-primary to-primary/70',
-      badge: `${scheduledJobs.length} jobs`,
-      segments: [
-        { width: completedJobs.length, color: 'bg-success' },
-        { width: inProgressJobs.length, color: 'bg-warning' },
-        { width: scheduledJobs.length, color: 'bg-muted' },
-      ],
-    },
-    {
-      icon: Star,
-      value: `${todayProgress}%`,
-      label: t('dashboard.satisfaction'),
-      gradient: 'from-warning to-warning/70',
-      stars: true,
-    },
-    {
-      icon: Clock,
-      value: `${scheduledJobs.length + inProgressJobs.length}`,
-      label: t('dashboard.pending'),
-      gradient: 'from-destructive to-destructive/70',
-      trend: completedJobs.length > 0 ? `${completedJobs.length} done` : undefined,
-      trendColor: 'text-primary bg-primary/10',
-      progress: todayProgress,
-    },
+  // Next job to highlight
+  const nextJob = useMemo(() => {
+    const now = new Date();
+    const upcoming = [...inProgressJobs, ...scheduledJobs].sort((a, b) => a.time.localeCompare(b.time));
+    return upcoming[0] || null;
+  }, [inProgressJobs, scheduledJobs]);
+
+  const nextJobProperty = nextJob ? properties.find(p => p.id === nextJob.propertyId) : null;
+
+  // Service categories
+  const categories = [
+    { icon: Home, label: 'Airbnb', color: 'from-primary to-primary/70' },
+    { icon: Building2, label: 'Residencial', color: 'from-primary/80 to-primary/50' },
+    { icon: Sparkles, label: 'Pós-obra', color: 'from-cta to-cta/70' },
+    { icon: Briefcase, label: 'Comercial', color: 'from-secondary to-secondary/70' },
+  ];
+
+  // Checklist templates
+  const checklistTemplates = [
+    { title: 'Airbnb Premium', rooms: 6, tasks: 42, icon: '🏠' },
+    { title: 'Residencial', rooms: 4, tasks: 28, icon: '🏡' },
+    { title: 'Comercial', rooms: 8, tasks: 35, icon: '🏢' },
+    { title: 'Pós-obra', rooms: 5, tasks: 50, icon: '🔨' },
   ];
 
   return (
@@ -112,76 +94,148 @@ export const DashboardView = ({ jobs, properties = [], onStartJob, onViewJob, us
             <img 
               src={userProfile.avatar} 
               alt={userProfile.name}
-              className="w-10 h-10 rounded-full object-cover border-2 border-primary/40 shadow-md"
+              className="w-10 h-10 rounded-full object-cover border-2 border-white/40 shadow-md"
             />
           </div>
         </div>
       </div>
 
       <div className="px-6 py-4 relative z-10 space-y-6">
-        {/* KPI Cards Grid - 2x2 */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="grid grid-cols-2 gap-4"
-        >
-          {kpiCards.map((card, idx) => (
-            <motion.div
-              key={idx}
-              initial={{ opacity: 0, y: 20, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              transition={{ delay: 0.1 + idx * 0.08 }}
-              className="relative glass-panel-subtle rounded-2xl p-4 overflow-hidden group hover:-translate-y-1 transition-all duration-300 hover:shadow-lg"
-            >
-              {/* Top accent line */}
-              <div className={`absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r ${card.gradient}`} />
-              
-              <div className="flex items-center justify-between mb-3">
-                <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${card.gradient} flex items-center justify-center shadow-md`}>
-                  <card.icon size={18} className="text-white" />
+
+        {/* Service Categories - Horizontal Scroll */}
+        <section>
+          <h2 className="text-sm font-bold text-foreground mb-3 uppercase tracking-wider">{t('dashboard.quickActions') || 'Categorias'}</h2>
+          <div className="flex gap-4 overflow-x-auto hide-scrollbar pb-2">
+            {categories.map((cat, idx) => (
+              <motion.button
+                key={idx}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.05 + idx * 0.08 }}
+                className="flex flex-col items-center gap-2 min-w-[72px]"
+              >
+                <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${cat.color} flex items-center justify-center shadow-lg`}>
+                  <cat.icon size={24} className="text-white" />
                 </div>
-                {card.trend && (
-                  <span className={`text-[10px] font-medium px-2 py-1 rounded-full ${card.trendColor}`}>
-                    ↑ {card.trend}
+                <span className="text-[11px] font-medium text-muted-foreground whitespace-nowrap">{cat.label}</span>
+              </motion.button>
+            ))}
+          </div>
+        </section>
+
+        {/* Featured Next Job Card */}
+        {nextJob && (
+          <motion.section
+            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ type: "spring", stiffness: 300, damping: 25 }}
+          >
+            <h2 className="text-sm font-bold text-foreground mb-3 uppercase tracking-wider">
+              {t('dashboard.nextJob') || 'Próximo Serviço'}
+            </h2>
+            <div className="relative overflow-hidden rounded-3xl">
+              {/* Background */}
+              <div className="absolute inset-0 bg-gradient-to-br from-primary via-primary/90 to-primary/60" />
+              {nextJobProperty?.photo && (
+                <div 
+                  className="absolute inset-0 bg-cover bg-center mix-blend-overlay opacity-20"
+                  style={{ backgroundImage: `url(${nextJobProperty.photo})` }}
+                />
+              )}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/10" />
+              
+              {/* Content */}
+              <div className="relative p-5">
+                <div className="flex justify-between items-start mb-3">
+                  <div className="bg-white/20 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/30">
+                    <span className="text-white text-sm font-semibold flex items-center gap-1.5">
+                      <Clock size={14} />
+                      {nextJob.time}
+                    </span>
+                  </div>
+                  <span className="text-white/80 text-xs bg-white/15 px-3 py-1 rounded-full backdrop-blur-sm">
+                    {nextJob.type}
                   </span>
-                )}
-                {card.badge && (
-                  <span className="text-[10px] font-medium text-muted-foreground bg-muted px-2 py-1 rounded-full">
-                    {card.badge}
-                  </span>
-                )}
+                </div>
+
+                <h3 className="text-2xl font-bold text-white mb-1">{nextJob.clientName}</h3>
+                <button
+                  onClick={(e) => { e.stopPropagation(); openAddressInMaps(nextJob.address); }}
+                  className="text-white/80 text-sm flex items-center gap-1.5 underline decoration-dotted hover:text-white transition-colors mb-4"
+                >
+                  <MapPin size={14} />
+                  {nextJob.address}
+                  <ExternalLink size={10} className="opacity-60" />
+                </button>
+
+                {/* Property details */}
+                <div className="flex gap-4 mb-5">
+                  {nextJobProperty?.bedrooms && (
+                    <div className="flex items-center gap-1.5 text-white/70 text-sm">
+                      <Bed size={14} /> {nextJobProperty.bedrooms} quartos
+                    </div>
+                  )}
+                  {nextJobProperty?.bathrooms && (
+                    <div className="flex items-center gap-1.5 text-white/70 text-sm">
+                      <Bath size={14} /> {nextJobProperty.bathrooms} ban.
+                    </div>
+                  )}
+                  {nextJobProperty?.sqft && (
+                    <div className="flex items-center gap-1.5 text-white/70 text-sm">
+                      <Ruler size={14} /> {nextJobProperty.sqft}m²
+                    </div>
+                  )}
+                </div>
+
+                {/* CTA Buttons */}
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => onStartJob(nextJob.id)}
+                    className="flex-1 bg-cta text-cta-foreground py-3.5 rounded-2xl font-bold flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-transform"
+                  >
+                    <Play size={18} className="fill-current" />
+                    {nextJob.status === JobStatus.IN_PROGRESS 
+                      ? (t('dashboard.continue') || 'Continuar') 
+                      : (t('jobs.startChecklist') || 'Iniciar')}
+                  </button>
+                  <button
+                    onClick={() => onViewJob(nextJob.id)}
+                    className="w-14 bg-white/20 backdrop-blur-sm text-white py-3.5 rounded-2xl flex items-center justify-center border border-white/30 active:scale-95 transition-transform"
+                  >
+                    <ChevronRight size={18} />
+                  </button>
+                </div>
               </div>
-              
-              <p className="text-2xl font-bold text-foreground">{card.value}</p>
-              <p className="text-xs text-muted-foreground mt-1">{card.label}</p>
-              
-              {/* Progress bar or segments */}
-              {card.progress !== undefined && !card.segments && (
-                <div className="mt-3 h-1 bg-muted rounded-full overflow-hidden">
-                  <div 
-                    className={`h-full bg-gradient-to-r ${card.gradient} rounded-full transition-all duration-700`}
-                    style={{ width: `${card.progress}%` }}
-                  />
-                </div>
-              )}
-              {card.segments && (
-                <div className="mt-3 flex gap-1">
-                  {card.segments.map((seg, i) => (
-                    <div key={i} className={`h-1 flex-1 ${seg.color} rounded-full`} />
-                  ))}
-                </div>
-              )}
-              {card.stars && (
-                <div className="mt-3 flex gap-0.5">
-                  {[1,2,3,4,5].map(i => (
-                    <Star key={i} size={12} className={i <= 4 ? 'text-warning fill-warning' : 'text-warning fill-warning/50'} />
-                  ))}
-                </div>
-              )}
-            </motion.div>
-          ))}
-        </motion.div>
+            </div>
+          </motion.section>
+        )}
+
+        {/* Checklist Templates - Horizontal Scroll */}
+        <section>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-sm font-bold text-foreground uppercase tracking-wider">
+              Checklist Base
+            </h2>
+            <button className="text-primary text-xs font-medium flex items-center gap-1">
+              Ver todos <ChevronRight size={12} />
+            </button>
+          </div>
+          <div className="flex gap-3 overflow-x-auto hide-scrollbar pb-2">
+            {checklistTemplates.map((tmpl, idx) => (
+              <motion.div
+                key={idx}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.1 + idx * 0.08 }}
+                className="min-w-[160px] glass-panel-subtle rounded-2xl p-4 cursor-pointer hover:-translate-y-1 transition-all duration-300"
+              >
+                <span className="text-3xl mb-2 block">{tmpl.icon}</span>
+                <h4 className="font-bold text-foreground text-sm mb-1">{tmpl.title}</h4>
+                <p className="text-[10px] text-muted-foreground">{tmpl.rooms} cômodos • {tmpl.tasks} tarefas</p>
+              </motion.div>
+            ))}
+          </div>
+        </section>
 
         {/* Today's Timeline */}
         <section>
@@ -198,7 +252,6 @@ export const DashboardView = ({ jobs, properties = [], onStartJob, onViewJob, us
           </div>
 
           <div className="relative space-y-4">
-            {/* Timeline line */}
             {todayJobs.length > 1 && (
               <div className="absolute left-6 top-10 bottom-4 w-0.5 bg-gradient-to-b from-primary/40 to-transparent" />
             )}
@@ -226,12 +279,10 @@ export const DashboardView = ({ jobs, properties = [], onStartJob, onViewJob, us
                       transition={{ delay: idx * 0.1 }}
                       className="relative"
                     >
-                      {/* Timeline dot */}
                       <div className={`absolute left-4 top-4 w-4 h-4 rounded-full border-4 border-card shadow z-10
                         ${isCompleted ? 'bg-success' : isInProgress ? 'bg-primary animate-pulse' : 'bg-muted-foreground/30'}
                       `} />
 
-                      {/* Job card */}
                       <div 
                         className={`ml-2 glass-panel-subtle rounded-2xl p-4 cursor-pointer transition-all duration-300
                           ${isInProgress 
@@ -242,7 +293,6 @@ export const DashboardView = ({ jobs, properties = [], onStartJob, onViewJob, us
                         `}
                         onClick={() => onViewJob(job.id)}
                       >
-                        {/* Status badge */}
                         <div className="flex items-start justify-between mb-2">
                           <div className="flex items-center gap-2">
                             <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full
@@ -257,11 +307,6 @@ export const DashboardView = ({ jobs, properties = [], onStartJob, onViewJob, us
                               {job.checkinDeadline && ` - ${job.checkinDeadline}`}
                             </span>
                           </div>
-                          {!isInProgress && (
-                            <button className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground">
-                              <ChevronRight size={14} />
-                            </button>
-                          )}
                         </div>
 
                         <h3 className="font-bold text-foreground text-lg">{job.clientName}</h3>
@@ -289,7 +334,6 @@ export const DashboardView = ({ jobs, properties = [], onStartJob, onViewJob, us
                           )}
                         </div>
 
-                        {/* Progress bar for in-progress */}
                         {isInProgress && job.checklist && (
                           <div className="mt-4">
                             <div className="flex items-center justify-between text-xs mb-2">
@@ -311,18 +355,16 @@ export const DashboardView = ({ jobs, properties = [], onStartJob, onViewJob, us
                           </div>
                         )}
 
-                        {/* Action button */}
                         {(isInProgress || job.status === JobStatus.SCHEDULED) && (
                           <button
                             onClick={(e) => { e.stopPropagation(); onStartJob(job.id); }}
-                            className="mt-4 w-full py-3 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground rounded-xl font-semibold flex items-center justify-center gap-2 shadow-md shadow-primary/20 active:scale-[0.98] transition-transform"
+                            className="mt-4 w-full py-3 bg-cta text-cta-foreground rounded-xl font-semibold flex items-center justify-center gap-2 shadow-md active:scale-[0.98] transition-transform"
                           >
-                            <Play size={16} className="fill-primary-foreground" />
+                            <Play size={16} className="fill-current" />
                             {isInProgress ? t('dashboard.continue') : t('jobs.startChecklist')}
                           </button>
                         )}
 
-                        {/* Completed footer */}
                         {isCompleted && (
                           <div className="mt-3 pt-3 border-t border-border/50 flex items-center gap-2">
                             <span className="text-xs text-muted-foreground">
@@ -347,17 +389,17 @@ export const DashboardView = ({ jobs, properties = [], onStartJob, onViewJob, us
         {/* Weekly Performance */}
         <WeeklyProgress jobs={jobs} />
 
-        {/* Quick Actions */}
+        {/* Quick Actions - Horizontal Pills */}
         <section>
-          <h2 className="text-lg font-bold text-foreground mb-4">
-            {t('dashboard.quickActions')}
+          <h2 className="text-sm font-bold text-foreground mb-3 uppercase tracking-wider">
+            {t('dashboard.quickActions') || 'Ações Rápidas'}
           </h2>
-          <div className="grid grid-cols-4 gap-3">
+          <div className="flex gap-3 overflow-x-auto hide-scrollbar pb-2">
             {[
-              { icon: Plus, label: t('dashboard.newJob'), gradient: 'from-primary to-primary/80', action: () => navigate('/agenda') },
-              { icon: Home, label: t('dashboard.property'), gradient: 'from-primary to-primary/80', action: () => navigate('/properties') },
-              { icon: FileText, label: t('dashboard.report'), gradient: 'from-primary to-primary/80', action: () => navigate('/reports') },
-              { icon: Users, label: t('dashboard.team'), gradient: 'from-primary to-primary/80', action: () => navigate('/settings') },
+              { icon: Plus, label: t('dashboard.newJob') || 'Novo Job', action: () => navigate('/agenda') },
+              { icon: Home, label: t('dashboard.property') || 'Propriedade', action: () => navigate('/properties') },
+              { icon: FileText, label: t('dashboard.report') || 'Relatório', action: () => navigate('/reports') },
+              { icon: Users, label: t('dashboard.team') || 'Equipe', action: () => navigate('/settings') },
             ].map((action, idx) => (
               <motion.button
                 key={idx}
@@ -365,12 +407,12 @@ export const DashboardView = ({ jobs, properties = [], onStartJob, onViewJob, us
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 + idx * 0.05 }}
                 onClick={action.action}
-                className="flex flex-col items-center gap-2 p-3 glass-panel-subtle rounded-2xl hover:scale-105 transition-transform active:scale-95"
+                className="flex items-center gap-2 px-4 py-3 glass-panel-subtle rounded-2xl hover:scale-105 transition-transform active:scale-95 whitespace-nowrap"
               >
-                <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${action.gradient} flex items-center justify-center shadow-md`}>
-                  <action.icon size={20} className="text-white" />
+                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-sm">
+                  <action.icon size={16} className="text-white" />
                 </div>
-                <span className="text-[10px] font-medium text-muted-foreground">{action.label}</span>
+                <span className="text-xs font-medium text-foreground">{action.label}</span>
               </motion.button>
             ))}
           </div>

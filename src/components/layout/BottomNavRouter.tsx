@@ -55,9 +55,9 @@ export const BottomNavRouter = () => {
         initial={{ y: 80, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ type: "spring", stiffness: 300, damping: 30, delay: 0.2 }}
-        className="flex justify-between items-center py-2 px-3 relative"
+        className="flex justify-between items-end py-2 px-3 relative"
         style={{
-          background: 'linear-gradient(165deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.90) 100%)',
+          background: 'linear-gradient(165deg, rgba(255,255,255,0.96) 0%, rgba(255,255,255,0.92) 100%)',
           backdropFilter: 'blur(40px) saturate(200%)',
           borderRadius: '1.25rem',
           border: '1px solid rgba(255,255,255,0.85)',
@@ -67,7 +67,7 @@ export const BottomNavRouter = () => {
         {/* Sliding indicator */}
         <motion.div
           className="absolute h-[calc(100%-8px)] rounded-xl pointer-events-none top-1"
-          style={{ background: 'hsl(186 100% 46% / 0.12)' }}
+          style={{ background: 'hsl(160 45% 35% / 0.12)' }}
           initial={false}
           animate={{
             left: indicatorStyle.left,
@@ -80,6 +80,26 @@ export const BottomNavRouter = () => {
         {navItems.map((item, index) => {
           const isActive = location.pathname === item.path || location.pathname.startsWith(item.path + '/');
           const Icon = item.icon;
+          const isCenterIcon = index === 2;
+
+          if (isCenterIcon) {
+            return (
+              <NavLink
+                key={item.path}
+                ref={(el) => { itemRefs.current[index] = el; }}
+                to={item.path}
+                className="relative flex flex-col items-center justify-center min-w-[48px] min-h-[44px] py-2 px-3 rounded-xl -mt-6"
+              >
+                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg transition-all duration-200 ${
+                  isActive 
+                    ? 'bg-gradient-to-br from-primary to-primary/80 shadow-primary/30' 
+                    : 'bg-gradient-to-br from-primary/80 to-primary/60 shadow-primary/20'
+                }`}>
+                  <Icon size={24} className="text-white" strokeWidth={isActive ? 2.2 : 1.5} />
+                </div>
+              </NavLink>
+            );
+          }
 
           return (
             <NavLink
@@ -95,7 +115,6 @@ export const BottomNavRouter = () => {
                 }`}
                 strokeWidth={isActive ? 2.2 : 1.5}
               />
-              {/* Active dot indicator */}
               <AnimatePresence>
                 {isActive && (
                   <motion.div
