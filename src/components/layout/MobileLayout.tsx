@@ -33,7 +33,7 @@ export const MobileLayout = ({
           <BackgroundEffects />
           
           {/* Page Content - NO extra animations here */}
-          <main className={`relative z-10 min-h-screen ${shouldShowNav ? 'pb-24' : ''} ${className}`}>
+          <main className={`relative z-10 min-h-screen pt-safe ${shouldShowNav ? 'pb-28' : ''} ${className}`}>
             {children}
           </main>
 

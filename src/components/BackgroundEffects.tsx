@@ -43,26 +43,26 @@ export const BackgroundEffects = () => {
       <motion.div 
         className="mercury-drop"
         initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 0.35, scale: 1 }}
+        animate={{ opacity: 0.45, scale: 1 }}
         transition={{ duration: 2, delay: 0.5 }}
         style={{ 
-          width: '280px', 
-          height: '280px', 
-          top: '-80px', 
-          right: '-60px',
+          width: '340px', 
+          height: '340px', 
+          top: '-100px', 
+          right: '-80px',
           animation: 'float 12s infinite ease-in-out',
         }} 
       />
       <motion.div 
         className="mercury-drop"
         initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 0.4, scale: 1 }}
+        animate={{ opacity: 0.45, scale: 1 }}
         transition={{ duration: 2, delay: 0.8 }}
         style={{ 
-          width: '220px', 
-          height: '220px', 
-          bottom: '-60px', 
-          left: '-50px',
+          width: '280px', 
+          height: '280px', 
+          bottom: '-80px', 
+          left: '-70px',
           animation: 'float 10s infinite ease-in-out reverse',
         }} 
       />
