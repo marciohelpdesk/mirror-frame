@@ -1,27 +1,44 @@
 
 
-## Plano: Tornar enderecos clicaveis para abrir no Google Maps
+## Plano: Adaptar design ao estilo teal/green gradient das imagens de referencia
 
-Todas as exibicoes de endereco no app serao transformadas em links clicaveis que abrem o Google Maps com o endereco pre-preenchido. Funciona em qualquer dispositivo — no mobile, o sistema oferece abrir no Google Maps ou Waze automaticamente.
+### O que muda (apenas CSS e visual)
 
-### Implementacao
+As imagens de referencia mostram um gradiente escuro teal/verde-floresta no topo (~35% da tela) que transiciona suavemente para branco. Uma gota 3D de vidro proeminente fica posicionada no topo. Cards sao brancos limpos com bordas suaves.
 
-1. **Criar helper `openAddressInMaps`** (`src/lib/utils.ts`)
-   - Funcao que recebe o endereco como string
-   - Abre `https://www.google.com/maps/search/?api=1&query={encodeURIComponent(address)}` em nova aba
-   - No mobile, o OS automaticamente oferece abrir no Google Maps ou Waze se instalados
+### Mudancas
 
-2. **Tornar endereco clicavel nos seguintes componentes:**
+#### 1. Gradiente de fundo (`src/index.css`)
+- Trocar `--sky-pink` (rosa) e `--sky-blue` (azul claro) por tons teal/verde escuro
+- `--sky-pink` → `160 30% 25%` (teal escuro, topo)
+- `--sky-blue` → `160 15% 92%` (quase branco, base)
+- Atualizar `.bg-florida-sky` para gradiente vertical teal-to-white
+- Atualizar `.mobile-frame` background para `rgba(255,255,255,0.65)` mais transparente no topo
 
-| Componente | Linha aprox. | Mudanca |
-|---|---|---|
-| `src/views/PropertyDetailsView.tsx` | ~190 | Wrap `<p>` do address em link clicavel com icone ExternalLink |
-| `src/components/PropertyCard.tsx` | ~86-89 | Tornar o `<p>` do address clicavel (com stopPropagation para nao abrir o card) |
-| `src/components/JobCard.tsx` | ~62-65 | Tornar address clicavel |
-| `src/components/dashboard/NextJobCard.tsx` | ~97-100 | Tornar address clicavel |
-| `src/components/calendar/CalendarJobItem.tsx` | ~126-128 | Tornar address clicavel no item expandido |
-| `src/views/DashboardView.tsx` | ~267-269 | Tornar address clicavel |
-| `src/views/AgendaView.tsx` | ~322-324 | Tornar address clicavel |
+#### 2. Gota 3D de agua no topo (`src/components/BackgroundEffects.tsx`)
+- Substituir as gotas aleatorias por uma unica gota hero centralizada no topo (~80px do topo, centro)
+- Estilo 3D glass sphere: borda branca mais forte, sombra interna mais pronunciada, reflexo de luz
+- Manter as duas gotas decorativas grandes nos cantos mas com opacidade reduzida
+- Remover as 5 gotas aleatorias pequenas
 
-3. **Estilo visual**: texto do endereco ganha `underline decoration-dotted cursor-pointer hover:text-primary` para indicar que e clicavel, com pequeno icone de ExternalLink ao lado.
+#### 3. Headers com gradiente visivel (`src/views/DashboardView.tsx`, `src/views/SettingsView.tsx`, `src/views/AgendaView.tsx`)
+- Trocar `bg-background/70` e `bg-card` dos headers por `bg-transparent` para deixar o gradiente aparecer
+- Texto do header em branco (`text-white`) quando sobre o gradiente escuro
+- Manter `backdrop-blur-xl` para legibilidade
+
+#### 4. Bottom nav ajuste de cor (`src/components/layout/BottomNavRouter.tsx`)
+- Ajustar fundo da nav para `rgba(255,255,255,0.92)` — mais opaco para contrastar com o novo gradiente
+
+### Arquivos a alterar
+
+| Arquivo | Mudanca |
+|---|---|
+| `src/index.css` | Gradiente teal-to-white, variáveis sky |
+| `src/components/BackgroundEffects.tsx` | Gota hero 3D centralizada no topo |
+| `src/views/DashboardView.tsx` | Header transparente com texto claro |
+| `src/views/SettingsView.tsx` | Header transparente com texto claro |
+| `src/views/AgendaView.tsx` | Header transparente com texto claro |
+| `src/components/layout/BottomNavRouter.tsx` | Nav mais opaca |
+
+Nenhuma logica, rota ou funcionalidade sera alterada — apenas CSS e componentes visuais.
 
