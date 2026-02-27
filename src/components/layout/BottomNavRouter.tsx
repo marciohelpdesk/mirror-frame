@@ -49,7 +49,7 @@ export const BottomNavRouter = () => {
   }, [updateIndicator]);
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 px-3 pb-3 pb-safe md:left-1/2 md:-translate-x-1/2 md:w-[375px]">
+    <nav className="relative z-50 px-3 pb-3 pb-safe shrink-0">
       <motion.div
         ref={navRef}
         initial={{ y: 80, opacity: 0 }}
