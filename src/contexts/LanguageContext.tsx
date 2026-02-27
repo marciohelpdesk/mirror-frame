@@ -143,6 +143,13 @@ const translations: Record<Language, Record<string, string>> = {
     'exec.photo.photosCaptured': 'photo(s) captured',
     'exec.photo.minimum': 'minimum',
     'exec.photo.continue': 'Continue',
+    'exec.photo.skip': 'Skip this step',
+    'exec.photo.uploaded': 'Uploaded',
+    'exec.photo.uploadedDesc': 'Photos uploaded successfully',
+    'exec.photo.uploadFailed': 'Some photos failed to upload',
+    'exec.photo.invalidFile': 'Invalid file type',
+    'exec.photo.optimizing': 'Optimizing...',
+    'exec.photo.uploading': 'Uploading...',
     
     // Execution - Checklist
     'exec.checklist.title': 'Cleaning Checklist',
@@ -530,6 +537,13 @@ const translations: Record<Language, Record<string, string>> = {
     'exec.photo.photosCaptured': 'foto(s) capturada(s)',
     'exec.photo.minimum': 'mínimo',
     'exec.photo.continue': 'Continuar',
+    'exec.photo.skip': 'Pular etapa',
+    'exec.photo.uploaded': 'Enviado',
+    'exec.photo.uploadedDesc': 'Fotos enviadas com sucesso',
+    'exec.photo.uploadFailed': 'Algumas fotos falharam no envio',
+    'exec.photo.invalidFile': 'Tipo de arquivo inválido',
+    'exec.photo.optimizing': 'Otimizando...',
+    'exec.photo.uploading': 'Enviando...',
     
     // Execution - Checklist
     'exec.checklist.title': 'Lista de Tarefas',

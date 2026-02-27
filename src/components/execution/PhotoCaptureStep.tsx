@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { Camera, Plus, X, Image as ImageIcon, ArrowRight, Upload, Loader2 } from 'lucide-react';
+import { Camera, X, Image as ImageIcon, ArrowRight, Upload, Loader2, SkipForward } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { usePhotoUpload } from '@/hooks/usePhotoUpload';
@@ -24,7 +24,7 @@ export const PhotoCaptureStep = ({
   onPhotosChange,
   onNext,
   onBack,
-  minPhotos = 1,
+  minPhotos = 0,
   userId,
   jobId,
 }: PhotoCaptureStepProps) => {
@@ -37,22 +37,13 @@ export const PhotoCaptureStep = ({
 
   const category = type === 'before' ? 'jobs-before' : 'jobs-after';
 
-  const processAndUpload = useCallback(async (file: File) => {
-    // Validate file type
+  const processAndUploadFile = useCallback(async (file: File): Promise<string | null> => {
     if (!file.type.startsWith('image/')) {
-      toast({
-        title: t('common.error'),
-        description: t('exec.photo.invalidFile'),
-        variant: 'destructive',
-      });
-      return;
+      return null;
     }
 
-    setIsProcessing(true);
     let fileToUpload: File | Blob = file;
-
     try {
-      // Compress the image
       const compressedBlob = await compressForDisplay(file);
       if (compressedBlob.size < file.size) {
         fileToUpload = compressedBlob;
@@ -61,42 +52,49 @@ export const PhotoCaptureStep = ({
       console.warn('Compression failed, using original:', err);
     }
 
-    // Upload to Supabase Storage
     const url = await uploadPhoto(fileToUpload, {
       userId,
       category,
       entityId: jobId,
     });
 
-    setIsProcessing(false);
+    return url || null;
+  }, [userId, category, jobId, uploadPhoto]);
 
-    if (url) {
-      onPhotosChange([...photos, url]);
+  const handleFileSelect = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setIsProcessing(true);
+
+    const results = await Promise.all(
+      Array.from(files).map(file => processAndUploadFile(file))
+    );
+
+    const newUrls = results.filter((url): url is string => url !== null);
+
+    if (newUrls.length > 0) {
+      onPhotosChange([...photos, ...newUrls]);
       toast({
         title: t('exec.photo.uploaded'),
-        description: t('exec.photo.uploadedDesc'),
+        description: `${newUrls.length} ${t('exec.photo.photosCaptured')}`,
       });
-    } else {
+    }
+
+    if (newUrls.length < files.length) {
       toast({
         title: t('common.error'),
         description: t('exec.photo.uploadFailed'),
         variant: 'destructive',
       });
     }
-  }, [userId, category, jobId, photos, uploadPhoto, onPhotosChange, toast, t]);
 
-  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
+    setIsProcessing(false);
 
-    // Process all files in parallel
-    await Promise.all(Array.from(files).map(file => processAndUpload(file)));
-
-    // Reset input
     if (e.target) {
       e.target.value = '';
     }
-  };
+  }, [photos, processAndUploadFile, onPhotosChange, toast, t]);
 
   const handleRemovePhoto = async (index: number) => {
     const photoUrl = photos[index];
@@ -106,16 +104,12 @@ export const PhotoCaptureStep = ({
     onPhotosChange(photos.filter((_, i) => i !== index));
   };
 
-  const openCamera = () => {
-    cameraInputRef.current?.click();
-  };
-
-  const openFilePicker = () => {
-    fileInputRef.current?.click();
-  };
+  const openCamera = () => cameraInputRef.current?.click();
+  const openFilePicker = () => fileInputRef.current?.click();
 
   const isLoading = isUploading || isProcessing;
   const canProceed = photos.length >= minPhotos;
+  const canSkip = minPhotos === 0 && photos.length === 0;
 
   return (
     <motion.div
@@ -124,7 +118,6 @@ export const PhotoCaptureStep = ({
       exit={{ opacity: 0, y: -20 }}
       className="flex flex-col h-full"
     >
-      {/* Hidden inputs */}
       <input
         ref={fileInputRef}
         type="file"
@@ -144,7 +137,6 @@ export const PhotoCaptureStep = ({
         disabled={isLoading}
       />
 
-      {/* Header */}
       <div className="px-4 py-3">
         <h2 className="text-xl font-semibold text-foreground">
           {type === 'before' ? t('exec.photo.beforeTitle') : t('exec.photo.afterTitle')}
@@ -154,7 +146,6 @@ export const PhotoCaptureStep = ({
         </p>
       </div>
 
-      {/* Photo Grid */}
       <div className="flex-1 px-4 overflow-y-auto hide-scrollbar">
         <div className="grid grid-cols-2 gap-3">
           {photos.map((photo, index) => (
@@ -178,20 +169,15 @@ export const PhotoCaptureStep = ({
             </motion.div>
           ))}
 
-          {/* Add Photo Buttons */}
           {isLoading ? (
-            <motion.div
-              className="aspect-[4/3] rounded-xl border-2 border-dashed border-muted-foreground/30 flex flex-col items-center justify-center gap-2"
-            >
+            <motion.div className="aspect-[4/3] rounded-xl border-2 border-dashed border-muted-foreground/30 flex flex-col items-center justify-center gap-2">
               <Loader2 className="w-8 h-8 animate-spin text-primary" />
               <span className="text-xs text-muted-foreground">
                 {isProcessing ? t('exec.photo.optimizing') : t('exec.photo.uploading')}
               </span>
             </motion.div>
           ) : (
-            <motion.div
-              className="aspect-[4/3] rounded-xl border-2 border-dashed border-muted-foreground/30 flex items-center justify-center gap-2"
-            >
+            <motion.div className="aspect-[4/3] rounded-xl border-2 border-dashed border-muted-foreground/30 flex items-center justify-center gap-2">
               <button
                 onClick={openCamera}
                 className="flex flex-col items-center gap-1 p-2 rounded-lg hover:bg-muted/50 transition-colors"
@@ -214,17 +200,14 @@ export const PhotoCaptureStep = ({
           )}
         </div>
 
-        {/* Photo count indicator */}
         <div className="flex items-center justify-center gap-2 mt-4 py-2">
           <ImageIcon className="w-4 h-4 text-muted-foreground" />
           <span className="text-sm text-muted-foreground">
             {photos.length} {t('exec.photo.photosCaptured')}
-            {!canProceed && ` (${t('exec.photo.minimum')} ${minPhotos})`}
           </span>
         </div>
       </div>
 
-      {/* Actions */}
       <div className="p-4 flex gap-3">
         {onBack && (
           <Button
@@ -236,14 +219,26 @@ export const PhotoCaptureStep = ({
             {t('common.back')}
           </Button>
         )}
-        <Button
-          onClick={onNext}
-          disabled={!canProceed || isLoading}
-          className="flex-1 h-12 rounded-xl bg-primary text-primary-foreground gap-2"
-        >
-          {t('common.continue')}
-          <ArrowRight className="w-4 h-4" />
-        </Button>
+        {canSkip ? (
+          <Button
+            variant="ghost"
+            onClick={onNext}
+            disabled={isLoading}
+            className="flex-1 h-12 rounded-xl gap-2 text-muted-foreground"
+          >
+            <SkipForward className="w-4 h-4" />
+            {t('exec.photo.skip')}
+          </Button>
+        ) : (
+          <Button
+            onClick={onNext}
+            disabled={!canProceed || isLoading}
+            className="flex-1 h-12 rounded-xl bg-primary text-primary-foreground gap-2"
+          >
+            {t('common.continue')}
+            <ArrowRight className="w-4 h-4" />
+          </Button>
+        )}
       </div>
     </motion.div>
   );

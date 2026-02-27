@@ -157,7 +157,7 @@ export const ExecutionView = ({ job, inventory, userId, onUpdateJob, onComplete,
               photos={job.photosBefore}
               onPhotosChange={handlePhotosBeforeChange}
               onNext={goToNextStep}
-              minPhotos={1}
+              minPhotos={0}
               userId={userId}
               jobId={job.id}
             />
@@ -218,7 +218,7 @@ export const ExecutionView = ({ job, inventory, userId, onUpdateJob, onComplete,
               onPhotosChange={handlePhotosAfterChange}
               onNext={goToNextStep}
               onBack={goToPrevStep}
-              minPhotos={1}
+              minPhotos={0}
               userId={userId}
               jobId={job.id}
             />
