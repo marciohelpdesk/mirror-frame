@@ -79,7 +79,7 @@ export default function PublicReport() {
   // Dynamic OG meta tags for shared links
   useEffect(() => {
     if (!report) return;
-    const ogUrl = 'https://mirror-frame.lovable.app/og-image.png';
+    const ogUrl = 'https://storage.googleapis.com/gpt-engineer-file-uploads/LWW1I6T5b8gH99kiEm571PLbSUL2/social-images/social-1772082935113-Design_sem_nome.webp';
     document.title = `Pur | ${report.property_name}`;
     const setMeta = (attr: string, val: string, content: string) => {
       let el = document.querySelector(`meta[${attr}="${val}"]`) as HTMLMetaElement;
