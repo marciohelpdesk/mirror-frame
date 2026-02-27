@@ -77,9 +77,9 @@ export const DashboardView = ({ jobs, properties = [], onStartJob, onViewJob, us
   ];
 
   return (
-    <div className="flex flex-col h-full relative z-10 overflow-y-auto hide-scrollbar pb-32">
+    <div className="flex flex-col h-full relative z-10 pb-8">
       {/* Header */}
-      <div className="sticky top-0 z-20 bg-transparent backdrop-blur-xl px-6 py-4">
+      <div className="sticky top-0 z-20 px-6 py-4" style={{ background: 'linear-gradient(to bottom, hsl(160 35% 18%) 0%, hsl(160 40% 30%) 60%, transparent 100%)' }}>
         <div className="flex items-center justify-between">
           <div>
             <p className="text-[10px] font-semibold text-white/70 uppercase tracking-wider">{t('nav.dashboard')}</p>

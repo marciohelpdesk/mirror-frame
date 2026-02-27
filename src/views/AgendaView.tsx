@@ -135,9 +135,9 @@ export const AgendaView = ({ jobs, properties, employees = [], onStartJob, onVie
   }, [selectedDateJobs]);
 
   return (
-    <div className="flex flex-col h-full relative z-10 overflow-y-auto hide-scrollbar pb-32">
+    <div className="flex flex-col h-full relative z-10 pb-8">
       {/* Header */}
-      <header className="sticky top-0 z-20 bg-transparent backdrop-blur-xl px-6 py-4">
+      <header className="sticky top-0 z-20 px-6 py-4" style={{ background: 'linear-gradient(to bottom, hsl(160 35% 18%) 0%, hsl(160 40% 30%) 60%, transparent 100%)' }}>
         <div className="flex items-center justify-between mb-4">
           <div>
             <p className="text-[10px] text-white/70 font-medium uppercase tracking-wider">{t('agenda.subtitle')}</p>

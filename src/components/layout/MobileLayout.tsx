@@ -32,12 +32,12 @@ export const MobileLayout = ({
         <div className="mobile-frame relative">
           <BackgroundEffects />
           
-          {/* Page Content - NO extra animations here */}
-          <main className={`relative z-10 flex-1 ${shouldShowNav ? 'pb-28' : ''} ${className}`}>
+          {/* Page Content - scrollable area */}
+          <main className={`relative z-10 flex-1 overflow-y-auto overflow-x-hidden hide-scrollbar ${shouldShowNav ? '' : ''} ${className}`}>
             {children}
           </main>
 
-          {/* Bottom Navigation */}
+          {/* Bottom Navigation - stays at bottom of frame */}
           {shouldShowNav && <BottomNavRouter />}
         </div>
       </div>
