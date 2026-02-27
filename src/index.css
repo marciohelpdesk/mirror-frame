@@ -19,9 +19,9 @@
     --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
 
     /* Florida Sky Gradient Colors (HSL) */
-    --sky-pink: 340 100% 93%;
-    --sky-blue: 176 100% 85%;
-    --sky-cyan: 186 100% 56%;
+    --sky-pink: 160 30% 25%;
+    --sky-blue: 160 15% 92%;
+    --sky-cyan: 175 80% 40%;
 
     /* Core Colors */
     --background: 209 40% 96%;
@@ -177,14 +177,14 @@
 @layer components {
   /* Florida Sky Background */
   .bg-florida-sky {
-    background: linear-gradient(180deg, hsl(var(--sky-pink)) 0%, hsl(var(--sky-blue)) 100%);
+    background: linear-gradient(to bottom, hsl(var(--sky-pink)) 0%, hsl(var(--sky-cyan)) 25%, hsl(var(--sky-blue)) 55%, hsl(0 0% 100%) 100%);
   }
 
   /* Florida Sky Fixed - Covers entire viewport */
   .bg-florida-sky-fixed {
     position: fixed;
     inset: 0;
-    background: linear-gradient(180deg, hsl(var(--sky-pink)) 0%, hsl(var(--sky-blue)) 100%);
+    background: linear-gradient(to bottom, hsl(var(--sky-pink)) 0%, hsl(var(--sky-cyan)) 25%, hsl(var(--sky-blue)) 55%, hsl(0 0% 100%) 100%);
     z-index: 0;
   }
 
@@ -293,7 +293,7 @@
     height: 100dvh;
     padding-top: env(safe-area-inset-top, 0px);
     padding-bottom: env(safe-area-inset-bottom, 0px);
-    background: rgba(255, 255, 255, 0.45);
+    background: rgba(255, 255, 255, 0.35);
     backdrop-filter: blur(40px);
     overflow-y: auto;
     overflow-x: hidden;

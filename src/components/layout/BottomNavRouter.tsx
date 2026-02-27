@@ -57,7 +57,7 @@ export const BottomNavRouter = () => {
         transition={{ type: "spring", stiffness: 300, damping: 30, delay: 0.2 }}
         className="flex justify-between items-center py-2 px-3 relative"
         style={{
-          background: 'linear-gradient(165deg, rgba(255,255,255,0.88) 0%, rgba(255,255,255,0.78) 100%)',
+          background: 'linear-gradient(165deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.90) 100%)',
           backdropFilter: 'blur(40px) saturate(200%)',
           borderRadius: '1.25rem',
           border: '1px solid rgba(255,255,255,0.85)',
