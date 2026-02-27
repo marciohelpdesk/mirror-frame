@@ -5,13 +5,16 @@ import {
   DollarSign, Briefcase, Star, Clock, 
   MapPin, Bed, Bath, Play, ChevronRight,
   Plus, Home, FileText, Users, Check, ExternalLink,
-  Building2, Sparkles, ClipboardList, Timer, Ruler
+  Building2, Sparkles, ClipboardList, Timer, Ruler,
+  Bell, Calendar as CalendarIcon
 } from 'lucide-react';
 import { openAddressInMaps } from '@/lib/utils';
 import { Job, JobStatus, Property } from '@/types';
 import { WeeklyProgress } from '@/components/dashboard/WeeklyProgress';
 import { useLanguage } from '@/contexts/LanguageContext';
-import purLogo from '@/assets/pur-logo.png';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription, DrawerFooter, DrawerClose } from '@/components/ui/drawer';
+import { Button } from '@/components/ui/button';
 
 interface DashboardViewProps {
   jobs: Job[];
@@ -25,7 +28,7 @@ export const DashboardView = ({ jobs, properties = [], onStartJob, onViewJob, us
   const navigate = useNavigate();
   const { t } = useLanguage();
   const [currentTime, setCurrentTime] = useState(new Date());
-  
+  const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(timer);
@@ -66,10 +69,10 @@ export const DashboardView = ({ jobs, properties = [], onStartJob, onViewJob, us
 
   // Service categories
   const categories = [
-    { icon: Home, label: 'Airbnb', color: 'from-orange-400 to-amber-300' },
-    { icon: Building2, label: 'Residencial', color: 'from-emerald-400 to-teal-300' },
-    { icon: Sparkles, label: 'Pós-obra', color: 'from-amber-400 to-yellow-300' },
-    { icon: Briefcase, label: 'Comercial', color: 'from-slate-500 to-slate-400' },
+    { icon: Home, label: 'Airbnb', color: 'from-orange-400 to-amber-300', description: 'Limpeza profissional para propriedades de aluguel por temporada. Preparação completa entre hóspedes incluindo troca de roupa de cama, reposição de amenities e verificação de inventário.' },
+    { icon: Building2, label: 'Residencial', color: 'from-emerald-400 to-teal-300', description: 'Limpeza regular de casas e apartamentos. Manutenção periódica com foco em higienização profunda de todos os ambientes.' },
+    { icon: Sparkles, label: 'Pós-obra', color: 'from-amber-400 to-yellow-300', description: 'Limpeza especializada após reformas e construções. Remoção de resíduos, poeira fina e preparação do espaço para uso imediato.' },
+    { icon: Briefcase, label: 'Comercial', color: 'from-slate-500 to-slate-400', description: 'Limpeza de escritórios e espaços comerciais. Manutenção profissional com horários flexíveis para não interferir nas operações.' },
   ];
 
   // Checklist templates
@@ -85,22 +88,24 @@ export const DashboardView = ({ jobs, properties = [], onStartJob, onViewJob, us
       {/* Header */}
       <div className="sticky top-0 z-20 px-6 py-4" style={{ background: 'linear-gradient(to bottom, hsl(160 35% 18%) 0%, hsl(160 40% 30%) 60%, transparent 100%)' }}>
         <div className="flex items-center justify-between">
-          <div>
-            <p className="text-[11px] font-medium text-white/60 capitalize">{formattedDate}</p>
-            <h1 className="text-2xl font-bold text-white">{greeting} 👋</h1>
-          </div>
           <div className="flex items-center gap-3">
-            <img 
-              src={purLogo}
-              alt="Pur Logo"
-              className="w-9 h-9 object-contain drop-shadow-lg"
-            />
-            <img 
-              src={userProfile.avatar} 
-              alt={userProfile.name}
-              className="w-10 h-10 rounded-full object-cover border-2 border-white/40 shadow-md"
-            />
+            <Avatar className="w-12 h-12 border-2 border-white/40 shadow-md">
+              <AvatarImage src={userProfile.avatar} alt={userProfile.name} />
+              <AvatarFallback className="bg-primary/20 text-white font-bold">
+                {userProfile.name?.charAt(0)?.toUpperCase() || 'U'}
+              </AvatarFallback>
+            </Avatar>
+            <div>
+              <h1 className="text-xl font-bold text-white">{greeting} 👋</h1>
+              <p className="text-[11px] font-medium text-white/60 flex items-center gap-1">
+                <CalendarIcon size={12} />
+                <span className="capitalize">{formattedDate}</span>
+              </p>
+            </div>
           </div>
+          <button className="w-10 h-10 rounded-full bg-white/15 backdrop-blur-sm flex items-center justify-center border border-white/20">
+            <Bell size={20} className="text-white" />
+          </button>
         </div>
       </div>
 
@@ -116,6 +121,7 @@ export const DashboardView = ({ jobs, properties = [], onStartJob, onViewJob, us
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.05 + idx * 0.08 }}
+                onClick={() => setSelectedCategory(idx)}
                 className="flex flex-col items-center gap-2 min-w-[72px]"
               >
                 <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${cat.color} flex items-center justify-center shadow-lg`}>
@@ -422,6 +428,40 @@ export const DashboardView = ({ jobs, properties = [], onStartJob, onViewJob, us
           </div>
         </section>
       </div>
+
+      {/* Category Info Drawer */}
+      <Drawer open={selectedCategory !== null} onOpenChange={(open) => !open && setSelectedCategory(null)}>
+        <DrawerContent>
+          {selectedCategory !== null && (() => {
+            const cat = categories[selectedCategory];
+            const CatIcon = cat.icon;
+            return (
+              <>
+                <DrawerHeader className="text-left">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${cat.color} flex items-center justify-center shadow-lg`}>
+                      <CatIcon size={28} className="text-white" />
+                    </div>
+                    <DrawerTitle className="text-xl">{cat.label}</DrawerTitle>
+                  </div>
+                  <DrawerDescription className="text-sm leading-relaxed">
+                    {cat.description}
+                  </DrawerDescription>
+                </DrawerHeader>
+                <DrawerFooter>
+                  <Button onClick={() => { setSelectedCategory(null); navigate('/agenda'); }} className="w-full">
+                    <Plus size={16} />
+                    Criar Job — {cat.label}
+                  </Button>
+                  <DrawerClose asChild>
+                    <Button variant="outline" className="w-full">Fechar</Button>
+                  </DrawerClose>
+                </DrawerFooter>
+              </>
+            );
+          })()}
+        </DrawerContent>
+      </Drawer>
     </div>
   );
 };
