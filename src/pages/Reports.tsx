@@ -97,10 +97,17 @@ export default function Reports() {
     toast.success(t('reports.published'));
   };
 
-  const handleCopyLink = (report: CleaningReport) => {
-    const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/share-report?token=${report.public_token}`;
-    navigator.clipboard.writeText(url);
-    toast.success(t('reports.linkCopied'));
+  const getShareUrl = (report: CleaningReport) => {
+    return `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/share-report?token=${report.public_token}`;
+  };
+
+  const handleCopyLink = async (report: CleaningReport) => {
+    try {
+      await navigator.clipboard.writeText(getShareUrl(report));
+      toast.success(t('reports.linkCopied'));
+    } catch {
+      toast.error('Não foi possível copiar o link');
+    }
   };
 
   const handleDelete = (id: string) => {
@@ -226,7 +233,7 @@ export default function Reports() {
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => window.open(`/r/${report.public_token}`, '_blank')}
+                      onClick={() => window.open(getShareUrl(report), '_blank', 'noopener,noreferrer')}
                       className="gap-1.5 rounded-xl h-9"
                     >
                       <ExternalLink className="w-3.5 h-3.5" />
