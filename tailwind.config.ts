@@ -95,6 +95,10 @@ export default {
   				blue: 'hsl(var(--sky-blue))',
   				cyan: 'hsl(var(--sky-cyan))'
   			},
+  			cta: {
+  				DEFAULT: 'hsl(var(--cta))',
+  				foreground: 'hsl(var(--cta-foreground))'
+  			},
   			status: {
   				pending: 'hsl(var(--status-pending))',
   				done: 'hsl(var(--status-done))',

@@ -130,7 +130,7 @@ export const NextJobCard = ({ job, property, onStart, onView }: NextJobCardProps
         >
           <button
             onClick={() => onStart(job.id)}
-            className="flex-1 bg-white text-primary py-3.5 rounded-2xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-black/20 active:scale-95 transition-transform"
+            className="flex-1 bg-cta text-cta-foreground py-3.5 rounded-2xl font-bold flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-transform"
           >
             <Play size={18} className="fill-current" />
             {t('jobs.startChecklist') || 'Iniciar Checklist'}

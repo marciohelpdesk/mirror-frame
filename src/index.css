@@ -19,39 +19,43 @@
     --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
 
     /* Florida Sky Gradient Colors (HSL) */
-    --sky-pink: 160 30% 25%;
+    --sky-pink: 160 35% 20%;
     --sky-blue: 160 15% 92%;
-    --sky-cyan: 175 80% 40%;
+    --sky-cyan: 160 40% 35%;
 
     /* Core Colors */
-    --background: 209 40% 96%;
-    --foreground: 222 47% 11%;
+    --background: 150 20% 96%;
+    --foreground: 160 30% 10%;
 
     /* Glass Panel */
-    --card: 210 40% 98%;
-    --card-foreground: 222 47% 11%;
+    --card: 150 15% 98%;
+    --card-foreground: 160 30% 10%;
 
-    --popover: 214 31% 91%;
-    --popover-foreground: 222 47% 11%;
+    --popover: 150 12% 91%;
+    --popover-foreground: 160 30% 10%;
 
-    /* Primary - Cyan accent */
-    --primary: 200 98% 39%;
-    --primary-foreground: 204 100% 97%;
+    /* Primary - Emerald Green */
+    --primary: 160 45% 35%;
+    --primary-foreground: 0 0% 100%;
 
-    /* Secondary - Mint/Teal */
-    --secondary: 215 24% 26%;
-    --secondary-foreground: 210 40% 98%;
+    /* Secondary - Dark Forest */
+    --secondary: 160 25% 22%;
+    --secondary-foreground: 150 15% 98%;
 
     /* Muted */
-    --muted: 215 20% 65%;
-    --muted-foreground: 222 47% 11%;
+    --muted: 150 10% 90%;
+    --muted-foreground: 160 10% 45%;
 
-    /* Accent - Light cyan */
-    --accent: 210 40% 98%;
-    --accent-foreground: 215 19% 34%;
+    /* Accent - Soft Green */
+    --accent: 150 15% 96%;
+    --accent-foreground: 160 20% 30%;
+
+    /* CTA - Amber/Gold for action buttons */
+    --cta: 38 90% 50%;
+    --cta-foreground: 0 0% 100%;
 
     /* Status Colors */
-    --success: 162 64% 60%;
+    --success: 160 64% 40%;
     --success-foreground: 0 0% 100%;
 
     --warning: 38 92% 50%;
@@ -64,30 +68,30 @@
     --status-pending: 38 92% 50%;
     --status-done: 160 84% 39%;
     --status-late: 0 84% 60%;
-    --status-scheduled: 215 16% 70%;
-    --status-active: 186 100% 46%;
+    --status-scheduled: 160 15% 65%;
+    --status-active: 160 60% 40%;
 
     /* UI */
-    --border: 212 26% 83%;
-    --input: 212 26% 83%;
-    --ring: 200 98% 39%;
+    --border: 150 15% 85%;
+    --input: 150 15% 85%;
+    --ring: 160 45% 35%;
 
     --radius: 0.5rem;
 
     /* Sidebar */
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 222 47% 11%;
-    --sidebar-primary: 200 98% 39%;
-    --sidebar-primary-foreground: 204 100% 97%;
-    --sidebar-accent: 215 24% 26%;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 212 26% 83%;
-    --sidebar-ring: 200 98% 39%;
-    --chart-1: 198 93% 59%;
-    --chart-2: 213 93% 67%;
-    --chart-3: 215 20% 65%;
-    --chart-4: 215 16% 46%;
-    --chart-5: 215 19% 34%;
+    --sidebar-background: 150 15% 97%;
+    --sidebar-foreground: 160 30% 10%;
+    --sidebar-primary: 160 45% 35%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 160 25% 22%;
+    --sidebar-accent-foreground: 150 15% 98%;
+    --sidebar-border: 150 15% 85%;
+    --sidebar-ring: 160 45% 35%;
+    --chart-1: 160 60% 40%;
+    --chart-2: 160 45% 50%;
+    --chart-3: 150 15% 60%;
+    --chart-4: 160 15% 45%;
+    --chart-5: 160 20% 30%;
     --sidebar: 210 40% 98%;
     --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
     --font-serif: 'Lora', ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif;
@@ -105,42 +109,45 @@
   }
 
   .dark {
-    --background: 222 47% 11%;
-    --foreground: 210 40% 98%;
+    --background: 160 20% 8%;
+    --foreground: 150 15% 95%;
 
-    --card: 217 32% 17%;
-    --card-foreground: 210 40% 98%;
+    --card: 160 15% 14%;
+    --card-foreground: 150 15% 95%;
 
-    --popover: 215 24% 26%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 160 15% 18%;
+    --popover-foreground: 150 15% 95%;
 
-    --primary: 198 93% 59%;
-    --primary-foreground: 204 80% 15%;
+    --primary: 160 50% 45%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 212 26% 83%;
-    --secondary-foreground: 228 84% 4%;
+    --secondary: 150 15% 80%;
+    --secondary-foreground: 160 20% 8%;
 
-    --muted: 215 16% 46%;
-    --muted-foreground: 210 40% 98%;
+    --muted: 160 10% 25%;
+    --muted-foreground: 150 10% 70%;
 
-    --accent: 228 84% 4%;
-    --accent-foreground: 215 20% 65%;
+    --accent: 160 15% 12%;
+    --accent-foreground: 150 10% 70%;
+
+    --cta: 38 90% 55%;
+    --cta-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 85% 97%;
 
-    --border: 215 19% 34%;
-    --input: 215 19% 34%;
-    --ring: 198 93% 59%;
+    --border: 160 10% 25%;
+    --input: 160 10% 25%;
+    --ring: 160 50% 45%;
 
-    --sidebar-background: 220 25% 6%;
-    --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 198 93% 59%;
-    --sidebar-primary-foreground: 204 80% 15%;
-    --sidebar-accent: 215 20% 65%;
-    --sidebar-accent-foreground: 228 84% 4%;
-    --sidebar-border: 215 19% 34%;
-    --sidebar-ring: 198 93% 59%;
+    --sidebar-background: 160 15% 6%;
+    --sidebar-foreground: 150 15% 95%;
+    --sidebar-primary: 160 50% 45%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 160 10% 20%;
+    --sidebar-accent-foreground: 150 10% 70%;
+    --sidebar-border: 160 10% 25%;
+    --sidebar-ring: 160 50% 45%;
     --chart-1: 199 95% 73%;
     --chart-2: 211 96% 78%;
     --chart-3: 215 20% 65%;
@@ -177,14 +184,14 @@
 @layer components {
   /* Florida Sky Background */
   .bg-florida-sky {
-    background: linear-gradient(to bottom, hsl(var(--sky-pink)) 0%, hsl(var(--sky-cyan)) 25%, hsl(var(--sky-blue)) 55%, hsl(0 0% 100%) 100%);
+    background: linear-gradient(to bottom, hsl(160 35% 18%) 0%, hsl(160 40% 30%) 20%, hsl(160 30% 45%) 35%, hsl(150 20% 80%) 55%, hsl(0 0% 100%) 100%);
   }
 
   /* Florida Sky Fixed - Covers entire viewport */
   .bg-florida-sky-fixed {
     position: fixed;
     inset: 0;
-    background: linear-gradient(to bottom, hsl(var(--sky-pink)) 0%, hsl(var(--sky-cyan)) 25%, hsl(var(--sky-blue)) 55%, hsl(0 0% 100%) 100%);
+    background: linear-gradient(to bottom, hsl(160 35% 18%) 0%, hsl(160 40% 30%) 20%, hsl(160 30% 45%) 35%, hsl(150 20% 80%) 55%, hsl(0 0% 100%) 100%);
     z-index: 0;
   }
 
@@ -293,8 +300,8 @@
     height: 100dvh;
     padding-top: env(safe-area-inset-top, 0px);
     padding-bottom: env(safe-area-inset-bottom, 0px);
-    background: rgba(255, 255, 255, 0.35);
-    backdrop-filter: blur(40px);
+      background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(30px);
     overflow-y: auto;
     overflow-x: hidden;
   }

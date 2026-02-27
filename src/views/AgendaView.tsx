@@ -145,7 +145,7 @@ export const AgendaView = ({ jobs, properties, employees = [], onStartJob, onVie
           </div>
           <button
             onClick={() => setShowAddJobModal(true)}
-            className="px-4 py-2 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground rounded-full text-sm font-semibold flex items-center gap-2 shadow-lg shadow-primary/30"
+            className="px-4 py-2 bg-cta text-cta-foreground rounded-full text-sm font-semibold flex items-center gap-2 shadow-lg"
           >
             <Plus size={14} /> {t('agenda.addJob')}
           </button>
@@ -353,7 +353,7 @@ export const AgendaView = ({ jobs, properties, employees = [], onStartJob, onVie
                         {isInProgress && onStartJob && (
                           <button
                             onClick={(e) => { e.stopPropagation(); onStartJob(job.id); }}
-                            className="px-4 py-2 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground rounded-xl text-sm font-semibold shadow-md shadow-primary/20"
+                            className="px-4 py-2 bg-cta text-cta-foreground rounded-xl text-sm font-semibold shadow-md"
                           >
                             Continuar
                           </button>
@@ -365,7 +365,7 @@ export const AgendaView = ({ jobs, properties, employees = [], onStartJob, onVie
                         <div className="mt-3 pt-3 border-t border-border/30 flex gap-2">
                           <button 
                             onClick={(e) => { e.stopPropagation(); onStartJob?.(job.id); }}
-                            className="flex-1 py-2 bg-gradient-to-r from-primary to-primary/80 text-primary-foreground rounded-lg text-xs font-medium"
+                            className="flex-1 py-2 bg-cta text-cta-foreground rounded-lg text-xs font-medium"
                           >
                             <Play size={10} className="inline mr-1 fill-primary-foreground" /> Iniciar
                           </button>
