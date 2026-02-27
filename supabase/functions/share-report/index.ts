@@ -9,6 +9,16 @@ const corsHeaders = {
 const APP_URL = "https://maisonpur.lovable.app";
 const OG_IMAGE = `${APP_URL}/og-image.png`;
 
+function isSocialBot(userAgent: string): boolean {
+  const bots = [
+    'facebookexternalhit', 'Facebot', 'Twitterbot', 'WhatsApp',
+    'LinkedInBot', 'Slackbot', 'TelegramBot', 'Discordbot',
+    'Googlebot', 'bingbot', 'iMessageLinkPreviewer',
+    'Applebot', 'Instagram', 'Pinterest',
+  ];
+  return bots.some(bot => userAgent.toLowerCase().includes(bot.toLowerCase()));
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -19,28 +29,39 @@ Deno.serve(async (req) => {
     const token = url.searchParams.get("token");
 
     if (!token) {
-      return new Response("Missing token", { status: 400 });
+      return new Response("Missing token", { status: 400, headers: corsHeaders });
     }
 
+    const userAgent = req.headers.get("user-agent") || "";
+    const redirectUrl = `${APP_URL}/r/${token}`;
+
+    // For regular browsers, just redirect immediately
+    if (!isSocialBot(userAgent)) {
+      return new Response(null, {
+        status: 302,
+        headers: {
+          ...corsHeaders,
+          "Location": redirectUrl,
+          "Cache-Control": "public, max-age=300",
+        },
+      });
+    }
+
+    // For social media bots, serve OG tags
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    const { data: report, error } = await supabase
+    const { data: report } = await supabase
       .from("cleaning_reports")
-      .select("property_name, cleaner_name, cleaning_date, status, public_token")
+      .select("property_name, cleaner_name, cleaning_date, public_token")
       .eq("public_token", token)
       .eq("status", "published")
       .maybeSingle();
 
-    if (error || !report) {
-      return new Response("Report not found", { status: 404 });
-    }
-
-    const title = `Pur | ${report.property_name}`;
-    const description = `Visit Report — ${report.cleaner_name}`;
-    const redirectUrl = `${APP_URL}/r/${report.public_token}`;
+    const title = report ? `Pur | ${report.property_name}` : "Pur | Visit Report";
+    const description = report ? `Visit Report — ${report.cleaner_name}` : "Cleaning Visit Report";
 
     const html = `<!DOCTYPE html>
 <html lang="en">
@@ -70,12 +91,13 @@ Deno.serve(async (req) => {
     return new Response(html, {
       status: 200,
       headers: {
+        ...corsHeaders,
         "Content-Type": "text/html; charset=utf-8",
         "Cache-Control": "public, max-age=300",
       },
     });
   } catch (err) {
     console.error("share-report error:", err);
-    return new Response("Internal error", { status: 500 });
+    return new Response("Internal error", { status: 500, headers: corsHeaders });
   }
 });
