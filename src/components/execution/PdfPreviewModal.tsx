@@ -148,7 +148,22 @@ export const PdfPreviewModal = ({
               </Button>
               <Button
                 onClick={() => {
-                  onDownload();
+                  if (pdfBlob) {
+                    const url = URL.createObjectURL(pdfBlob);
+                    // Use window.open as fallback for mobile browsers that block link.click()
+                    const newWindow = window.open(url, '_blank');
+                    if (!newWindow) {
+                      // Fallback: create link with download attribute
+                      const link = document.createElement('a');
+                      link.href = url;
+                      link.download = filename;
+                      link.target = '_blank';
+                      document.body.appendChild(link);
+                      link.click();
+                      document.body.removeChild(link);
+                    }
+                    setTimeout(() => URL.revokeObjectURL(url), 5000);
+                  }
                   onClose();
                 }}
                 disabled={!pdfBlob || isLoading}

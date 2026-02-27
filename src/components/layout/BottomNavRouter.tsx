@@ -1,25 +1,22 @@
 import { Home, Calendar, Building2, Settings, FileText } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useLayoutEffect, useState, useRef, useCallback } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { useLanguage } from '@/contexts/LanguageContext';
 
 interface NavItem {
   path: string;
   icon: typeof Home;
-  labelKey: string;
 }
 
 const navItems: NavItem[] = [
-  { path: '/dashboard', icon: Home, labelKey: 'nav.dashboard' },
-  { path: '/agenda', icon: Calendar, labelKey: 'nav.agenda' },
-  { path: '/reports', icon: FileText, labelKey: 'nav.reports' },
-  { path: '/properties', icon: Building2, labelKey: 'nav.properties' },
-  { path: '/settings', icon: Settings, labelKey: 'nav.settings' },
+  { path: '/dashboard', icon: Home },
+  { path: '/agenda', icon: Calendar },
+  { path: '/reports', icon: FileText },
+  { path: '/properties', icon: Building2 },
+  { path: '/settings', icon: Settings },
 ];
 
 export const BottomNavRouter = () => {
-  const { t } = useLanguage();
   const location = useLocation();
   const navRef = useRef<HTMLDivElement>(null);
   const itemRefs = useRef<(HTMLAnchorElement | null)[]>([]);
@@ -58,7 +55,7 @@ export const BottomNavRouter = () => {
         initial={{ y: 80, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ type: "spring", stiffness: 300, damping: 30, delay: 0.2 }}
-        className="flex justify-between items-center py-1.5 px-2 relative"
+        className="flex justify-between items-center py-2 px-3 relative"
         style={{
           background: 'linear-gradient(165deg, rgba(255,255,255,0.88) 0%, rgba(255,255,255,0.78) 100%)',
           backdropFilter: 'blur(40px) saturate(200%)',
@@ -89,22 +86,27 @@ export const BottomNavRouter = () => {
               key={item.path}
               ref={(el) => { itemRefs.current[index] = el; }}
               to={item.path}
-              className="relative flex flex-col items-center justify-center gap-0.5 min-w-[56px] min-h-[48px] py-1.5 px-1.5 rounded-xl"
+              className="relative flex flex-col items-center justify-center min-w-[48px] min-h-[44px] py-2 px-3 rounded-xl"
             >
               <Icon
-                size={20}
+                size={22}
                 className={`transition-colors duration-200 ${
                   isActive ? 'text-primary' : 'text-muted-foreground'
                 }`}
                 strokeWidth={isActive ? 2.2 : 1.5}
               />
-              <span
-                className={`text-[9px] font-semibold uppercase tracking-wider transition-colors duration-200 ${
-                  isActive ? 'text-primary' : 'text-muted-foreground/70'
-                }`}
-              >
-                {t(item.labelKey)}
-              </span>
+              {/* Active dot indicator */}
+              <AnimatePresence>
+                {isActive && (
+                  <motion.div
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0, opacity: 0 }}
+                    transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                    className="absolute bottom-1 w-1 h-1 rounded-full bg-primary"
+                  />
+                )}
+              </AnimatePresence>
             </NavLink>
           );
         })}
